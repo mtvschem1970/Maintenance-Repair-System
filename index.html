@@ -538,11 +538,16 @@
         function loadSettings() {
             const savedConfig = localStorage.getItem('maint_config');
             if(savedConfig) {
-                const parsed = JSON.parse(savedConfig);
-                if(parsed.scriptUrl) appData.config.scriptUrl = parsed.scriptUrl;
-                appData.config.adminPass = parsed.adminPass;
-                if(parsed.jobId) appData.config.jobId = parsed.jobId;
+                try {
+                    const parsed = JSON.parse(savedConfig);
+                    if(parsed.scriptUrl) appData.config.scriptUrl = parsed.scriptUrl;
+                    if(parsed.adminPass) appData.config.adminPass = parsed.adminPass; // Check exist
+                    if(parsed.jobId) appData.config.jobId = parsed.jobId;
+                } catch(e) {
+                    console.error("Config load error", e);
+                }
             }
+            // Sync UI
             document.getElementById('setting-url').value = appData.config.scriptUrl;
             document.getElementById('conf-prefix').value = appData.config.jobId.prefix;
             document.getElementById('conf-digits').value = appData.config.jobId.digits;
@@ -573,8 +578,43 @@
         }
 
         async function showLoginModal() {
-            const { value: p } = await Swal.fire({ title: 'Admin', input: 'password', background: '#1e293b', color: '#fff' });
-            if(p === appData.config.adminPass) { appData.isAdmin = true; document.querySelectorAll('.admin-only').forEach(e => e.classList.remove('hidden')); document.getElementById('btnLogin').classList.add('hidden'); document.getElementById('btnLogout').classList.remove('hidden'); switchTab('dashboard'); }
+            const { value: p } = await Swal.fire({ 
+                title: 'Admin Access', 
+                input: 'password', 
+                inputLabel: 'Enter Password', 
+                inputPlaceholder: 'Default: admin123',
+                background: '#1e293b', 
+                color: '#fff',
+                confirmButtonColor: '#f59e0b',
+                showCancelButton: true
+            });
+
+            if (!p) return; // Cancelled
+
+            if (p === appData.config.adminPass) {
+                appData.isAdmin = true;
+                document.querySelectorAll('.admin-only').forEach(e => e.classList.remove('hidden'));
+                document.getElementById('btnLogin').classList.add('hidden');
+                document.getElementById('btnLogout').classList.remove('hidden');
+                switchTab('dashboard');
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Welcome Admin',
+                    text: 'Logged in successfully',
+                    timer: 1500,
+                    showConfirmButton: false,
+                    background: '#1e293b',
+                    color: '#fff'
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Access Denied',
+                    text: 'Incorrect Password',
+                    background: '#1e293b',
+                    color: '#fff'
+                });
+            }
         }
         function logout() { location.reload(); }
         function filterTable(id, q) { 
