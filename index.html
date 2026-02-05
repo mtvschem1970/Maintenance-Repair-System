@@ -38,38 +38,18 @@
 
     <style>
         body {
-            /* Background Overlay Effect */
-            background-image: linear-gradient(rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.9)), url('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');
+            background-image: linear-gradient(rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.95)), url('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
             font-family: 'Sarabun', sans-serif;
         }
-        
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #1e293b; 
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #475569; 
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #64748b; 
-        }
-
-        .fade-in {
-            animation: fadeIn 0.3s ease-in-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="text-slate-200 h-screen flex flex-col overflow-hidden">
@@ -78,24 +58,16 @@
     <header class="bg-corp-blue border-b border-slate-700 shadow-lg z-20">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-3">
-                <div class="bg-corp-gold text-corp-blue p-2 rounded-lg font-bold text-2xl">
-                    🛠️
-                </div>
+                <div class="bg-corp-gold text-corp-blue p-2 rounded-lg font-bold text-2xl">🛠️</div>
                 <div>
                     <h1 class="text-xl font-bold text-white tracking-wide">MAINTENANCE SYSTEM</h1>
-                    <p class="text-xs text-corp-gold font-medium tracking-wider uppercase">Vschem (Phra Samut Chedi)</p>
+                    <p class="text-xs text-corp-gold font-medium tracking-wider uppercase">Your Company Name</p>
                 </div>
             </div>
             <div class="flex items-center space-x-3">
-                <button onclick="refreshData()" class="p-2 rounded-full hover:bg-slate-700 transition text-slate-400 hover:text-white" title="Refresh Data">
-                    🔄
-                </button>
-                <button id="btnLogin" onclick="showLoginModal()" class="bg-corp-gold hover:bg-corp-goldHover text-corp-blue font-bold py-2 px-4 rounded-md transition shadow-md flex items-center gap-2">
-                    🔐 <span class="hidden sm:inline">Admin Login</span>
-                </button>
-                <button id="btnLogout" onclick="logout()" class="hidden bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md transition shadow-md flex items-center gap-2">
-                    🚪 <span class="hidden sm:inline">Logout</span>
-                </button>
+                <button onclick="refreshData()" class="p-2 rounded-full hover:bg-slate-700 transition text-slate-400 hover:text-white" title="Refresh Data">🔄</button>
+                <button id="btnLogin" onclick="showLoginModal()" class="bg-corp-gold hover:bg-corp-goldHover text-corp-blue font-bold py-2 px-4 rounded-md transition shadow-md flex items-center gap-2">🔐 <span class="hidden sm:inline">Admin Login</span></button>
+                <button id="btnLogout" onclick="logout()" class="hidden bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md transition shadow-md flex items-center gap-2">🚪 <span class="hidden sm:inline">Logout</span></button>
             </div>
         </div>
     </header>
@@ -104,18 +76,10 @@
     <nav class="bg-corp-lightBlue border-b border-slate-700 shadow-md z-10">
         <div class="container mx-auto px-4">
             <div class="flex space-x-1 overflow-x-auto">
-                <button onclick="switchTab('request')" id="tab-request" class="tab-btn px-6 py-3 text-sm font-medium border-b-2 border-transparent hover:text-corp-gold transition whitespace-nowrap text-corp-gold border-corp-gold">
-                    📝 Submit Request
-                </button>
-                <button onclick="switchTab('status')" id="tab-status" class="tab-btn px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition whitespace-nowrap">
-                    📊 Track Status
-                </button>
-                <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn hidden admin-only px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition whitespace-nowrap">
-                    📈 Dashboard
-                </button>
-                <button onclick="switchTab('settings')" id="tab-settings" class="tab-btn hidden admin-only px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition whitespace-nowrap">
-                    ⚙️ Settings
-                </button>
+                <button onclick="switchTab('request')" id="tab-request" class="tab-btn px-6 py-3 text-sm font-medium border-b-2 border-transparent hover:text-corp-gold transition whitespace-nowrap text-corp-gold border-corp-gold">📝 Submit Request</button>
+                <button onclick="switchTab('status')" id="tab-status" class="tab-btn px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition whitespace-nowrap">📊 Track Status</button>
+                <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn hidden admin-only px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition whitespace-nowrap">📈 Dashboard</button>
+                <button onclick="switchTab('settings')" id="tab-settings" class="tab-btn hidden admin-only px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition whitespace-nowrap">⚙️ Settings</button>
             </div>
         </div>
     </nav>
@@ -127,67 +91,26 @@
         <div id="view-request" class="view-section max-w-3xl mx-auto fade-in">
             <div class="bg-corp-lightBlue rounded-xl shadow-2xl border border-slate-700 overflow-hidden">
                 <div class="bg-gradient-to-r from-corp-blue to-corp-lightBlue p-4 border-b border-slate-700">
-                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
-                        📝 แบบฟอร์มแจ้งซ่อม (Repair Request)
-                    </h2>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">📝 แบบฟอร์มแจ้งซ่อม (Repair Request)</h2>
                 </div>
                 <div class="p-6">
                     <form id="requestForm" onsubmit="submitRequest(event)" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Name -->
-                            <div>
-                                <label class="block text-sm font-medium text-slate-400 mb-1">ชื่อผู้แจ้ง (Requester Name)</label>
-                                <input type="text" id="reqName" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold focus:ring-1 focus:ring-corp-gold transition">
-                            </div>
-                            <!-- Department -->
-                            <div>
-                                <label class="block text-sm font-medium text-slate-400 mb-1">สถานที่ (Location)</label>
-                                <select id="reqDept" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold focus:ring-1 focus:ring-corp-gold transition text-slate-200">
-                                    <option value="">-- เลือกสถานที่ --</option>
-                                    <!-- Options will be populated by JS -->
-                                </select>
-                            </div>
-                            <!-- Phone -->
-                            <div>
-                                <label class="block text-sm font-medium text-slate-400 mb-1">ข้อมูลติดต่อกลับ เบอร์/Line</label>
-                                <input type="tel" id="reqPhone" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold focus:ring-1 focus:ring-corp-gold transition">
-                            </div>
-                            <!-- Equipment -->
-                            <div>
-                                <label class="block text-sm font-medium text-slate-400 mb-1">อุปกรณ์/เครื่องจักร (Equipment)</label>
-                                <input type="text" id="reqEquip" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold focus:ring-1 focus:ring-corp-gold transition">
-                            </div>
+                            <div><label class="block text-sm font-medium text-slate-400 mb-1">ชื่อผู้แจ้ง (Requester)</label><input type="text" id="reqName" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"></div>
+                            <div><label class="block text-sm font-medium text-slate-400 mb-1">แผนก (Department)</label><select id="reqDept" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"><option value="">-- Loading... --</option></select></div>
+                            <div><label class="block text-sm font-medium text-slate-400 mb-1">เบอร์ติดต่อ (Phone)</label><input type="tel" id="reqPhone" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"></div>
+                            <div><label class="block text-sm font-medium text-slate-400 mb-1">อุปกรณ์/สถานที่ (Location)</label><input type="text" id="reqEquip" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"></div>
                         </div>
-
-                        <!-- Details -->
+                        <div><label class="block text-sm font-medium text-slate-400 mb-1">รายละเอียดปัญหา (Details)</label><textarea id="reqDetail" rows="4" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"></textarea></div>
                         <div>
-                            <label class="block text-sm font-medium text-slate-400 mb-1">รายละเอียดปัญหา (Problem Details)</label>
-                            <textarea id="reqDetail" rows="4" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold focus:ring-1 focus:ring-corp-gold transition"></textarea>
-                        </div>
-
-                        <!-- Urgency -->
-                        <div>
-                            <label class="block text-sm font-medium text-slate-400 mb-3">ระดับความเร่งด่วน (Urgency)</label>
+                            <label class="block text-sm font-medium text-slate-400 mb-3">ระดับความเร่งด่วน</label>
                             <div class="flex gap-4">
-                                <label class="cursor-pointer flex items-center gap-2 p-3 rounded-lg border border-slate-600 hover:bg-slate-700 transition w-full justify-center has-[:checked]:border-green-500 has-[:checked]:bg-green-500/10">
-                                    <input type="radio" name="urgency" value="Low" class="accent-green-500" checked>
-                                    <span class="text-green-400 font-medium">ปกติ (Low)</span>
-                                </label>
-                                <label class="cursor-pointer flex items-center gap-2 p-3 rounded-lg border border-slate-600 hover:bg-slate-700 transition w-full justify-center has-[:checked]:border-yellow-500 has-[:checked]:bg-yellow-500/10">
-                                    <input type="radio" name="urgency" value="Medium" class="accent-yellow-500">
-                                    <span class="text-yellow-400 font-medium">ด่วน (Medium)</span>
-                                </label>
-                                <label class="cursor-pointer flex items-center gap-2 p-3 rounded-lg border border-slate-600 hover:bg-slate-700 transition w-full justify-center has-[:checked]:border-red-500 has-[:checked]:bg-red-500/10">
-                                    <input type="radio" name="urgency" value="High" class="accent-red-500">
-                                    <span class="text-red-400 font-medium">ด่วนมาก (High)</span>
-                                </label>
+                                <label class="cursor-pointer flex items-center gap-2 p-3 rounded-lg border border-slate-600 hover:bg-slate-700 w-full justify-center has-[:checked]:border-green-500 has-[:checked]:bg-green-500/10"><input type="radio" name="urgency" value="Low" class="accent-green-500" checked><span class="text-green-400">ปกติ</span></label>
+                                <label class="cursor-pointer flex items-center gap-2 p-3 rounded-lg border border-slate-600 hover:bg-slate-700 w-full justify-center has-[:checked]:border-yellow-500 has-[:checked]:bg-yellow-500/10"><input type="radio" name="urgency" value="Medium" class="accent-yellow-500"><span class="text-yellow-400">ด่วน</span></label>
+                                <label class="cursor-pointer flex items-center gap-2 p-3 rounded-lg border border-slate-600 hover:bg-slate-700 w-full justify-center has-[:checked]:border-red-500 has-[:checked]:bg-red-500/10"><input type="radio" name="urgency" value="High" class="accent-red-500"><span class="text-red-400">ด่วนมาก</span></label>
                             </div>
                         </div>
-
-                        <!-- Submit Button -->
-                        <button type="submit" class="w-full bg-gradient-to-r from-corp-gold to-yellow-600 hover:from-yellow-500 hover:to-yellow-700 text-corp-blue font-bold py-3 rounded-lg shadow-lg transform hover:scale-[1.01] transition duration-200">
-                             ส่งข้อมูลแจ้งซ่อม (Submit Request)
-                        </button>
+                        <button type="submit" class="w-full bg-gradient-to-r from-corp-gold to-yellow-600 hover:from-yellow-500 hover:to-yellow-700 text-corp-blue font-bold py-3 rounded-lg shadow-lg transform hover:scale-[1.01] transition duration-200">🚀 ส่งข้อมูลแจ้งซ่อม</button>
                     </form>
                 </div>
             </div>
@@ -197,519 +120,389 @@
         <div id="view-status" class="view-section hidden container mx-auto fade-in">
             <div class="bg-corp-lightBlue rounded-xl shadow-2xl border border-slate-700 overflow-hidden">
                 <div class="p-4 border-b border-slate-700 flex justify-between items-center">
-                    <h2 class="text-xl font-bold text-white">📊 สถานะงานซ่อม (Job Status)</h2>
-                    <input type="text" id="searchStatus" onkeyup="filterTable('statusTable', this.value)" placeholder="🔍 ค้นหา (Job ID, ชื่อ, อุปกรณ์)..." class="bg-slate-900 border border-slate-600 rounded-lg px-3 py-1 text-sm focus:outline-none focus:border-corp-gold">
+                    <h2 class="text-xl font-bold text-white">📊 สถานะงานซ่อม</h2>
+                    <input type="text" onkeyup="filterTable('statusTable', this.value)" placeholder="🔍 ค้นหา..." class="bg-slate-900 border border-slate-600 rounded-lg px-3 py-1 text-sm focus:outline-none focus:border-corp-gold">
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse" id="statusTable">
                         <thead class="bg-slate-900 text-slate-400 uppercase text-xs">
-                            <tr>
-                                <th class="p-4 border-b border-slate-700">Job ID</th>
-                                <th class="p-4 border-b border-slate-700">Date</th>
-                                <th class="p-4 border-b border-slate-700">Equipment</th>
-                                <th class="p-4 border-b border-slate-700">Details</th>
-                                <th class="p-4 border-b border-slate-700">Urgency</th>
-                                <th class="p-4 border-b border-slate-700">Status</th>
-                                <th class="p-4 border-b border-slate-700">Technician</th>
-                                <th class="p-4 border-b border-slate-700">Remarks</th>
-                            </tr>
+                            <tr><th class="p-4">Job ID</th><th class="p-4">Date</th><th class="p-4">Equipment</th><th class="p-4">Details</th><th class="p-4">Urgency</th><th class="p-4">Status</th><th class="p-4">Tech</th></tr>
                         </thead>
-                        <tbody id="statusTableBody" class="text-sm divide-y divide-slate-700">
-                            <!-- Data will be populated here -->
-                            <tr><td colspan="8" class="p-4 text-center text-slate-500">Loading data...</td></tr>
-                        </tbody>
+                        <tbody id="statusTableBody" class="text-sm divide-y divide-slate-700"></tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- VIEW: DASHBOARD (ADMIN) -->
+        <!-- VIEW: DASHBOARD -->
         <div id="view-dashboard" class="view-section hidden container mx-auto fade-in">
-            <!-- KPI Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-                <div class="bg-corp-lightBlue p-4 rounded-xl border border-slate-700 shadow-lg">
-                    <div class="text-slate-400 text-xs uppercase font-bold">Total Jobs</div>
-                    <div class="text-3xl font-bold text-white mt-1" id="kpi-total">0</div>
-                </div>
-                <div class="bg-corp-lightBlue p-4 rounded-xl border border-l-4 border-slate-500 shadow-lg">
-                    <div class="text-slate-400 text-xs uppercase font-bold">Waiting</div>
-                    <div class="text-3xl font-bold text-slate-300 mt-1" id="kpi-waiting">0</div>
-                </div>
-                <div class="bg-corp-lightBlue p-4 rounded-xl border border-l-4 border-blue-500 shadow-lg">
-                    <div class="text-slate-400 text-xs uppercase font-bold">Processing</div>
-                    <div class="text-3xl font-bold text-blue-400 mt-1" id="kpi-processing">0</div>
-                </div>
-                <div class="bg-corp-lightBlue p-4 rounded-xl border border-l-4 border-green-500 shadow-lg">
-                    <div class="text-slate-400 text-xs uppercase font-bold">Done</div>
-                    <div class="text-3xl font-bold text-green-400 mt-1" id="kpi-done">0</div>
-                </div>
-                <div class="bg-corp-lightBlue p-4 rounded-xl border border-l-4 border-corp-gold shadow-lg">
-                    <div class="text-slate-400 text-xs uppercase font-bold">Avg. Repair Time</div>
-                    <div class="text-2xl font-bold text-corp-gold mt-1" id="kpi-avg">0h</div>
-                </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div class="bg-corp-lightBlue p-4 rounded-xl border border-slate-700 shadow-lg"> <div class="text-slate-400 text-xs font-bold">TOTAL JOBS</div> <div class="text-3xl font-bold text-white mt-1" id="kpi-total">0</div> </div>
+                <div class="bg-corp-lightBlue p-4 rounded-xl border-l-4 border-slate-500 shadow-lg"> <div class="text-slate-400 text-xs font-bold">WAITING</div> <div class="text-3xl font-bold text-slate-300 mt-1" id="kpi-waiting">0</div> </div>
+                <div class="bg-corp-lightBlue p-4 rounded-xl border-l-4 border-blue-500 shadow-lg"> <div class="text-slate-400 text-xs font-bold">PROCESSING</div> <div class="text-3xl font-bold text-blue-400 mt-1" id="kpi-processing">0</div> </div>
+                <div class="bg-corp-lightBlue p-4 rounded-xl border-l-4 border-green-500 shadow-lg"> <div class="text-slate-400 text-xs font-bold">DONE</div> <div class="text-3xl font-bold text-green-400 mt-1" id="kpi-done">0</div> </div>
             </div>
-
-            <!-- Management Table -->
             <div class="bg-corp-lightBlue rounded-xl shadow-2xl border border-slate-700 overflow-hidden">
                 <div class="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-800">
-                    <h2 class="text-xl font-bold text-corp-gold">📋 จัดการงานซ่อม (Task Management)</h2>
+                    <h2 class="text-xl font-bold text-corp-gold">📋 จัดการงานซ่อม</h2>
                     <input type="text" onkeyup="filterTable('adminTable', this.value)" placeholder="🔍 ค้นหางาน..." class="bg-slate-900 border border-slate-600 rounded-lg px-3 py-1 text-sm focus:outline-none focus:border-corp-gold">
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse" id="adminTable">
                         <thead class="bg-slate-900 text-slate-400 uppercase text-xs">
-                            <tr>
-                                <th class="p-4">Action</th>
-                                <th class="p-4">ID</th>
-                                <th class="p-4">Date</th>
-                                <th class="p-4">Requester</th>
-                                <th class="p-4">Equipment</th>
-                                <th class="p-4">Problem</th>
-                                <th class="p-4">Status</th>
-                                <th class="p-4">Tech</th>
-                            </tr>
+                            <tr><th class="p-4">Action</th><th class="p-4">ID</th><th class="p-4">Requester</th><th class="p-4">Equipment</th><th class="p-4">Status</th></tr>
                         </thead>
-                        <tbody id="adminTableBody" class="text-sm divide-y divide-slate-700">
-                            <!-- Admin Data -->
-                        </tbody>
+                        <tbody id="adminTableBody" class="text-sm divide-y divide-slate-700"></tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- VIEW: SETTINGS (ADMIN) -->
+        <!-- VIEW: SETTINGS -->
         <div id="view-settings" class="view-section hidden max-w-4xl mx-auto fade-in">
+            <div class="bg-corp-lightBlue rounded-xl border border-slate-700 p-6 shadow-lg mb-6">
+                <h3 class="text-lg font-bold text-corp-gold mb-4 border-b border-slate-700 pb-2">⚙️ System Configuration</h3>
+                
+                <div class="mb-4">
+                    <label class="block text-sm text-slate-400 mb-1">Google Apps Script URL (Deployed as Web App)</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="setting-url" class="flex-1 bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-slate-300">
+                        <button onclick="testConnection()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded text-xs whitespace-nowrap">⚡ Test Connect</button>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1">ต้องลงท้ายด้วย /exec และเลือก Who has access เป็น Anyone</p>
+                </div>
+                
+                <div class="flex gap-4 mt-6">
+                    <button onclick="saveSystemSettings()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm transition">Save Config</button>
+                    <button onclick="resetConfig()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm transition">⚠️ Reset Defaults</button>
+                </div>
+            </div>
+
+            <!-- Job ID & Lists Config -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- System Config -->
                 <div class="bg-corp-lightBlue rounded-xl border border-slate-700 p-6 shadow-lg">
-                    <h3 class="text-lg font-bold text-corp-gold mb-4 border-b border-slate-700 pb-2">⚙️ System Configuration</h3>
-                    
-                    <div class="mb-4">
-                        <label class="block text-sm text-slate-400 mb-1">Google Apps Script URL (Web App)</label>
-                        <input type="text" id="setting-url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-slate-300 placeholder-slate-600">
-                        <p class="text-xs text-yellow-500 mt-1">* Paste your deployed Web App URL here</p>
+                    <h3 class="text-lg font-bold text-corp-gold mb-4 border-b border-slate-700 pb-2">🆔 Job ID Config</h3>
+                    <div class="grid grid-cols-2 gap-4 mb-2">
+                        <div><label class="text-xs text-slate-400">Prefix</label><input type="text" id="conf-prefix" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 uppercase"></div>
+                        <div><label class="text-xs text-slate-400">Digits</label><input type="number" id="conf-digits" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1"></div>
                     </div>
-                    
-                    <div class="mb-4">
-                        <label class="block text-sm text-slate-400 mb-1">Admin Password</label>
-                        <input type="password" id="setting-pass" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
-                    </div>
-
-                    <button onclick="saveSystemSettings()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm transition">Save System Config</button>
+                    <div><label class="text-xs text-slate-400">Year Format</label><select id="conf-year" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1"><option value="YYYY">YYYY (2026)</option><option value="YY">YY (26)</option></select></div>
+                    <button onclick="saveJobConfig()" class="mt-4 w-full bg-slate-700 hover:bg-slate-600 text-white py-1 rounded text-sm">Save Job ID Format</button>
                 </div>
-
-                <!-- Job ID Config -->
+                
                 <div class="bg-corp-lightBlue rounded-xl border border-slate-700 p-6 shadow-lg">
-                    <h3 class="text-lg font-bold text-corp-gold mb-4 border-b border-slate-700 pb-2">🆔 Job ID Generator</h3>
+                    <h3 class="text-lg font-bold text-corp-gold mb-4 border-b border-slate-700 pb-2">📋 Server Lists Management</h3>
                     
-                    <div class="grid grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label class="block text-sm text-slate-400 mb-1">Prefix</label>
-                            <input type="text" id="conf-prefix" value="MTN" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 uppercase">
-                        </div>
-                        <div>
-                            <label class="block text-sm text-slate-400 mb-1">Year Format</label>
-                            <select id="conf-year" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-slate-200">
-                                <option value="YYYY">2026</option>
-                                <option value="YY">26</option>
-                                <option value="NONE">None</option>
-                            </select>
-                        </div>
-                    </div>
                     <div class="mb-4">
-                        <label class="block text-sm text-slate-400 mb-1">Running Number Digits</label>
-                        <input type="number" id="conf-digits" value="4" min="3" max="6" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2">
+                        <label class="text-xs text-slate-400 block mb-1">Departments</label>
+                        <div class="flex gap-2"><input id="new-dept" class="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs" placeholder="New Dept"><button onclick="manageListApi('manageDepartment','add', 'new-dept')" class="bg-green-600 px-2 rounded text-xs">+</button></div>
+                        <ul id="list-dept" class="h-20 overflow-y-auto bg-slate-900 border border-slate-700 p-1 mt-1 text-xs"></ul>
                     </div>
 
-                    <div class="bg-slate-800 p-3 rounded mb-4 text-center border border-slate-600">
-                        <span class="text-xs text-slate-400 block mb-1">Preview</span>
-                        <span id="job-id-preview" class="text-xl font-mono text-green-400 font-bold">MTN-2026-0001</span>
-                    </div>
-
-                    <button onclick="saveJobConfig()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm transition">Save ID Format</button>
-                </div>
-
-                <!-- List Management -->
-                <div class="md:col-span-2 bg-corp-lightBlue rounded-xl border border-slate-700 p-6 shadow-lg">
-                    <h3 class="text-lg font-bold text-corp-gold mb-4 border-b border-slate-700 pb-2">📋 Lists Management</h3>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Departments -->
-                        <div>
-                            <label class="block text-sm text-slate-400 mb-2">Location (สถานที่)</label>
-                            <div class="flex gap-2 mb-2">
-                                <input type="text" id="new-dept" placeholder="New Dept..." class="flex-1 bg-slate-900 border border-slate-600 rounded px-3 py-1">
-                                <button onclick="addListItem('dept')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded">+</button>
-                            </div>
-                            <ul id="list-dept" class="bg-slate-900 rounded border border-slate-700 h-40 overflow-y-auto p-2 text-sm"></ul>
-                        </div>
-                        <!-- Technicians -->
-                        <div>
-                            <label class="block text-sm text-slate-400 mb-2">Technicians (ช่างซ่อม)</label>
-                            <div class="flex gap-2 mb-2">
-                                <input type="text" id="new-tech" placeholder="New Technician..." class="flex-1 bg-slate-900 border border-slate-600 rounded px-3 py-1">
-                                <button onclick="addListItem('tech')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded">+</button>
-                            </div>
-                            <ul id="list-tech" class="bg-slate-900 rounded border border-slate-700 h-40 overflow-y-auto p-2 text-sm"></ul>
-                        </div>
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">Technicians</label>
+                        <div class="flex gap-2"><input id="new-tech" class="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs" placeholder="New Tech"><button onclick="manageListApi('manageTechnician','add', 'new-tech')" class="bg-green-600 px-2 rounded text-xs">+</button></div>
+                        <ul id="list-tech" class="h-20 overflow-y-auto bg-slate-900 border border-slate-700 p-1 mt-1 text-xs"></ul>
                     </div>
                 </div>
             </div>
         </div>
-
     </main>
 
-    <!-- ADMIN MODAL: EDIT/ACCEPT JOB -->
+    <!-- ADMIN MODAL -->
     <div id="adminModal" class="fixed inset-0 bg-black/80 hidden z-50 flex items-center justify-center backdrop-blur-sm">
-        <div class="bg-corp-lightBlue w-full max-w-2xl rounded-xl border border-slate-600 shadow-2xl m-4 max-h-[90vh] overflow-y-auto">
-            <div class="p-4 border-b border-slate-600 flex justify-between items-center bg-slate-800">
-                <h3 class="text-xl font-bold text-corp-gold" id="modalTitle">Manage Job</h3>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-white text-2xl">&times;</button>
+        <div class="bg-corp-lightBlue w-full max-w-2xl rounded-xl border border-slate-600 shadow-2xl m-4 max-h-[90vh] overflow-y-auto p-6">
+            <h3 class="text-xl font-bold text-corp-gold mb-4" id="modalTitle">Manage Job</h3>
+            <input type="hidden" id="modalJobId">
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div><label class="block text-xs text-slate-400">Status</label><select id="modalStatus" onchange="toggleCostSection()" class="w-full bg-slate-900 border border-slate-600 rounded p-2"><option value="Waiting">Waiting</option><option value="Processing">Processing</option><option value="Done">Done</option></select></div>
+                <div><label class="block text-xs text-slate-400">Tech</label><select id="modalTech" class="w-full bg-slate-900 border border-slate-600 rounded p-2"></select></div>
             </div>
-            <div class="p-6 space-y-4">
-                <input type="hidden" id="modalJobId">
-                
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs text-slate-400">Status</label>
-                        <select id="modalStatus" onchange="toggleCostSection()" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white">
-                            <option value="Waiting">Waiting</option>
-                            <option value="Processing">Processing</option>
-                            <option value="Done">Done</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs text-slate-400">Assign Technician</label>
-                        <select id="modalTech" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white">
-                            <option value="">-- Select Tech --</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs text-slate-400">Admin Remarks</label>
-                    <textarea id="modalRemark" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white" rows="2"></textarea>
-                </div>
-
-                <!-- Cost & Items Section (Hidden unless Done) -->
-                <div id="costSection" class="hidden border-t border-slate-600 pt-4 mt-4 bg-slate-800/50 p-4 rounded-lg">
-                    <h4 class="text-green-400 font-bold mb-2 flex justify-between items-center">
-                        <span>💰 Cost & Spare Parts</span>
-                        <span id="grandTotalDisplay" class="text-white text-lg">0.00 ฿</span>
-                    </h4>
-                    
-                    <div class="space-y-2 mb-2" id="itemsContainer">
-                        <!-- Dynamic Rows -->
-                    </div>
-                    
-                    <button type="button" onclick="addItemRow()" class="text-xs bg-slate-700 hover:bg-slate-600 text-white px-2 py-1 rounded border border-slate-500">
-                        + Add Item
-                    </button>
-                </div>
-
-                <div class="flex justify-end pt-4 border-t border-slate-600 gap-2">
-                    <button onclick="closeModal()" class="px-4 py-2 rounded text-slate-300 hover:bg-slate-700">Cancel</button>
-                    <button onclick="saveJobChanges()" class="bg-corp-gold hover:bg-corp-goldHover text-corp-blue font-bold px-6 py-2 rounded shadow-lg">Save Changes</button>
-                </div>
+            <div class="mb-4"><label class="block text-xs text-slate-400">Remarks</label><textarea id="modalRemark" class="w-full bg-slate-900 border border-slate-600 rounded p-2" rows="2"></textarea></div>
+            
+            <div id="costSection" class="hidden border-t border-slate-600 pt-4 bg-slate-800/50 p-4 rounded-lg mb-4">
+                <h4 class="text-green-400 font-bold mb-2 flex justify-between"><span>💰 Cost & Items</span><span id="grandTotalDisplay">0.00 ฿</span></h4>
+                <div id="itemsContainer" class="space-y-2 mb-2"></div>
+                <button type="button" onclick="addItemRow()" class="text-xs bg-slate-700 hover:bg-slate-600 text-white px-2 py-1 rounded">+ Item</button>
+                <div class="mt-2"><label class="block text-xs text-slate-400">Additional Notes</label><textarea id="modalAdditionalNotes" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-xs" rows="1"></textarea></div>
             </div>
+            
+            <div class="flex justify-end gap-2"><button onclick="closeModal()" class="px-4 py-2 rounded text-slate-300 hover:bg-slate-700">Cancel</button><button onclick="saveJobChanges()" class="bg-corp-gold text-corp-blue font-bold px-6 py-2 rounded">Save</button></div>
         </div>
     </div>
 
-    <!-- JAVASCRIPT LOGIC -->
     <script>
-        // --- DATA & STATE ---
-        const defaultDepartments = ['Production', 'Warehouse', 'Office', 'Maintenance', 'Quality'];
-        const defaultTechs = ['Somchai', 'Somsak', 'John Doe'];
+        // --- CONFIG & STATE ---
+        // ใส่ URL ที่ได้จาก Google Apps Script Deployment ที่นี่ (ต้องลงท้ายด้วย /exec)
+        const DEFAULT_URL = 'https://script.google.com/macros/s/AKfycby5AmKslwMIe3KS802z7-nyAczQCuzQHjCEjdG_I5yyKCul34hmu12KAJdUgaYqKicf/exec';
         
         let appData = {
             requests: [],
             config: {
-                scriptUrl: '',
+                scriptUrl: DEFAULT_URL,
                 adminPass: 'admin123',
-                jobId: { prefix: 'MTN', year: 'YYYY', digits: 4, nextNum: 1 },
-                depts: JSON.parse(localStorage.getItem('maint_depts')) || defaultDepartments,
-                techs: JSON.parse(localStorage.getItem('maint_techs')) || defaultTechs
+                jobId: { prefix: 'MTN', year: 'YYYY', digits: 4, startNumber: 1 }
             },
-            isAdmin: false
+            isAdmin: false,
+            lists: { depts: [], techs: [] }
         };
 
-        // --- API HELPER ---
-        async function callApi(action, payload = {}) {
-            const url = appData.config.scriptUrl;
-            if (!url) {
-                // If no URL is configured, return null to signal mock mode or error
-                return null;
-            }
+        // --- JSONP API HANDLER (GET Only) ---
+        // เนื่องจาก GS Script ใช้ doGet และ return content type javascript เราต้องใช้ JSONP
+        function jsonpRequest(action, params = {}) {
+            return new Promise((resolve, reject) => {
+                const url = appData.config.scriptUrl;
+                if (!url) return reject("No Script URL");
 
-            // Using JSONP style or POST (no-cors) workaround is tricky in pure client-side
-            // But GAS Web App deployed as "Anyone" supports POST requests nicely if handled correctly.
-            // We'll use text/plain to avoid CORS preflight issues with application/json
-            const body = { action: action, ...payload };
-
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    body: JSON.stringify(body)
+                const callbackName = 'cb_' + Math.round(100000 * Math.random());
+                
+                // สร้าง parameters string
+                const queryParams = new URLSearchParams({ 
+                    action: action, 
+                    callback: callbackName,
+                    ...params 
                 });
-                return await response.json();
-            } catch (error) {
-                console.error("API Connection Error:", error);
-                return null; 
-            }
+
+                // สร้าง Script tag
+                const script = document.createElement('script');
+                script.src = `${url}?${queryParams.toString()}`;
+                
+                // Global callback function
+                window[callbackName] = function(data) {
+                    delete window[callbackName];
+                    document.body.removeChild(script);
+                    resolve(data);
+                };
+
+                script.onerror = function() {
+                    delete window[callbackName];
+                    document.body.removeChild(script);
+                    reject("Script Load Error (Check URL/Network)");
+                };
+
+                document.body.appendChild(script);
+            });
         }
 
-        // --- INITIALIZATION ---
+        // --- INIT ---
         document.addEventListener('DOMContentLoaded', () => {
             loadSettings();
-            renderDropdowns();
-            renderLists();
             
-            // Try to fetch real data first
-            refreshData(true); // silent refresh
-            
-            updateJobIdPreview();
-            
-            // Event Listeners for Config Inputs
-            ['conf-prefix', 'conf-year', 'conf-digits'].forEach(id => {
-                document.getElementById(id).addEventListener('input', updateJobIdPreview);
-            });
+            // Initial Fetch
+            refreshData(true);
+            fetchLists(); // Load depts/techs from server
         });
 
-        // --- NAVIGATION & AUTH ---
-        function switchTab(tabId) {
-            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(el => {
-                el.classList.remove('text-corp-gold', 'border-corp-gold');
-                el.classList.add('text-slate-400', 'border-transparent');
-            });
-
-            document.getElementById(`view-${tabId}`).classList.remove('hidden');
-            document.getElementById(`tab-${tabId}`).classList.add('text-corp-gold', 'border-corp-gold');
-            document.getElementById(`tab-${tabId}`).classList.remove('text-slate-400', 'border-transparent');
-
-            if(tabId === 'dashboard') updateDashboard();
-        }
-
-        async function showLoginModal() {
-            const { value: password } = await Swal.fire({
-                title: 'Admin Access',
-                input: 'password',
-                inputLabel: 'Enter Password',
-                inputPlaceholder: 'Password',
-                background: '#1e293b',
-                color: '#fff',
-                confirmButtonColor: '#f59e0b'
-            });
-
-            if (password === appData.config.adminPass) {
-                appData.isAdmin = true;
-                document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
-                document.getElementById('btnLogin').classList.add('hidden');
-                document.getElementById('btnLogout').classList.remove('hidden');
-                switchTab('dashboard');
-                Swal.fire({ icon: 'success', title: 'Welcome Admin', timer: 1500, showConfirmButton: false, background: '#1e293b', color: '#fff' });
-            } else if (password) {
-                Swal.fire({ icon: 'error', title: 'Wrong Password', background: '#1e293b', color: '#fff' });
-            }
-        }
-
-        function logout() {
-            appData.isAdmin = false;
-            document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
-            document.getElementById('btnLogin').classList.remove('hidden');
-            document.getElementById('btnLogout').classList.add('hidden');
-            switchTab('request');
-        }
-
-        // --- JOB ID LOGIC ---
-        function generateJobId() {
-            const c = appData.config.jobId;
-            const now = new Date();
-            let yearStr = '';
-            if(c.year === 'YYYY') yearStr = '-' + now.getFullYear();
-            if(c.year === 'YY') yearStr = '-' + String(now.getFullYear()).slice(-2);
-            
-            const numStr = String(c.nextNum).padStart(c.digits, '0');
-            return `${c.prefix}${yearStr}-${numStr}`;
-        }
-
-        function incrementJobId() {
-            appData.config.jobId.nextNum++;
-            saveSettings();
-        }
-
-        function updateJobIdPreview() {
-            const p = document.getElementById('conf-prefix').value;
-            const y = document.getElementById('conf-year').value;
-            const d = document.getElementById('conf-digits').value;
-            
-            // Preview logic
-            const now = new Date();
-            let yearStr = '';
-            if(y === 'YYYY') yearStr = '-' + now.getFullYear();
-            if(y === 'YY') yearStr = '-' + String(now.getFullYear()).slice(-2);
-            const numStr = String(1).padStart(d, '0');
-            
-            document.getElementById('job-id-preview').innerText = `${p}${yearStr}-${numStr}`;
-        }
-
-        // --- SUBMIT REQUEST ---
+        // --- MAIN FUNCTIONS ---
         async function submitRequest(e) {
             e.preventDefault();
             
-            const newJobId = generateJobId();
-            const formData = {
-                jobId: newJobId,
-                name: document.getElementById('reqName').value,
-                dept: document.getElementById('reqDept').value,
-                phone: document.getElementById('reqPhone').value,
-                equip: document.getElementById('reqEquip').value,
-                detail: document.getElementById('reqDetail').value,
-                urgency: document.querySelector('input[name="urgency"]:checked').value
+            // Prepare params according to GS
+            const params = {
+                requestDate: new Date().toISOString(),
+                requesterName: document.getElementById('reqName').value,
+                positionDept: document.getElementById('reqDept').value,
+                phoneNumber: document.getElementById('reqPhone').value,
+                equipmentLocation: document.getElementById('reqEquip').value,
+                problemDetails: document.getElementById('reqDetail').value,
+                urgency: document.querySelector('input[name="urgency"]:checked').value,
+                status: 'Waiting',
+                jobIdConfig: JSON.stringify(appData.config.jobId) // Pass config for Server generation
             };
 
-            Swal.fire({
-                title: 'Sending Data...',
-                didOpen: () => Swal.showLoading(),
-                background: '#1e293b', color: '#fff'
-            });
-
-            // 1. Try to send to API
-            const apiResult = await callApi('create', formData);
-
-            if (apiResult && apiResult.status === 'success') {
-                // Success with API
-                incrementJobId();
-                document.getElementById('requestForm').reset();
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Submitted to Server!',
-                    text: `Job ID: ${newJobId}`,
-                    background: '#1e293b', color: '#fff',
-                    confirmButtonColor: '#f59e0b'
-                });
-                refreshData(true); // reload data from server
-            } else {
-                // Fail or No URL configured -> Fallback to Local Mock
-                if (!appData.config.scriptUrl) {
-                     // Local Simulation
-                    const localData = {
-                        ...formData,
-                        date: new Date().toISOString(),
-                        status: 'Waiting', tech: '-', remarks: '-', items: [], totalCost: 0
-                    };
-                    appData.requests.unshift(localData);
-                    incrementJobId();
+            Swal.fire({ title: 'Sending...', didOpen: () => Swal.showLoading(), background: '#1e293b', color: '#fff' });
+            
+            try {
+                const result = await jsonpRequest('submit', params);
+                if (result.status === 'success') {
                     document.getElementById('requestForm').reset();
-                    renderStatusTable();
-                    
                     Swal.fire({
-                        icon: 'warning',
-                        title: 'Offline Mode',
-                        text: `Saved locally (No URL configured). Job ID: ${newJobId}`,
+                        icon: 'success', 
+                        title: 'Success', 
+                        text: `Job Created: ${result.jobId}`,
                         background: '#1e293b', color: '#fff'
                     });
+                    refreshData(true);
+                    switchTab('status');
                 } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Connection Failed',
-                        text: 'Could not connect to Google Sheet.',
-                        background: '#1e293b', color: '#fff'
-                    });
+                    throw new Error(result.message);
                 }
+            } catch (err) {
+                Swal.fire('Error', err.toString(), 'error');
             }
-            switchTab('status');
         }
 
-        // --- TABLES & DASHBOARD ---
-        function renderStatusTable() {
-            const tbody = document.getElementById('statusTableBody');
-            tbody.innerHTML = '';
+        async function refreshData(silent = false) {
+            if(!silent) Swal.fire({ title: 'Syncing...', didOpen: () => Swal.showLoading() });
             
-            if (appData.requests.length === 0) {
-                 tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-500">No data available.</td></tr>`;
-                 return;
+            try {
+                const result = await jsonpRequest('fetch');
+                if (result.status === 'success') {
+                    appData.requests = result.data; // GS return correct keys now
+                    renderStatusTable();
+                    if(appData.isAdmin) renderAdminTable();
+                    if(!silent) Swal.close();
+                } else {
+                    if(!silent) Swal.fire('Error', result.message, 'error');
+                }
+            } catch(err) {
+                console.error(err);
+                if(!silent) Swal.fire('Connection Error', 'Check Settings URL', 'error');
+            }
+        }
+
+        // --- LISTS MANAGEMENT (Server Side) ---
+        async function fetchLists() {
+            try {
+                const d = await jsonpRequest('getDepartments');
+                if(d.status === 'success') {
+                    appData.lists.depts = d.data;
+                    renderLists(); renderDropdowns();
+                }
+                const t = await jsonpRequest('getTechnicians');
+                if(t.status === 'success') {
+                    appData.lists.techs = t.data;
+                    renderLists(); renderDropdowns();
+                }
+            } catch(e) { console.warn("List fetch failed", e); }
+        }
+
+        async function manageListApi(action, op, inputId) {
+            const name = inputId ? document.getElementById(inputId).value : arguments[3]; // arg 3 for delete
+            if(!name) return;
+
+            Swal.fire({ title: 'Processing...', didOpen: () => Swal.showLoading() });
+            try {
+                const res = await jsonpRequest(action, { operation: op, name: name });
+                if(res.status === 'success') {
+                    if(inputId) document.getElementById(inputId).value = '';
+                    await fetchLists();
+                    Swal.close();
+                } else {
+                    Swal.fire('Error', res.message, 'error');
+                }
+            } catch(e) {
+                Swal.fire('Error', e.toString(), 'error');
+            }
+        }
+
+        // --- ADMIN UPDATE ---
+        async function saveJobChanges() {
+            const jobId = document.getElementById('modalJobId').value;
+            const status = document.getElementById('modalStatus').value;
+            
+            // Calculate items
+            let items = [], totalCost = 0;
+            if(status === 'Done') {
+                document.querySelectorAll('.item-row').forEach(row => {
+                    const name = row.querySelector('.item-name').value;
+                    const qty = parseFloat(row.querySelector('.item-qty').value)||0;
+                    const unitPrice = parseFloat(row.querySelector('.item-price').value)||0;
+                    const total = qty * unitPrice;
+                    if(name) { 
+                        items.push({name, quantity: qty, unitPrice, total}); 
+                        totalCost += total; 
+                    }
+                });
             }
 
-            appData.requests.forEach(req => {
-                const statusColor = getStatusColor(req.status);
-                const urgencyColor = getUrgencyColor(req.urgency);
-                
-                const row = `
-                    <tr class="hover:bg-slate-800 transition border-b border-slate-700">
-                        <td class="p-4 font-mono font-bold text-corp-gold">${req.jobId}</td>
-                        <td class="p-4 text-xs text-slate-400">${new Date(req.date).toLocaleDateString()}</td>
-                        <td class="p-4 font-medium">${req.equip}</td>
-                        <td class="p-4 text-sm text-slate-400 truncate max-w-xs" title="${req.detail}">${req.detail}</td>
-                        <td class="p-4"><span class="${urgencyColor} px-2 py-1 rounded text-xs font-bold">${req.urgency}</span></td>
-                        <td class="p-4"><span class="${statusColor} px-2 py-1 rounded text-xs font-bold">${req.status}</span></td>
-                        <td class="p-4 text-sm">${req.tech}</td>
-                        <td class="p-4 text-xs text-slate-400">${req.remarks}</td>
-                    </tr>
-                `;
-                tbody.innerHTML += row;
-            });
+            const params = {
+                jobId: jobId,
+                status: status,
+                technician: document.getElementById('modalTech').value,
+                adminRemarks: document.getElementById('modalRemark').value,
+                cost: totalCost,
+                itemsData: JSON.stringify(items),
+                itemsSummary: items.map(i => `${i.name} (${i.quantity})`).join(', '),
+                additionalNotes: document.getElementById('modalAdditionalNotes').value
+            };
+
+            // Set dates
+            if(status === 'Processing') params.acceptedDate = new Date().toISOString();
+            if(status === 'Done') params.completedDate = new Date().toISOString();
+
+            Swal.fire({ title: 'Updating...', didOpen: () => Swal.showLoading() });
             
-            if(appData.isAdmin) renderAdminTable();
+            try {
+                const res = await jsonpRequest('update', params);
+                if(res.status === 'success') {
+                    closeModal();
+                    refreshData(true);
+                    Swal.fire('Success', 'Updated', 'success');
+                } else {
+                    Swal.fire('Error', res.message, 'error');
+                }
+            } catch(e) {
+                Swal.fire('Error', e.toString(), 'error');
+            }
+        }
+
+        // --- UI HELPERS ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.replace('text-corp-gold', 'text-slate-400'));
+            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+            document.getElementById(`tab-${tabId}`).classList.replace('text-slate-400', 'text-corp-gold');
+            if(tabId === 'dashboard') updateDashboard();
+        }
+
+        function renderStatusTable() {
+            const tbody = document.getElementById('statusTableBody');
+            tbody.innerHTML = appData.requests.length ? '' : '<tr><td colspan="7" class="p-4 text-center text-slate-500">No data</td></tr>';
+            appData.requests.forEach(req => {
+                // Map GS keys to UI
+                const dateStr = req.requestDate ? new Date(req.requestDate).toLocaleDateString() : '-';
+                const color = req.status === 'Done' ? 'text-green-400' : req.status === 'Processing' ? 'text-blue-400' : 'text-slate-400';
+                tbody.innerHTML += `<tr class="border-b border-slate-700 hover:bg-slate-800">
+                    <td class="p-4 font-mono text-corp-gold">${req.jobID}</td>
+                    <td class="p-4 text-xs">${dateStr}</td>
+                    <td class="p-4">${req.equipmentLocation}</td>
+                    <td class="p-4 text-slate-400 max-w-xs truncate">${req.problemDetails}</td>
+                    <td class="p-4">${req.urgency}</td>
+                    <td class="p-4 font-bold ${color}">${req.status}</td>
+                    <td class="p-4">${req.technician}</td>
+                </tr>`;
+            });
         }
 
         function renderAdminTable() {
-            const tbody = document.getElementById('adminTableBody');
-            tbody.innerHTML = '';
-            
-            appData.requests.forEach(req => {
-                const statusColor = getStatusColor(req.status);
-                const row = `
-                    <tr class="hover:bg-slate-800 transition border-b border-slate-700">
-                        <td class="p-4">
-                            <button onclick="openAdminModal('${req.jobId}')" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded text-xs">Edit</button>
-                        </td>
-                        <td class="p-4 font-mono text-corp-gold text-xs">${req.jobId}</td>
-                        <td class="p-4 text-xs text-slate-400">${new Date(req.date).toLocaleDateString()}</td>
-                        <td class="p-4 text-sm">${req.name}<br><span class="text-xs text-slate-500">${req.dept}</span></td>
-                        <td class="p-4 text-sm">${req.equip}</td>
-                        <td class="p-4 text-sm text-slate-400 truncate max-w-[150px]">${req.detail}</td>
-                        <td class="p-4"><span class="${statusColor} px-2 py-1 rounded text-xs font-bold">${req.status}</span></td>
-                        <td class="p-4 text-sm">${req.tech}</td>
-                    </tr>
-                `;
-                tbody.innerHTML += row;
-            });
+             const tbody = document.getElementById('adminTableBody');
+             tbody.innerHTML = '';
+             appData.requests.forEach(req => {
+                 const dateStr = req.requestDate ? new Date(req.requestDate).toLocaleDateString() : '-';
+                 tbody.innerHTML += `<tr class="border-b border-slate-700 hover:bg-slate-800">
+                    <td class="p-4"><button onclick="openAdminModal('${req.jobID}')" class="bg-blue-600 px-2 rounded text-xs py-1">Edit</button></td>
+                    <td class="p-4 text-xs font-mono">${req.jobID}</td>
+                    <td class="p-4 text-sm">${req.requesterName}</td>
+                    <td class="p-4 text-sm">${req.equipmentLocation}</td>
+                    <td class="p-4 text-xs">${req.status}</td>
+                </tr>`;
+             });
         }
 
         function updateDashboard() {
             renderAdminTable();
-            const total = appData.requests.length;
-            const waiting = appData.requests.filter(r => r.status === 'Waiting').length;
-            const processing = appData.requests.filter(r => r.status === 'Processing').length;
-            const done = appData.requests.filter(r => r.status === 'Done').length;
-            const avg = done > 0 ? (Math.random() * 5 + 1).toFixed(1) + 'h' : '0h'; // Still mock avg for simplicity
-
-            animateValue("kpi-total", parseInt(document.getElementById("kpi-total").innerText), total, 500);
-            animateValue("kpi-waiting", parseInt(document.getElementById("kpi-waiting").innerText), waiting, 500);
-            animateValue("kpi-processing", parseInt(document.getElementById("kpi-processing").innerText), processing, 500);
-            animateValue("kpi-done", parseInt(document.getElementById("kpi-done").innerText), done, 500);
-            document.getElementById("kpi-avg").innerText = avg;
+            document.getElementById('kpi-total').innerText = appData.requests.length;
+            document.getElementById('kpi-waiting').innerText = appData.requests.filter(r => r.status === 'Waiting').length;
+            document.getElementById('kpi-processing').innerText = appData.requests.filter(r => r.status === 'Processing').length;
+            document.getElementById('kpi-done').innerText = appData.requests.filter(r => r.status === 'Done').length;
         }
 
-        // --- ADMIN ACTIONS (MODAL) ---
-        let currentEditingJobId = null;
-
-        function openAdminModal(jobId) {
-            currentEditingJobId = jobId;
-            const job = appData.requests.find(r => r.jobId === jobId);
+        function openAdminModal(id) {
+            const job = appData.requests.find(r => r.jobID === id);
             if(!job) return;
-
-            document.getElementById('modalTitle').innerText = `Manage Job: ${jobId}`;
-            document.getElementById('modalJobId').value = jobId;
+            document.getElementById('modalJobId').value = id;
             document.getElementById('modalStatus').value = job.status;
-            document.getElementById('modalTech').value = job.tech !== '-' ? job.tech : '';
-            document.getElementById('modalRemark').value = job.remarks !== '-' ? job.remarks : '';
+            document.getElementById('modalTech').value = job.technician || '';
+            document.getElementById('modalRemark').value = job.adminRemarks || '';
+            document.getElementById('modalAdditionalNotes').value = job.additionalNotes || '';
             
-            const container = document.getElementById('itemsContainer');
-            container.innerHTML = '';
-            if(job.items && job.items.length > 0) {
-                job.items.forEach(item => addItemRow(item.name, item.qty, item.price));
+            document.getElementById('itemsContainer').innerHTML = '';
+            if(job.itemsData) {
+                try {
+                    const items = JSON.parse(job.itemsData);
+                    items.forEach(i => addItemRow(i.name, i.quantity, i.unitPrice));
+                } catch(e) {}
             } else {
                 addItemRow();
             }
@@ -717,270 +510,77 @@
             document.getElementById('adminModal').classList.remove('hidden');
         }
 
-        function closeModal() {
-            document.getElementById('adminModal').classList.add('hidden');
+        function closeModal() { document.getElementById('adminModal').classList.add('hidden'); }
+        function toggleCostSection() { document.getElementById('costSection').style.display = document.getElementById('modalStatus').value === 'Done' ? 'block' : 'none'; }
+        
+        function addItemRow(n='', q=1, p=0) {
+            const div = document.createElement('div'); div.className = 'grid grid-cols-6 gap-2 item-row';
+            div.innerHTML = `<input class="col-span-3 bg-slate-900 border border-slate-600 rounded px-1 item-name" value="${n}" placeholder="Item"><input type="number" class="col-span-1 bg-slate-900 border border-slate-600 rounded px-1 item-qty" value="${q}" onchange="calcTotal()"><input type="number" class="col-span-1 bg-slate-900 border border-slate-600 rounded px-1 item-price" value="${p}" onchange="calcTotal()"><button onclick="this.parentElement.remove();calcTotal()" class="text-red-400">x</button>`;
+            document.getElementById('itemsContainer').appendChild(div); calcTotal();
         }
-
-        function toggleCostSection() {
-            const status = document.getElementById('modalStatus').value;
-            const section = document.getElementById('costSection');
-            if(status === 'Done') section.classList.remove('hidden');
-            else section.classList.add('hidden');
-        }
-
-        function addItemRow(name='', qty=1, price=0) {
-            const div = document.createElement('div');
-            div.className = 'grid grid-cols-6 gap-2 item-row';
-            div.innerHTML = `
-                <input type="text" placeholder="Item Name" value="${name}" class="col-span-3 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-white item-name">
-                <input type="number" placeholder="Qty" value="${qty}" min="1" onchange="calcTotal()" class="col-span-1 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-white item-qty">
-                <input type="number" placeholder="Price" value="${price}" min="0" onchange="calcTotal()" class="col-span-1 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-white item-price">
-                <button onclick="this.parentElement.remove(); calcTotal();" class="col-span-1 text-red-400 hover:text-red-300">×</button>
-            `;
-            document.getElementById('itemsContainer').appendChild(div);
-            calcTotal();
-        }
-
         function calcTotal() {
-            let total = 0;
-            document.querySelectorAll('.item-row').forEach(row => {
-                const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
-                const price = parseFloat(row.querySelector('.item-price').value) || 0;
-                total += (qty * price);
-            });
-            document.getElementById('grandTotalDisplay').innerText = total.toFixed(2) + ' ฿';
-            return total;
+            let t = 0; document.querySelectorAll('.item-row').forEach(r => t += (r.querySelector('.item-qty').value * r.querySelector('.item-price').value));
+            document.getElementById('grandTotalDisplay').innerText = t.toFixed(2) + ' ฿';
         }
 
-        async function saveJobChanges() {
-            const jobId = currentEditingJobId;
-            const status = document.getElementById('modalStatus').value;
-            const tech = document.getElementById('modalTech').value || '-';
-            const remarks = document.getElementById('modalRemark').value || '-';
-            
-            // Collect Items
-            const items = [];
-            let totalCost = 0;
-            if(status === 'Done') {
-                document.querySelectorAll('.item-row').forEach(row => {
-                    const name = row.querySelector('.item-name').value;
-                    const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
-                    const price = parseFloat(row.querySelector('.item-price').value) || 0;
-                    if(name) {
-                        items.push({name, qty, price});
-                        totalCost += (qty * price);
-                    }
-                });
-            }
-
-            // Update Payload
-            const payload = {
-                jobId: jobId,
-                status: status,
-                tech: tech,
-                remarks: remarks,
-                items: items,
-                totalCost: totalCost
-            };
-
-            // Call API
-            Swal.fire({ title: 'Updating...', didOpen: () => Swal.showLoading(), background: '#1e293b', color: '#fff' });
-            
-            const apiResult = await callApi('update', payload);
-
-            if (apiResult && apiResult.status === 'success') {
-                closeModal();
-                refreshData(true);
-                Swal.fire({ icon: 'success', title: 'Updated', timer: 1000, showConfirmButton: false, background: '#1e293b', color: '#fff' });
-            } else {
-                 if (!appData.config.scriptUrl) {
-                    // Local fallback
-                    const idx = appData.requests.findIndex(r => r.jobId === jobId);
-                    if(idx > -1) {
-                        appData.requests[idx] = { ...appData.requests[idx], ...payload };
-                        renderStatusTable();
-                        updateDashboard();
-                        closeModal();
-                        Swal.fire({ icon: 'warning', title: 'Saved Locally', text: 'No Server URL configured', background: '#1e293b', color: '#fff' });
-                    }
-                 } else {
-                    Swal.fire({ icon: 'error', title: 'Update Failed', background: '#1e293b', color: '#fff' });
-                 }
-            }
-        }
-
-        // --- SETTINGS & CONFIG ---
-        function saveSystemSettings() {
-            appData.config.scriptUrl = document.getElementById('setting-url').value;
-            appData.config.adminPass = document.getElementById('setting-pass').value;
-            saveSettings();
-            Swal.fire({ icon: 'success', title: 'Saved System Config', timer: 1000, showConfirmButton: false, background: '#1e293b', color: '#fff' });
-            refreshData(); // try to fetch with new url
-        }
-
-        function saveJobConfig() {
-            appData.config.jobId.prefix = document.getElementById('conf-prefix').value;
-            appData.config.jobId.year = document.getElementById('conf-year').value;
-            appData.config.jobId.digits = document.getElementById('conf-digits').value;
-            saveSettings();
-            Swal.fire({ icon: 'success', title: 'Saved ID Config', timer: 1000, showConfirmButton: false, background: '#1e293b', color: '#fff' });
-        }
-
+        // --- SETTINGS & LISTS RENDERING ---
         function renderLists() {
-            const deptList = document.getElementById('list-dept');
-            const techList = document.getElementById('list-tech');
-            
-            deptList.innerHTML = appData.config.depts.map(d => `<li class="flex justify-between items-center p-1 border-b border-slate-700"><span>${d}</span> <button onclick="removeListItem('dept', '${d}')" class="text-red-400">×</button></li>`).join('');
-            techList.innerHTML = appData.config.techs.map(t => `<li class="flex justify-between items-center p-1 border-b border-slate-700"><span>${t}</span> <button onclick="removeListItem('tech', '${t}')" class="text-red-400">×</button></li>`).join('');
+            document.getElementById('list-dept').innerHTML = appData.lists.depts.map(x => `<li class="flex justify-between border-b border-slate-700 p-1"><span>${x}</span><button onclick="manageListApi('manageDepartment','delete','','${x}')" class="text-red-400">x</button></li>`).join('');
+            document.getElementById('list-tech').innerHTML = appData.lists.techs.map(x => `<li class="flex justify-between border-b border-slate-700 p-1"><span>${x}</span><button onclick="manageListApi('manageTechnician','delete','','${x}')" class="text-red-400">x</button></li>`).join('');
         }
-
-        function addListItem(type) {
-            const inputId = type === 'dept' ? 'new-dept' : 'new-tech';
-            const val = document.getElementById(inputId).value.trim();
-            if(!val) return;
-            
-            if(type === 'dept') appData.config.depts.push(val);
-            else appData.config.techs.push(val);
-            
-            document.getElementById(inputId).value = '';
-            saveSettings();
-            renderLists();
-            renderDropdowns();
-        }
-
-        function removeListItem(type, val) {
-            if(type === 'dept') appData.config.depts = appData.config.depts.filter(d => d !== val);
-            else appData.config.techs = appData.config.techs.filter(t => t !== val);
-            saveSettings();
-            renderLists();
-            renderDropdowns();
-        }
-
         function renderDropdowns() {
-            const deptSelect = document.getElementById('reqDept');
-            deptSelect.innerHTML = '<option value="">-- เลือกแผนก --</option>' + appData.config.depts.map(d => `<option value="${d}">${d}</option>`).join('');
-            
-            const techSelect = document.getElementById('modalTech');
-            techSelect.innerHTML = '<option value="">-- Select Tech --</option>' + appData.config.techs.map(t => `<option value="${t}">${t}</option>`).join('');
+            const d = document.getElementById('reqDept'); 
+            d.innerHTML = '<option value="">-- Select --</option>' + appData.lists.depts.map(x => `<option>${x}</option>`).join('');
+            const t = document.getElementById('modalTech'); 
+            t.innerHTML = '<option value="">-- Select --</option>' + appData.lists.techs.map(x => `<option>${x}</option>`).join('');
         }
 
         function loadSettings() {
             const savedConfig = localStorage.getItem('maint_config');
             if(savedConfig) {
                 const parsed = JSON.parse(savedConfig);
-                appData.config = { ...appData.config, ...parsed };
-                // Restore Config UI
-                document.getElementById('setting-url').value = appData.config.scriptUrl || '';
-                document.getElementById('setting-pass').value = appData.config.adminPass;
-                document.getElementById('conf-prefix').value = appData.config.jobId.prefix;
-                document.getElementById('conf-year').value = appData.config.jobId.year;
-                document.getElementById('conf-digits').value = appData.config.jobId.digits;
+                if(parsed.scriptUrl) appData.config.scriptUrl = parsed.scriptUrl;
+                appData.config.adminPass = parsed.adminPass;
+                if(parsed.jobId) appData.config.jobId = parsed.jobId;
             }
+            document.getElementById('setting-url').value = appData.config.scriptUrl;
+            document.getElementById('conf-prefix').value = appData.config.jobId.prefix;
+            document.getElementById('conf-digits').value = appData.config.jobId.digits;
+            document.getElementById('conf-year').value = appData.config.jobId.year;
+        }
+        function saveSystemSettings() {
+            appData.config.scriptUrl = document.getElementById('setting-url').value;
+            localStorage.setItem('maint_config', JSON.stringify(appData.config));
+            Swal.fire('Saved', 'Config Updated', 'success');
+            refreshData();
+        }
+        function saveJobConfig() {
+            appData.config.jobId.prefix = document.getElementById('conf-prefix').value;
+            appData.config.jobId.digits = parseInt(document.getElementById('conf-digits').value);
+            appData.config.jobId.year = document.getElementById('conf-year').value;
+            localStorage.setItem('maint_config', JSON.stringify(appData.config));
+            Swal.fire('Saved', 'ID Config Updated', 'success');
+        }
+        function resetConfig() { localStorage.removeItem('maint_config'); location.reload(); }
+        
+        async function testConnection() {
+            Swal.fire({ title: 'Testing...', didOpen: () => Swal.showLoading() });
+            try {
+                const res = await jsonpRequest('fetch');
+                if(res.status === 'success') Swal.fire('Connected', 'Data found: ' + res.data.length, 'success');
+                else Swal.fire('Failed', res.message, 'error');
+            } catch(e) { Swal.fire('Error', 'Connect failed', 'error'); }
         }
 
-        function saveSettings() {
-            localStorage.setItem('maint_config', JSON.stringify({
-                scriptUrl: appData.config.scriptUrl,
-                adminPass: appData.config.adminPass,
-                jobId: appData.config.jobId
-            }));
-            localStorage.setItem('maint_depts', JSON.stringify(appData.config.depts));
-            localStorage.setItem('maint_techs', JSON.stringify(appData.config.techs));
+        async function showLoginModal() {
+            const { value: p } = await Swal.fire({ title: 'Admin', input: 'password', background: '#1e293b', color: '#fff' });
+            if(p === appData.config.adminPass) { appData.isAdmin = true; document.querySelectorAll('.admin-only').forEach(e => e.classList.remove('hidden')); document.getElementById('btnLogin').classList.add('hidden'); document.getElementById('btnLogout').classList.remove('hidden'); switchTab('dashboard'); }
         }
-
-        // --- UTILS & HELPERS ---
-        function getStatusColor(status) {
-            if (status === 'Waiting') return 'bg-slate-500 text-white';
-            if (status === 'Processing') return 'bg-blue-500 text-white';
-            if (status === 'Done') return 'bg-green-500 text-white';
-            return 'bg-gray-500';
+        function logout() { location.reload(); }
+        function filterTable(id, q) { 
+            const tr = document.getElementById(id).getElementsByTagName('tr');
+            for(let i=1;i<tr.length;i++) tr[i].style.display = tr[i].innerText.toUpperCase().includes(q.toUpperCase()) ? '' : 'none';
         }
-
-        function getUrgencyColor(urgency) {
-            if (urgency === 'High') return 'bg-red-500/20 text-red-400 border border-red-500';
-            if (urgency === 'Medium') return 'bg-yellow-500/20 text-yellow-400 border border-yellow-500';
-            return 'bg-green-500/20 text-green-400 border border-green-500';
-        }
-
-        function filterTable(tableId, query) {
-            const filter = query.toUpperCase();
-            const table = document.getElementById(tableId);
-            const tr = table.getElementsByTagName("tr");
-            
-            for (let i = 1; i < tr.length; i++) {
-                const txtValue = tr[i].textContent || tr[i].innerText;
-                if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                    tr[i].style.display = "";
-                } else {
-                    tr[i].style.display = "none";
-                }
-            }
-        }
-
-        function animateValue(id, start, end, duration) {
-            if (start === end) return;
-            const range = end - start;
-            let current = start;
-            const increment = end > start ? 1 : -1;
-            const stepTime = Math.abs(Math.floor(duration / range));
-            const obj = document.getElementById(id);
-            const timer = setInterval(function() {
-                current += increment;
-                obj.innerHTML = current;
-                if (current == end) {
-                    clearInterval(timer);
-                }
-            }, stepTime);
-        }
-
-        async function refreshData(silent = false) {
-            if (!silent) {
-                Swal.fire({
-                    title: 'Syncing...',
-                    didOpen: () => Swal.showLoading(),
-                    background: '#1e293b', color: '#fff'
-                });
-            }
-
-            const apiResult = await callApi('read');
-            
-            if (apiResult && apiResult.status === 'success') {
-                appData.requests = apiResult.data;
-                renderStatusTable();
-                if(appData.isAdmin) updateDashboard();
-                if(!silent) Swal.close();
-            } else {
-                if(!silent) {
-                    // if fail or no url, show offline data
-                     if (appData.requests.length === 0) generateMockData();
-                     renderStatusTable();
-                     Swal.fire({
-                         icon: 'info',
-                         title: 'Offline Mode',
-                         text: 'Showing local/mock data (Check internet or URL config)',
-                         timer: 2000, showConfirmButton: false,
-                         background: '#1e293b', color: '#fff'
-                     });
-                } else {
-                     if (appData.requests.length === 0) generateMockData();
-                     renderStatusTable();
-                }
-            }
-        }
-
-        function generateMockData() {
-            // Only generate mock if absolutely empty
-            if(appData.requests.length > 0) return;
-            
-            const mocks = [
-                { jobId: 'MTN-2026-0001', date: new Date().toISOString(), name: 'ตัวอย่างข้อมูล', dept: 'Production', equip: 'Conveyor Belt A', detail: 'Belt snapped', urgency: 'High', status: 'Processing', tech: 'Somchai', remarks: 'Demo Data' },
-            ];
-            appData.requests = mocks;
-        }
-
     </script>
 </body>
-
 </html>
-
-
