@@ -50,6 +50,11 @@
         ::-webkit-scrollbar-thumb:hover { background: #64748b; }
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Folder Styling */
+        .folder-tab {
+            clip-path: polygon(0 0, 150px 0, 170px 100%, 100% 100%, 100% 100%, 0 100%);
+        }
     </style>
 </head>
 <body class="text-slate-200 h-screen flex flex-col overflow-hidden">
@@ -58,7 +63,7 @@
     <header class="bg-corp-blue border-b border-slate-700 shadow-lg z-20">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-3">
-                <div class="bg-corp-gold text-corp-blue p-2 rounded-lg font-bold text-2xl">🛠️</div>
+                <img src="https://sc04.alicdn.com/kf/UTB8j6h1rJnJXKJkSaiy763hwXXaJ.png" alt="Company Logo" class="h-12 w-auto bg-white rounded p-1 object-contain shadow-md">
                 <div>
                     <h1 class="text-xl font-bold text-white tracking-wide">MAINTENANCE SYSTEM</h1>
                     <p class="text-xs text-corp-gold font-medium tracking-wider uppercase">Your Company Name</p>
@@ -99,7 +104,11 @@
                             <div><label class="block text-sm font-medium text-slate-400 mb-1">ชื่อผู้แจ้ง (Requester)</label><input type="text" id="reqName" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"></div>
                             <div><label class="block text-sm font-medium text-slate-400 mb-1">แผนก (Department)</label><select id="reqDept" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"><option value="">-- Loading... --</option></select></div>
                             <div><label class="block text-sm font-medium text-slate-400 mb-1">เบอร์ติดต่อ (Phone)</label><input type="tel" id="reqPhone" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"></div>
-                            <div><label class="block text-sm font-medium text-slate-400 mb-1">อุปกรณ์/สถานที่ (Location)</label><input type="text" id="reqEquip" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"></div>
+                            
+                            <!-- เพิ่มช่องรหัสอุปกรณ์ -->
+                            <div><label class="block text-sm font-medium text-slate-400 mb-1">รหัสอุปกรณ์ (Equipment ID)</label><input type="text" id="reqEquipId" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold" placeholder="ระบุรหัส (ถ้ามี)"></div>
+                            
+                            <div class="md:col-span-2"><label class="block text-sm font-medium text-slate-400 mb-1">ชื่ออุปกรณ์/สถานที่ (Equipment Name/Location)</label><input type="text" id="reqEquip" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"></div>
                         </div>
                         <div><label class="block text-sm font-medium text-slate-400 mb-1">รายละเอียดปัญหา (Details)</label><textarea id="reqDetail" rows="4" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"></textarea></div>
                         <div>
@@ -116,20 +125,21 @@
             </div>
         </div>
 
-        <!-- VIEW: TRACK STATUS -->
+        <!-- VIEW: TRACK STATUS (Monthly Folders) -->
         <div id="view-status" class="view-section hidden container mx-auto fade-in">
-            <div class="bg-corp-lightBlue rounded-xl shadow-2xl border border-slate-700 overflow-hidden">
-                <div class="p-4 border-b border-slate-700 flex justify-between items-center">
-                    <h2 class="text-xl font-bold text-white">📊 สถานะงานซ่อม</h2>
-                    <input type="text" onkeyup="filterTable('statusTable', this.value)" placeholder="🔍 ค้นหา..." class="bg-slate-900 border border-slate-600 rounded-lg px-3 py-1 text-sm focus:outline-none focus:border-corp-gold">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-white flex items-center gap-2">📂 แฟ้มเอกสารงานซ่อม <span class="text-sm font-normal text-slate-400 ml-2">(Monthly Archive)</span></h2>
+                <div class="relative w-64">
+                    <input type="text" onkeyup="renderStatusTable(this.value)" placeholder="🔍 ค้นหางานซ่อม..." class="w-full bg-slate-900 border border-slate-600 rounded-full px-4 py-2 pl-10 text-sm focus:outline-none focus:border-corp-gold shadow-lg">
+                    <span class="absolute left-3 top-2.5 text-slate-400">🔍</span>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse" id="statusTable">
-                        <thead class="bg-slate-900 text-slate-400 uppercase text-xs">
-                            <tr><th class="p-4">Job ID</th><th class="p-4">Date</th><th class="p-4">Equipment</th><th class="p-4">Details</th><th class="p-4">Urgency</th><th class="p-4">Status</th><th class="p-4">Tech</th></tr>
-                        </thead>
-                        <tbody id="statusTableBody" class="text-sm divide-y divide-slate-700"></tbody>
-                    </table>
+            </div>
+            
+            <!-- Folder Container -->
+            <div id="statusFolders" class="space-y-4">
+                <!-- Folders will be generated here -->
+                <div class="text-center text-slate-500 py-10 bg-slate-900/50 rounded-xl border border-dashed border-slate-700">
+                    กำลังโหลดข้อมูล...
                 </div>
             </div>
         </div>
@@ -233,7 +243,6 @@
 
     <script>
         // --- CONFIG & STATE ---
-        // ใส่ URL ที่ได้จาก Google Apps Script Deployment ที่นี่ (ต้องลงท้ายด้วย /exec)
         const DEFAULT_URL = 'https://script.google.com/macros/s/AKfycby5AmKslwMIe3KS802z7-nyAczQCuzQHjCEjdG_I5yyKCul34hmu12KAJdUgaYqKicf/exec';
         
         let appData = {
@@ -248,38 +257,26 @@
         };
 
         // --- JSONP API HANDLER (GET Only) ---
-        // เนื่องจาก GS Script ใช้ doGet และ return content type javascript เราต้องใช้ JSONP
         function jsonpRequest(action, params = {}) {
             return new Promise((resolve, reject) => {
                 const url = appData.config.scriptUrl;
                 if (!url) return reject("No Script URL");
 
                 const callbackName = 'cb_' + Math.round(100000 * Math.random());
-                
-                // สร้าง parameters string
-                const queryParams = new URLSearchParams({ 
-                    action: action, 
-                    callback: callbackName,
-                    ...params 
-                });
-
-                // สร้าง Script tag
+                const queryParams = new URLSearchParams({ action: action, callback: callbackName, ...params });
                 const script = document.createElement('script');
                 script.src = `${url}?${queryParams.toString()}`;
                 
-                // Global callback function
                 window[callbackName] = function(data) {
                     delete window[callbackName];
                     document.body.removeChild(script);
                     resolve(data);
                 };
-
                 script.onerror = function() {
                     delete window[callbackName];
                     document.body.removeChild(script);
                     reject("Script Load Error (Check URL/Network)");
                 };
-
                 document.body.appendChild(script);
             });
         }
@@ -287,27 +284,27 @@
         // --- INIT ---
         document.addEventListener('DOMContentLoaded', () => {
             loadSettings();
-            
-            // Initial Fetch
             refreshData(true);
-            fetchLists(); // Load depts/techs from server
+            fetchLists(); 
         });
 
         // --- MAIN FUNCTIONS ---
         async function submitRequest(e) {
             e.preventDefault();
-            
-            // Prepare params according to GS
+            const equipId = document.getElementById('reqEquipId').value;
+            const equipName = document.getElementById('reqEquip').value;
+            const fullEquipmentString = equipId ? `[${equipId}] ${equipName}` : equipName;
+
             const params = {
                 requestDate: new Date().toISOString(),
                 requesterName: document.getElementById('reqName').value,
                 positionDept: document.getElementById('reqDept').value,
                 phoneNumber: document.getElementById('reqPhone').value,
-                equipmentLocation: document.getElementById('reqEquip').value,
+                equipmentLocation: fullEquipmentString, 
                 problemDetails: document.getElementById('reqDetail').value,
                 urgency: document.querySelector('input[name="urgency"]:checked').value,
                 status: 'Waiting',
-                jobIdConfig: JSON.stringify(appData.config.jobId) // Pass config for Server generation
+                jobIdConfig: JSON.stringify(appData.config.jobId)
             };
 
             Swal.fire({ title: 'Sending...', didOpen: () => Swal.showLoading(), background: '#1e293b', color: '#fff' });
@@ -316,12 +313,7 @@
                 const result = await jsonpRequest('submit', params);
                 if (result.status === 'success') {
                     document.getElementById('requestForm').reset();
-                    Swal.fire({
-                        icon: 'success', 
-                        title: 'Success', 
-                        text: `Job Created: ${result.jobId}`,
-                        background: '#1e293b', color: '#fff'
-                    });
+                    Swal.fire({ icon: 'success', title: 'Success', text: `Job Created: ${result.jobId}`, background: '#1e293b', color: '#fff' });
                     refreshData(true);
                     switchTab('status');
                 } else {
@@ -338,8 +330,8 @@
             try {
                 const result = await jsonpRequest('fetch');
                 if (result.status === 'success') {
-                    appData.requests = result.data; // GS return correct keys now
-                    renderStatusTable();
+                    appData.requests = result.data;
+                    renderStatusTable(); // Now renders Folders
                     if(appData.isAdmin) renderAdminTable();
                     if(!silent) Swal.close();
                 } else {
@@ -351,26 +343,19 @@
             }
         }
 
-        // --- LISTS MANAGEMENT (Server Side) ---
+        // --- LISTS MANAGEMENT ---
         async function fetchLists() {
             try {
                 const d = await jsonpRequest('getDepartments');
-                if(d.status === 'success') {
-                    appData.lists.depts = d.data;
-                    renderLists(); renderDropdowns();
-                }
+                if(d.status === 'success') { appData.lists.depts = d.data; renderLists(); renderDropdowns(); }
                 const t = await jsonpRequest('getTechnicians');
-                if(t.status === 'success') {
-                    appData.lists.techs = t.data;
-                    renderLists(); renderDropdowns();
-                }
+                if(t.status === 'success') { appData.lists.techs = t.data; renderLists(); renderDropdowns(); }
             } catch(e) { console.warn("List fetch failed", e); }
         }
 
         async function manageListApi(action, op, inputId) {
-            const name = inputId ? document.getElementById(inputId).value : arguments[3]; // arg 3 for delete
+            const name = inputId ? document.getElementById(inputId).value : arguments[3]; 
             if(!name) return;
-
             Swal.fire({ title: 'Processing...', didOpen: () => Swal.showLoading() });
             try {
                 const res = await jsonpRequest(action, { operation: op, name: name });
@@ -378,20 +363,14 @@
                     if(inputId) document.getElementById(inputId).value = '';
                     await fetchLists();
                     Swal.close();
-                } else {
-                    Swal.fire('Error', res.message, 'error');
-                }
-            } catch(e) {
-                Swal.fire('Error', e.toString(), 'error');
-            }
+                } else { Swal.fire('Error', res.message, 'error'); }
+            } catch(e) { Swal.fire('Error', e.toString(), 'error'); }
         }
 
         // --- ADMIN UPDATE ---
         async function saveJobChanges() {
             const jobId = document.getElementById('modalJobId').value;
             const status = document.getElementById('modalStatus').value;
-            
-            // Calculate items
             let items = [], totalCost = 0;
             if(status === 'Done') {
                 document.querySelectorAll('.item-row').forEach(row => {
@@ -399,13 +378,9 @@
                     const qty = parseFloat(row.querySelector('.item-qty').value)||0;
                     const unitPrice = parseFloat(row.querySelector('.item-price').value)||0;
                     const total = qty * unitPrice;
-                    if(name) { 
-                        items.push({name, quantity: qty, unitPrice, total}); 
-                        totalCost += total; 
-                    }
+                    if(name) { items.push({name, quantity: qty, unitPrice, total}); totalCost += total; }
                 });
             }
-
             const params = {
                 jobId: jobId,
                 status: status,
@@ -416,25 +391,18 @@
                 itemsSummary: items.map(i => `${i.name} (${i.quantity})`).join(', '),
                 additionalNotes: document.getElementById('modalAdditionalNotes').value
             };
-
-            // Set dates
             if(status === 'Processing') params.acceptedDate = new Date().toISOString();
             if(status === 'Done') params.completedDate = new Date().toISOString();
 
             Swal.fire({ title: 'Updating...', didOpen: () => Swal.showLoading() });
-            
             try {
                 const res = await jsonpRequest('update', params);
                 if(res.status === 'success') {
                     closeModal();
                     refreshData(true);
                     Swal.fire('Success', 'Updated', 'success');
-                } else {
-                    Swal.fire('Error', res.message, 'error');
-                }
-            } catch(e) {
-                Swal.fire('Error', e.toString(), 'error');
-            }
+                } else { Swal.fire('Error', res.message, 'error'); }
+            } catch(e) { Swal.fire('Error', e.toString(), 'error'); }
         }
 
         // --- UI HELPERS ---
@@ -446,32 +414,94 @@
             if(tabId === 'dashboard') updateDashboard();
         }
 
-        function renderStatusTable() {
-            const tbody = document.getElementById('statusTableBody');
-            tbody.innerHTML = appData.requests.length ? '' : '<tr><td colspan="7" class="p-4 text-center text-slate-500">No data</td></tr>';
-            appData.requests.forEach(req => {
-                // Map GS keys to UI
-                const dateStr = req.requestDate ? new Date(req.requestDate).toLocaleDateString() : '-';
-                const color = req.status === 'Done' ? 'text-green-400' : req.status === 'Processing' ? 'text-blue-400' : 'text-slate-400';
-                tbody.innerHTML += `<tr class="border-b border-slate-700 hover:bg-slate-800">
-                    <td class="p-4 font-mono text-corp-gold">${req.jobID}</td>
-                    <td class="p-4 text-xs">${dateStr}</td>
-                    <td class="p-4">${req.equipmentLocation}</td>
-                    <td class="p-4 text-slate-400 max-w-xs truncate">${req.problemDetails}</td>
-                    <td class="p-4">${req.urgency}</td>
-                    <td class="p-4 font-bold ${color}">${req.status}</td>
-                    <td class="p-4">${req.technician}</td>
-                </tr>`;
+        // --- NEW: RENDER MONTHLY FOLDERS ---
+        function renderStatusTable(query = '') {
+            const container = document.getElementById('statusFolders');
+            container.innerHTML = '';
+            
+            // Filter Data
+            const filtered = appData.requests.filter(req => {
+                const text = (req.jobID + req.equipmentLocation + req.problemDetails + req.requesterName).toLowerCase();
+                return text.includes(query.toLowerCase());
             });
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="text-center text-slate-500 py-10 bg-slate-900/50 rounded-xl border border-dashed border-slate-700">ไม่พบข้อมูล</div>';
+                return;
+            }
+
+            // Group by Month (YYYY-MM)
+            const groups = {};
+            filtered.forEach(req => {
+                const d = new Date(req.requestDate);
+                const monthKey = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}`; // YYYY-MM
+                if(!groups[monthKey]) groups[monthKey] = [];
+                groups[monthKey].push(req);
+            });
+
+            // Sort Months Descending
+            const sortedMonths = Object.keys(groups).sort().reverse();
+
+            sortedMonths.forEach(monthKey => {
+                const [y, m] = monthKey.split('-');
+                const monthName = new Date(y, m-1).toLocaleString('th-TH', { month: 'long', year: 'numeric' });
+                const items = groups[monthKey];
+                const isOpen = query !== '' || monthKey === sortedMonths[0]; // Auto open first month or search results
+
+                const folderId = `folder-${monthKey}`;
+                
+                const folderHtml = `
+                    <div class="bg-slate-800 rounded-lg overflow-hidden shadow-lg border border-slate-700 transition hover:border-slate-600">
+                        <div onclick="toggleFolder('${folderId}')" class="flex justify-between items-center p-4 cursor-pointer hover:bg-slate-750 transition select-none">
+                            <div class="flex items-center gap-3">
+                                <span class="text-2xl">📁</span>
+                                <span class="font-bold text-lg text-white">${monthName}</span>
+                                <span class="bg-slate-600 text-xs px-2 py-1 rounded-full text-slate-200">${items.length} รายการ</span>
+                            </div>
+                            <span id="icon-${folderId}" class="text-slate-400 transform transition ${isOpen ? 'rotate-180' : ''}">▼</span>
+                        </div>
+                        <div id="${folderId}" class="${isOpen ? '' : 'hidden'} bg-slate-900/50 border-t border-slate-700">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse text-sm">
+                                    <thead class="bg-slate-900 text-slate-400 uppercase text-xs">
+                                        <tr><th class="p-3">Job ID</th><th class="p-3">Date</th><th class="p-3">Equipment</th><th class="p-3">Details</th><th class="p-3">Status</th><th class="p-3">Tech</th></tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-800 text-slate-300">
+                                        ${items.map(req => {
+                                            const statusClass = req.status === 'Done' ? 'text-green-400' : req.status === 'Processing' ? 'text-blue-400' : 'text-slate-400';
+                                            const dateStr = new Date(req.requestDate).toLocaleDateString('th-TH', {day:'numeric', month:'short'});
+                                            return `<tr class="hover:bg-slate-800/50">
+                                                <td class="p-3 font-mono text-corp-gold whitespace-nowrap">${req.jobID}</td>
+                                                <td class="p-3 whitespace-nowrap">${dateStr}</td>
+                                                <td class="p-3 font-medium">${req.equipmentLocation}</td>
+                                                <td class="p-3 text-slate-400 truncate max-w-xs" title="${req.problemDetails}">${req.problemDetails}</td>
+                                                <td class="p-3 font-bold ${statusClass}">${req.status}</td>
+                                                <td class="p-3">${req.technician}</td>
+                                            </tr>`;
+                                        }).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', folderHtml);
+            });
+        }
+
+        function toggleFolder(id) {
+            const content = document.getElementById(id);
+            const icon = document.getElementById(`icon-${id}`);
+            content.classList.toggle('hidden');
+            icon.classList.toggle('rotate-180');
         }
 
         function renderAdminTable() {
              const tbody = document.getElementById('adminTableBody');
              tbody.innerHTML = '';
              appData.requests.forEach(req => {
-                 const dateStr = req.requestDate ? new Date(req.requestDate).toLocaleDateString() : '-';
                  tbody.innerHTML += `<tr class="border-b border-slate-700 hover:bg-slate-800">
-                    <td class="p-4"><button onclick="openAdminModal('${req.jobID}')" class="bg-blue-600 px-2 rounded text-xs py-1">Edit</button></td>
+                    <td class="p-4"><button onclick="openAdminModal('${req.jobID}')" class="bg-blue-600 px-2 rounded text-xs py-1 hover:bg-blue-500">Edit</button></td>
                     <td class="p-4 text-xs font-mono">${req.jobID}</td>
                     <td class="p-4 text-sm">${req.requesterName}</td>
                     <td class="p-4 text-sm">${req.equipmentLocation}</td>
