@@ -262,7 +262,7 @@
                 adminPass: 'admin123',
                 jobId: { prefix: 'MTN', year: 'YYYY', digits: 4 },
                 
-                // GitHub Configs (Defaults Set!)
+                // GitHub Configs (Hardcoded Defaults)
                 ghToken: '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', 
                 ghOwner: 'mtvschem1970', 
                 ghRepo: 'Maintenance-Repair-System', 
@@ -324,7 +324,7 @@
 
             } catch (err) {
                 console.error(err);
-                if(manual) Swal.fire('Error', 'Failed to load GitHub data', 'error');
+                if(manual) Swal.fire('Error', 'Failed to load GitHub data: ' + err.message, 'error');
             }
         }
 
@@ -607,11 +607,11 @@
 
         // --- CONFIG ---
         function loadSettings() {
-            // Load saved config but respect hardcoded defaults if local is empty/partial
-            const savedConfig = JSON.parse(localStorage.getItem('maint_config_v2') || '{}');
+            // New Key: maint_config_v4 to force reset old empty configs
+            const savedConfig = JSON.parse(localStorage.getItem('maint_config_v4') || '{}');
             appData.config = { ...appData.config, ...savedConfig };
             
-            // Populate Inputs
+            // Sync UI
             document.getElementById('setting-gs-url').value = appData.config.scriptUrl || '';
             document.getElementById('gh-token').value = appData.config.ghToken || '';
             document.getElementById('gh-owner').value = appData.config.ghOwner || '';
@@ -630,7 +630,7 @@
             appData.config.ghRepo = document.getElementById('gh-repo').value;
             appData.config.ghPath = document.getElementById('gh-path').value;
             
-            localStorage.setItem('maint_config_v2', JSON.stringify(appData.config));
+            localStorage.setItem('maint_config_v4', JSON.stringify(appData.config));
             Swal.fire('Saved', 'Configuration Updated', 'success');
             refreshData();
             loadGitHubData();
@@ -640,10 +640,10 @@
             appData.config.jobId.prefix = document.getElementById('conf-prefix').value;
             appData.config.jobId.digits = parseInt(document.getElementById('conf-digits').value);
             appData.config.jobId.year = document.getElementById('conf-year').value;
-            localStorage.setItem('maint_config_v2', JSON.stringify(appData.config));
+            localStorage.setItem('maint_config_v4', JSON.stringify(appData.config));
             Swal.fire('Saved', 'Job ID Format Updated', 'success');
         }
-        function resetConfig() { localStorage.removeItem('maint_config_v2'); location.reload(); }
+        function resetConfig() { localStorage.removeItem('maint_config_v4'); location.reload(); }
         
         async function testConnection() {
             Swal.fire({ title: 'Testing GAS...', didOpen: () => Swal.showLoading() });
