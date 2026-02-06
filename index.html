@@ -46,6 +46,17 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
         .folder-tab { clip-path: polygon(0 0, 150px 0, 170px 100%, 100% 100%, 100% 100%, 0 100%); }
+
+        /* --- เพิ่ม Animation สำหรับสถานะ Waiting --- */
+        @keyframes blink-yellow {
+            0%, 100% { opacity: 1; color: #facc15; text-shadow: 0 0 5px rgba(250, 204, 21, 0.3); }
+            50% { opacity: 0.6; color: #fde047; text-shadow: none; }
+        }
+        .status-waiting {
+            animation: blink-yellow 2s infinite ease-in-out; /* กระพริบช้าๆ 2 วินาที */
+            font-weight: bold;
+            color: #facc15;
+        }
     </style>
 </head>
 <body class="text-slate-200 h-screen flex flex-col overflow-hidden">
@@ -231,7 +242,7 @@
     </main>
 
     <div id="adminModal" class="fixed inset-0 bg-black/80 hidden z-50 flex items-center justify-center backdrop-blur-sm">
-        <div class="bg-corp-lightBlue w-full max-w-2xl rounded-xl border border-slate-600 shadow-2xl m-4 max-h-[90vh] overflow-y-auto p-6">
+        <div class="bg-corp-lightBlue w-full max-w-2xl rounded-xl border border-slate-600 shadow-2xl p-6 m-4 max-h-[90vh] overflow-y-auto">
             <h3 class="text-xl font-bold text-corp-gold mb-4" id="modalTitle">Manage Job</h3>
             <input type="hidden" id="modalJobId">
             <div class="grid grid-cols-2 gap-4 mb-4">
@@ -243,7 +254,7 @@
             <div id="costSection" class="hidden border-t border-slate-600 pt-4 bg-slate-800/50 p-4 rounded-lg mb-4">
                 <h4 class="text-green-400 font-bold mb-2 flex justify-between"><span>💰 Cost & Items</span><span id="grandTotalDisplay">0.00 ฿</span></h4>
                 <div id="itemsContainer" class="space-y-2 mb-2"></div>
-                <button type="button" onclick="addItemRow()" class="text-xs bg-slate-700 hover:bg-slate-600 text-white px-2 py-1 rounded">+ Item</button>
+                <button onclick="addItemRow()" class="text-xs bg-slate-700 hover:bg-slate-600 text-white px-2 py-1 rounded">+ Item</button>
                 <div class="mt-2"><label class="block text-xs text-slate-400">Additional Notes</label><textarea id="modalAdditionalNotes" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-xs" rows="1"></textarea></div>
             </div>
             
@@ -552,14 +563,20 @@
                                     </thead>
                                     <tbody class="divide-y divide-slate-800 text-slate-300">
                                         ${items.map(req => {
-                                            const statusClass = req.status === 'Done' ? 'text-green-400' : req.status === 'Processing' ? 'text-blue-400' : 'text-slate-400';
+                                            // --- LOGIC FOR YELLOW WAITING STATUS ---
+                                            let statusClass = 'text-slate-400';
+                                            if (req.status === 'Done') statusClass = 'text-green-400 font-bold';
+                                            else if (req.status === 'Processing') statusClass = 'text-blue-400 font-bold';
+                                            else if (req.status === 'Waiting') statusClass = 'status-waiting'; // Custom Class defined in CSS
+                                            
                                             const dateStr = new Date(req.requestDate).toLocaleDateString('th-TH', {day:'numeric', month:'short'});
+                                            
                                             return `<tr class="hover:bg-slate-800/50">
                                                 <td class="p-3 font-mono text-corp-gold whitespace-nowrap">${req.jobID}</td>
                                                 <td class="p-3 whitespace-nowrap">${dateStr}</td>
                                                 <td class="p-3">${req.equipmentLocation}</td>
                                                 <td class="p-3 text-slate-400 truncate max-w-xs" title="${req.problemDetails}">${req.problemDetails}</td>
-                                                <td class="p-3 font-bold ${statusClass}">${req.status}</td>
+                                                <td class="p-3 ${statusClass}">${req.status}</td>
                                                 <td class="p-3">${req.technician}</td>
                                             </tr>`;
                                         }).join('')}
@@ -588,12 +605,19 @@
              const tbody = document.getElementById('adminTableBody');
              tbody.innerHTML = '';
              appData.requests.forEach(req => {
+                 // --- LOGIC FOR YELLOW WAITING STATUS (ADMIN) ---
+                 let statusClass = '';
+                 if(req.status === 'Done') statusClass = 'text-green-400 font-bold';
+                 else if(req.status === 'Processing') statusClass = 'text-blue-400 font-bold';
+                 else if(req.status === 'Waiting') statusClass = 'status-waiting'; // Custom Class defined in CSS
+                 else statusClass = 'text-slate-400';
+
                  tbody.innerHTML += `<tr class="border-b border-slate-700 hover:bg-slate-800">
                     <td class="p-4"><button onclick="openAdminModal('${req.jobID}')" class="bg-blue-600 px-2 rounded text-xs py-1 hover:bg-blue-500">Edit</button></td>
                     <td class="p-4 text-xs font-mono">${req.jobID}</td>
                     <td class="p-4 text-sm">${req.requesterName}</td>
                     <td class="p-4 text-sm">${req.equipmentLocation}</td>
-                    <td class="p-4 text-xs">${req.status}</td>
+                    <td class="p-4 text-xs ${statusClass}">${req.status}</td>
                 </tr>`;
              });
         }
