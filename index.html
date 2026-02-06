@@ -47,15 +47,37 @@
         
         .folder-tab { clip-path: polygon(0 0, 150px 0, 170px 100%, 100% 100%, 100% 100%, 0 100%); }
 
-        /* --- เพิ่ม Animation สำหรับสถานะ Waiting --- */
+        /* Animation สถานะ Waiting (สีเหลืองกระพริบ) */
         @keyframes blink-yellow {
             0%, 100% { opacity: 1; color: #facc15; text-shadow: 0 0 5px rgba(250, 204, 21, 0.3); }
             50% { opacity: 0.6; color: #fde047; text-shadow: none; }
         }
         .status-waiting {
-            animation: blink-yellow 2s infinite ease-in-out; /* กระพริบช้าๆ 2 วินาที */
+            animation: blink-yellow 2s infinite ease-in-out;
             font-weight: bold;
             color: #facc15;
+        }
+
+        /* Animation ไซเรนหวอ (แดง-น้ำเงิน) สำหรับด่วนมาก */
+        @keyframes siren-flash {
+            0% { color: #ef4444; text-shadow: 0 0 10px #ef4444; transform: scale(1); } /* แดง */
+            50% { color: #3b82f6; text-shadow: 0 0 10px #3b82f6; transform: scale(1.05); } /* น้ำเงิน */
+            100% { color: #ef4444; text-shadow: 0 0 10px #ef4444; transform: scale(1); } /* แดง */
+        }
+        .siren-text {
+            display: block;
+            font-weight: 800; /* ตัวหนามาก */
+            font-size: 1.1em;
+            margin-top: 10px;
+            animation: siren-flash 0.8s infinite linear; /* กระพริบเร็วเหมือนหวอ */
+        }
+        
+        .medium-alert-text {
+            display: block;
+            font-weight: bold;
+            color: #f59e0b; /* สีส้ม */
+            margin-top: 10px;
+            font-size: 1.1em;
         }
     </style>
 </head>
@@ -422,6 +444,10 @@
         // ==========================================
         async function submitRequest(e) {
             e.preventDefault();
+            
+            // ดึงค่า Urgency มาเช็คก่อน
+            const urgency = document.querySelector('input[name="urgency"]:checked').value;
+            
             const equipId = document.getElementById('reqEquipId').value;
             const equipName = document.getElementById('reqEquip').value;
             const fullEquipmentString = equipId ? `[${equipId}] ${equipName}` : equipName;
@@ -433,18 +459,45 @@
                 phoneNumber: document.getElementById('reqPhone').value,
                 equipmentLocation: fullEquipmentString, 
                 problemDetails: document.getElementById('reqDetail').value,
-                urgency: document.querySelector('input[name="urgency"]:checked').value,
+                urgency: urgency,
                 status: 'Waiting',
                 jobIdConfig: JSON.stringify(appData.config.jobId)
             };
 
             Swal.fire({ title: 'Sending...', didOpen: () => Swal.showLoading(), background: '#1e293b', color: '#fff' });
+            
             try {
                 const result = await apiRequest('submit', params);
                 if (result.status === 'success') {
                     document.getElementById('requestForm').reset();
-                    Swal.fire({ icon: 'success', title: 'Success', text: `Job Created: ${result.jobId}`, background: '#1e293b', color: '#fff' });
-                    refreshData(true); switchTab('status');
+                    
+                    // --- Custom Alerts Logic ---
+                    let alertHtml = `Job Created: ${result.jobId}`;
+                    let alertIcon = 'success';
+                    let alertTitle = 'บันทึกสำเร็จ';
+
+                    if (urgency === 'Medium') {
+                        alertTitle = '⚠️ แจ้งเตือนด่วน';
+                        alertIcon = 'warning';
+                        alertHtml += `<br><br><div class="medium-alert-text">กรุณาโทรแจ้ง คุณพิทวัส<br>เบอร์ 0982799918 หรือ ไลน์ mtvschem</div>`;
+                    } else if (urgency === 'High') {
+                        alertTitle = '🚨 แจ้งเตือนด่วนมาก';
+                        alertIcon = 'warning';
+                        alertHtml += `<br><br><div class="siren-text">กรุณาโทรแจ้ง คุณพิทวัส ทันที<br>เบอร์ 0982799918 หรือ ไลน์ mtvschem</div>`;
+                    }
+
+                    // Show Popup
+                    Swal.fire({ 
+                        icon: alertIcon, 
+                        title: alertTitle, 
+                        html: alertHtml, 
+                        background: '#1e293b', 
+                        color: '#fff',
+                        confirmButtonColor: '#f59e0b'
+                    });
+
+                    refreshData(true);
+                    switchTab('status');
                 } else throw new Error(result.message);
             } catch (err) { Swal.fire('Error', err.toString(), 'error'); }
         }
