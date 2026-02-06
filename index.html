@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maintenance System (GitHub Linked)</title>
+    <title>Maintenance Repair Notification System</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -46,7 +46,11 @@
         ::-webkit-scrollbar-thumb:hover { background: #64748b; }
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .folder-tab { clip-path: polygon(0 0, 150px 0, 170px 100%, 100% 100%, 100% 100%, 0 100%); }
+        
+        /* Folder Styling */
+        .folder-tab {
+            clip-path: polygon(0 0, 150px 0, 170px 100%, 100% 100%, 100% 100%, 0 100%);
+        }
     </style>
 </head>
 <body class="text-slate-200 h-screen flex flex-col overflow-hidden">
@@ -54,8 +58,8 @@
     <header class="bg-corp-blue border-b border-slate-700 shadow-lg z-20">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-3">
-                <div class="bg-white rounded p-1 shadow-md h-10 w-10 flex items-center justify-center">
-                    <span class="text-2xl">🐱</span>
+                <div class="bg-white rounded p-1 shadow-md h-12 w-12 flex items-center justify-center overflow-hidden">
+                    <span class="text-2xl">🛠️</span>
                 </div>
                 <div>
                     <h1 class="text-xl font-bold text-white tracking-wide">MAINTENANCE SYSTEM</h1>
@@ -73,10 +77,10 @@
     <nav class="bg-corp-lightBlue border-b border-slate-700 shadow-md z-10">
         <div class="container mx-auto px-4">
             <div class="flex space-x-1 overflow-x-auto">
-                <button onclick="switchTab('request')" id="tab-request" class="tab-btn px-6 py-3 text-sm font-medium border-b-2 border-transparent hover:text-corp-gold transition whitespace-nowrap text-corp-gold border-corp-gold">📝 แจ้งซ่อม</button>
-                <button onclick="switchTab('status')" id="tab-status" class="tab-btn px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition whitespace-nowrap">📊 ติดตามงาน</button>
-                <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn hidden admin-only px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition whitespace-nowrap">📈 แดชบอร์ด</button>
-                <button onclick="switchTab('settings')" id="tab-settings" class="tab-btn hidden admin-only px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition whitespace-nowrap">⚙️ ตั้งค่า (GitHub)</button>
+                <button onclick="switchTab('request')" id="tab-request" class="tab-btn px-6 py-3 text-sm font-medium border-b-2 border-transparent hover:text-corp-gold transition whitespace-nowrap text-corp-gold border-corp-gold">📝 Submit Request</button>
+                <button onclick="switchTab('status')" id="tab-status" class="tab-btn px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition whitespace-nowrap">📊 Track Status</button>
+                <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn hidden admin-only px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition whitespace-nowrap">📈 Dashboard</button>
+                <button onclick="switchTab('settings')" id="tab-settings" class="tab-btn hidden admin-only px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition whitespace-nowrap">⚙️ Settings (GitHub)</button>
             </div>
         </div>
     </nav>
@@ -86,18 +90,25 @@
         <div id="view-request" class="view-section max-w-3xl mx-auto fade-in">
             <div class="bg-corp-lightBlue rounded-xl shadow-2xl border border-slate-700 overflow-hidden">
                 <div class="bg-gradient-to-r from-corp-blue to-corp-lightBlue p-4 border-b border-slate-700">
-                    <h2 class="text-xl font-bold text-white flex items-center gap-2">📝 แบบฟอร์มแจ้งซ่อม</h2>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">📝 แบบฟอร์มแจ้งซ่อม (Repair Request)</h2>
                 </div>
                 <div class="p-6">
                     <form id="requestForm" onsubmit="submitRequest(event)" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div><label class="block text-sm font-medium text-slate-400 mb-1">ชื่อผู้แจ้ง</label><input type="text" id="reqName" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"></div>
-                            <div><label class="block text-sm font-medium text-slate-400 mb-1">แผนก</label><select id="reqDept" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"><option value="">-- รอข้อมูลจาก GitHub... --</option></select></div>
-                            <div><label class="block text-sm font-medium text-slate-400 mb-1">เบอร์ติดต่อ</label><input type="tel" id="reqPhone" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"></div>
-                            <div><label class="block text-sm font-medium text-slate-400 mb-1">รหัสอุปกรณ์</label><input type="text" id="reqEquipId" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold" placeholder="ระบุรหัส (ถ้ามี)"></div>
-                            <div class="md:col-span-2"><label class="block text-sm font-medium text-slate-400 mb-1">ชื่ออุปกรณ์/สถานที่</label><input type="text" id="reqEquip" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"></div>
+                            <div><label class="block text-sm font-medium text-slate-400 mb-1">ชื่อผู้แจ้ง (Requester)</label><input type="text" id="reqName" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"></div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-400 mb-1">แผนก (Department)</label>
+                                <select id="reqDept" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold">
+                                    <option value="">-- Waiting for GitHub... --</option>
+                                </select>
+                            </div>
+                            <div><label class="block text-sm font-medium text-slate-400 mb-1">เบอร์ติดต่อ (Phone)</label><input type="tel" id="reqPhone" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"></div>
+                            
+                            <div><label class="block text-sm font-medium text-slate-400 mb-1">รหัสอุปกรณ์ (Equipment ID)</label><input type="text" id="reqEquipId" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold" placeholder="ระบุรหัส (ถ้ามี)"></div>
+                            
+                            <div class="md:col-span-2"><label class="block text-sm font-medium text-slate-400 mb-1">ชื่ออุปกรณ์/สถานที่ (Equipment Name/Location)</label><input type="text" id="reqEquip" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"></div>
                         </div>
-                        <div><label class="block text-sm font-medium text-slate-400 mb-1">รายละเอียดปัญหา</label><textarea id="reqDetail" rows="4" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"></textarea></div>
+                        <div><label class="block text-sm font-medium text-slate-400 mb-1">รายละเอียดปัญหา (Details)</label><textarea id="reqDetail" rows="4" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"></textarea></div>
                         <div>
                             <label class="block text-sm font-medium text-slate-400 mb-3">ระดับความเร่งด่วน</label>
                             <div class="flex gap-4">
@@ -114,14 +125,17 @@
 
         <div id="view-status" class="view-section hidden container mx-auto fade-in">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-white flex items-center gap-2">📂 แฟ้มเอกสารงานซ่อม</h2>
+                <h2 class="text-2xl font-bold text-white flex items-center gap-2">📂 แฟ้มเอกสารงานซ่อม <span class="text-sm font-normal text-slate-400 ml-2">(Monthly Archive)</span></h2>
                 <div class="relative w-64">
-                    <input type="text" onkeyup="renderStatusTable(this.value)" placeholder="🔍 ค้นหา..." class="w-full bg-slate-900 border border-slate-600 rounded-full px-4 py-2 pl-10 text-sm focus:outline-none focus:border-corp-gold shadow-lg">
+                    <input type="text" onkeyup="renderStatusTable(this.value)" placeholder="🔍 ค้นหางานซ่อม..." class="w-full bg-slate-900 border border-slate-600 rounded-full px-4 py-2 pl-10 text-sm focus:outline-none focus:border-corp-gold shadow-lg">
                     <span class="absolute left-3 top-2.5 text-slate-400">🔍</span>
                 </div>
             </div>
+            
             <div id="statusFolders" class="space-y-4">
-                <div class="text-center text-slate-500 py-10 bg-slate-900/50 rounded-xl border border-dashed border-slate-700">กำลังโหลดข้อมูล...</div>
+                <div class="text-center text-slate-500 py-10 bg-slate-900/50 rounded-xl border border-dashed border-slate-700">
+                    กำลังโหลดข้อมูล...
+                </div>
             </div>
         </div>
 
@@ -149,8 +163,8 @@
         </div>
 
         <div id="view-settings" class="view-section hidden max-w-5xl mx-auto fade-in">
-            
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                
                 <div class="bg-corp-lightBlue rounded-xl border border-slate-700 p-6 shadow-lg">
                     <h3 class="text-lg font-bold text-corp-gold mb-4 border-b border-slate-700 pb-2">🔗 Server Connections</h3>
                     
@@ -171,7 +185,11 @@
                         </div>
                     </div>
 
-                    <button onclick="saveSystemSettings()" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded text-sm transition font-bold">Save All Connections</button>
+                    <div class="flex gap-2 mt-4">
+                         <button onclick="saveSystemSettings()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded text-sm transition font-bold">Save All</button>
+                         <button onclick="resetConfig()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">Reset</button>
+                    </div>
+                    
                     <div class="flex justify-between mt-2">
                          <button onclick="testConnection()" class="text-xs text-slate-400 hover:text-white underline">Test GAS</button>
                          <button onclick="loadGitHubData(true)" class="text-xs text-slate-400 hover:text-white underline">Test GitHub</button>
@@ -240,18 +258,16 @@
 
     <script>
         // --- GLOBAL STATE ---
-        // --- GLOBAL STATE ---
         let appData = {
             requests: [],
             lists: { depts: [], techs: [] },
             ghSha: null, 
             config: {
-                // ใส่ค่าเริ่มต้นตรงนี้ครับ
                 scriptUrl: 'https://script.google.com/macros/s/AKfycbyO_WujuPwMEiUXYUeGHfVccP6exfzIOC2cgkJ_lPcWEfF9LdW_oD4597ofe9m8m2Fleg/exec', 
                 adminPass: 'admin123',
                 jobId: { prefix: 'MTN', year: 'YYYY', digits: 4 },
                 
-                // GitHub Configs (ค่าเริ่มต้น)
+                // GitHub Configs
                 ghToken: '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', 
                 ghOwner: 'mtvschem1970', 
                 ghRepo: 'Maintenance-Repair-System', 
@@ -493,6 +509,7 @@
             t.innerHTML = '<option value="">-- Select --</option>' + (appData.lists.techs || []).map(x => `<option>${x}</option>`).join('');
         }
 
+        // --- NEW: RENDER MONTHLY FOLDERS (Using logic from new UI requirements) ---
         function renderStatusTable(query = '') {
             const container = document.getElementById('statusFolders');
             container.innerHTML = '';
@@ -515,10 +532,15 @@
                 groups[monthKey].push(req);
             });
 
-            Object.keys(groups).sort().reverse().forEach(monthKey => {
+            // Sort Months Descending
+            const sortedMonths = Object.keys(groups).sort().reverse();
+
+            sortedMonths.forEach(monthKey => {
                 const [y, m] = monthKey.split('-');
                 const monthName = new Date(y, m-1).toLocaleString('th-TH', { month: 'long', year: 'numeric' });
                 const items = groups[monthKey];
+                const isOpen = query !== '' || monthKey === sortedMonths[0]; // Auto open first month or search results
+                
                 const folderId = `folder-${monthKey}`;
                 
                 const folderHtml = `
@@ -527,15 +549,15 @@
                             <div class="flex items-center gap-3">
                                 <span class="text-2xl">📁</span>
                                 <span class="font-bold text-lg text-white">${monthName}</span>
-                                <span class="bg-slate-600 text-xs px-2 py-1 rounded-full text-slate-200">${items.length} Jobs</span>
+                                <span class="bg-slate-600 text-xs px-2 py-1 rounded-full text-slate-200">${items.length} รายการ</span>
                             </div>
-                            <span id="icon-${folderId}" class="text-slate-400 transform transition">▼</span>
+                            <span id="icon-${folderId}" class="text-slate-400 transform transition ${isOpen ? 'rotate-180' : ''}">▼</span>
                         </div>
-                        <div id="${folderId}" class="hidden bg-slate-900/50 border-t border-slate-700">
+                        <div id="${folderId}" class="${isOpen ? '' : 'hidden'} bg-slate-900/50 border-t border-slate-700">
                             <div class="overflow-x-auto">
                                 <table class="w-full text-left border-collapse text-sm">
                                     <thead class="bg-slate-900 text-slate-400 uppercase text-xs">
-                                        <tr><th class="p-3">ID</th><th class="p-3">Date</th><th class="p-3">Equip</th><th class="p-3">Details</th><th class="p-3">Status</th><th class="p-3">Tech</th></tr>
+                                        <tr><th class="p-3">Job ID</th><th class="p-3">Date</th><th class="p-3">Equip</th><th class="p-3">Details</th><th class="p-3">Status</th><th class="p-3">Tech</th></tr>
                                     </thead>
                                     <tbody class="divide-y divide-slate-800 text-slate-300">
                                         ${items.map(req => {
@@ -658,6 +680,27 @@
         function filterTable(id, q) { 
             const tr = document.getElementById(id).getElementsByTagName('tr');
             for(let i=1;i<tr.length;i++) tr[i].style.display = tr[i].innerText.toUpperCase().includes(q.toUpperCase()) ? '' : 'none';
+        }
+        function openAdminModal(id) {
+            const job = appData.requests.find(r => r.jobID === id);
+            if(!job) return;
+            document.getElementById('modalJobId').value = id;
+            document.getElementById('modalStatus').value = job.status;
+            document.getElementById('modalTech').value = job.technician || '';
+            document.getElementById('modalRemark').value = job.adminRemarks || '';
+            document.getElementById('modalAdditionalNotes').value = job.additionalNotes || '';
+            
+            document.getElementById('itemsContainer').innerHTML = '';
+            if(job.itemsData) {
+                try {
+                    const items = JSON.parse(job.itemsData);
+                    items.forEach(i => addItemRow(i.name, i.quantity, i.unitPrice));
+                } catch(e) {}
+            } else {
+                addItemRow();
+            }
+            toggleCostSection();
+            document.getElementById('adminModal').classList.remove('hidden');
         }
         function closeModal() { document.getElementById('adminModal').classList.add('hidden'); }
         function toggleCostSection() { document.getElementById('costSection').style.display = document.getElementById('modalStatus').value === 'Done' ? 'block' : 'none'; }
