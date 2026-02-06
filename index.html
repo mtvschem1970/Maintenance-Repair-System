@@ -3,29 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maintenance Repair Notification System</title>
+    <title>Maintenance Repair System</title>
     
-    <!-- Framework: Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Component: SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
 
-    <!-- Custom Config for Tailwind Colors -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
                         corp: {
-                            blue: '#0f172a',    // Slate 900
-                            lightBlue: '#1e293b', // Slate 800
-                            accent: '#3b82f6',  // Blue 500
-                            gold: '#f59e0b',    // Amber 500
-                            goldHover: '#d97706' // Amber 600
+                            blue: '#0f172a',    
+                            lightBlue: '#1e293b', 
+                            accent: '#3b82f6',  
+                            gold: '#f59e0b',    
+                            goldHover: '#d97706' 
                         }
                     },
                     fontFamily: {
@@ -50,16 +46,10 @@
         ::-webkit-scrollbar-thumb:hover { background: #64748b; }
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        /* Folder Styling */
-        .folder-tab {
-            clip-path: polygon(0 0, 150px 0, 170px 100%, 100% 100%, 100% 100%, 0 100%);
-        }
     </style>
 </head>
 <body class="text-slate-200 h-screen flex flex-col overflow-hidden">
 
-    <!-- HEADER -->
     <header class="bg-corp-blue border-b border-slate-700 shadow-lg z-20">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-3">
@@ -77,7 +67,6 @@
         </div>
     </header>
 
-    <!-- NAVIGATION TABS -->
     <nav class="bg-corp-lightBlue border-b border-slate-700 shadow-md z-10">
         <div class="container mx-auto px-4">
             <div class="flex space-x-1 overflow-x-auto">
@@ -89,10 +78,8 @@
         </div>
     </nav>
 
-    <!-- MAIN CONTENT AREA -->
     <main class="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-900/50 relative">
         
-        <!-- VIEW: SUBMIT REQUEST -->
         <div id="view-request" class="view-section max-w-3xl mx-auto fade-in">
             <div class="bg-corp-lightBlue rounded-xl shadow-2xl border border-slate-700 overflow-hidden">
                 <div class="bg-gradient-to-r from-corp-blue to-corp-lightBlue p-4 border-b border-slate-700">
@@ -104,10 +91,7 @@
                             <div><label class="block text-sm font-medium text-slate-400 mb-1">ชื่อผู้แจ้ง (Requester)</label><input type="text" id="reqName" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"></div>
                             <div><label class="block text-sm font-medium text-slate-400 mb-1">แผนก (Department)</label><select id="reqDept" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"><option value="">-- Loading... --</option></select></div>
                             <div><label class="block text-sm font-medium text-slate-400 mb-1">เบอร์ติดต่อ (Phone)</label><input type="tel" id="reqPhone" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"></div>
-                            
-                            <!-- เพิ่มช่องรหัสอุปกรณ์ -->
                             <div><label class="block text-sm font-medium text-slate-400 mb-1">รหัสอุปกรณ์ (Equipment ID)</label><input type="text" id="reqEquipId" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold" placeholder="ระบุรหัส (ถ้ามี)"></div>
-                            
                             <div class="md:col-span-2"><label class="block text-sm font-medium text-slate-400 mb-1">ชื่ออุปกรณ์/สถานที่ (Equipment Name/Location)</label><input type="text" id="reqEquip" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"></div>
                         </div>
                         <div><label class="block text-sm font-medium text-slate-400 mb-1">รายละเอียดปัญหา (Details)</label><textarea id="reqDetail" rows="4" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"></textarea></div>
@@ -125,7 +109,6 @@
             </div>
         </div>
 
-        <!-- VIEW: TRACK STATUS (Monthly Folders) -->
         <div id="view-status" class="view-section hidden container mx-auto fade-in">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold text-white flex items-center gap-2">📂 แฟ้มเอกสารงานซ่อม <span class="text-sm font-normal text-slate-400 ml-2">(Monthly Archive)</span></h2>
@@ -134,17 +117,11 @@
                     <span class="absolute left-3 top-2.5 text-slate-400">🔍</span>
                 </div>
             </div>
-            
-            <!-- Folder Container -->
             <div id="statusFolders" class="space-y-4">
-                <!-- Folders will be generated here -->
-                <div class="text-center text-slate-500 py-10 bg-slate-900/50 rounded-xl border border-dashed border-slate-700">
-                    กำลังโหลดข้อมูล...
-                </div>
+                <div class="text-center text-slate-500 py-10 bg-slate-900/50 rounded-xl border border-dashed border-slate-700">กำลังโหลดข้อมูล...</div>
             </div>
         </div>
 
-        <!-- VIEW: DASHBOARD -->
         <div id="view-dashboard" class="view-section hidden container mx-auto fade-in">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 <div class="bg-corp-lightBlue p-4 rounded-xl border border-slate-700 shadow-lg"> <div class="text-slate-400 text-xs font-bold">TOTAL JOBS</div> <div class="text-3xl font-bold text-white mt-1" id="kpi-total">0</div> </div>
@@ -168,27 +145,22 @@
             </div>
         </div>
 
-        <!-- VIEW: SETTINGS -->
         <div id="view-settings" class="view-section hidden max-w-4xl mx-auto fade-in">
             <div class="bg-corp-lightBlue rounded-xl border border-slate-700 p-6 shadow-lg mb-6">
                 <h3 class="text-lg font-bold text-corp-gold mb-4 border-b border-slate-700 pb-2">⚙️ System Configuration</h3>
-                
                 <div class="mb-4">
-                    <label class="block text-sm text-slate-400 mb-1">Google Apps Script URL (Deployed as Web App)</label>
+                    <label class="block text-sm text-slate-400 mb-1">Google Apps Script URL (Fetch API Version)</label>
                     <div class="flex gap-2">
                         <input type="text" id="setting-url" class="flex-1 bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-slate-300">
                         <button onclick="testConnection()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded text-xs whitespace-nowrap">⚡ Test Connect</button>
                     </div>
                     <p class="text-xs text-slate-500 mt-1">ต้องลงท้ายด้วย /exec และเลือก Who has access เป็น Anyone</p>
                 </div>
-                
                 <div class="flex gap-4 mt-6">
                     <button onclick="saveSystemSettings()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm transition">Save Config</button>
                     <button onclick="resetConfig()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm transition">⚠️ Reset Defaults</button>
                 </div>
             </div>
-
-            <!-- Job ID & Lists Config -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-corp-lightBlue rounded-xl border border-slate-700 p-6 shadow-lg">
                     <h3 class="text-lg font-bold text-corp-gold mb-4 border-b border-slate-700 pb-2">🆔 Job ID Config</h3>
@@ -199,16 +171,13 @@
                     <div><label class="text-xs text-slate-400">Year Format</label><select id="conf-year" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1"><option value="YYYY">YYYY (2026)</option><option value="YY">YY (26)</option></select></div>
                     <button onclick="saveJobConfig()" class="mt-4 w-full bg-slate-700 hover:bg-slate-600 text-white py-1 rounded text-sm">Save Job ID Format</button>
                 </div>
-                
                 <div class="bg-corp-lightBlue rounded-xl border border-slate-700 p-6 shadow-lg">
                     <h3 class="text-lg font-bold text-corp-gold mb-4 border-b border-slate-700 pb-2">📋 Server Lists Management</h3>
-                    
                     <div class="mb-4">
                         <label class="text-xs text-slate-400 block mb-1">Departments</label>
                         <div class="flex gap-2"><input id="new-dept" class="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs" placeholder="New Dept"><button onclick="manageListApi('manageDepartment','add', 'new-dept')" class="bg-green-600 px-2 rounded text-xs">+</button></div>
                         <ul id="list-dept" class="h-20 overflow-y-auto bg-slate-900 border border-slate-700 p-1 mt-1 text-xs"></ul>
                     </div>
-
                     <div>
                         <label class="text-xs text-slate-400 block mb-1">Technicians</label>
                         <div class="flex gap-2"><input id="new-tech" class="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs" placeholder="New Tech"><button onclick="manageListApi('manageTechnician','add', 'new-tech')" class="bg-green-600 px-2 rounded text-xs">+</button></div>
@@ -219,7 +188,6 @@
         </div>
     </main>
 
-    <!-- ADMIN MODAL -->
     <div id="adminModal" class="fixed inset-0 bg-black/80 hidden z-50 flex items-center justify-center backdrop-blur-sm">
         <div class="bg-corp-lightBlue w-full max-w-2xl rounded-xl border border-slate-600 shadow-2xl m-4 max-h-[90vh] overflow-y-auto p-6">
             <h3 class="text-xl font-bold text-corp-gold mb-4" id="modalTitle">Manage Job</h3>
@@ -243,7 +211,7 @@
 
     <script>
         // --- CONFIG & STATE ---
-        const DEFAULT_URL = 'https://script.google.com/macros/s/AKfycbyO_WujuPwMEiUXYUeGHfVccP6exfzIOC2cgkJ_lPcWEfF9LdW_oD4597ofe9m8m2Fleg/exec';
+        const DEFAULT_URL = 'REPLACE_YOUR_NEW_DEPLOYMENT_URL_HERE'; // <--- ใส่ URL ใหม่ตรงนี้
         
         let appData = {
             requests: [],
@@ -256,29 +224,25 @@
             lists: { depts: [], techs: [] }
         };
 
-        // --- JSONP API HANDLER (GET Only) ---
-        function jsonpRequest(action, params = {}) {
-            return new Promise((resolve, reject) => {
-                const url = appData.config.scriptUrl;
-                if (!url) return reject("No Script URL");
+        // --- NEW: FETCH API HANDLER (Mobile Friendly) ---
+        async function apiRequest(action, params = {}) {
+            const url = appData.config.scriptUrl;
+            if (!url) throw new Error("No Script URL Configured");
 
-                const callbackName = 'cb_' + Math.round(100000 * Math.random());
-                const queryParams = new URLSearchParams({ action: action, callback: callbackName, ...params });
-                const script = document.createElement('script');
-                script.src = `${url}?${queryParams.toString()}`;
-                
-                window[callbackName] = function(data) {
-                    delete window[callbackName];
-                    document.body.removeChild(script);
-                    resolve(data);
-                };
-                script.onerror = function() {
-                    delete window[callbackName];
-                    document.body.removeChild(script);
-                    reject("Script Load Error (Check URL/Network)");
-                };
-                document.body.appendChild(script);
+            // Build Query String
+            const queryParams = new URLSearchParams({ action: action, ...params });
+            
+            // Fetch with Redirect Follow (Standard for GAS Web App)
+            const response = await fetch(`${url}?${queryParams.toString()}`, {
+                method: "GET",
+                redirect: "follow"
             });
+
+            if (!response.ok) {
+                throw new Error(`HTTP Error: ${response.status}`);
+            }
+
+            return await response.json();
         }
 
         // --- INIT ---
@@ -310,7 +274,8 @@
             Swal.fire({ title: 'Sending...', didOpen: () => Swal.showLoading(), background: '#1e293b', color: '#fff' });
             
             try {
-                const result = await jsonpRequest('submit', params);
+                // Changed to apiRequest
+                const result = await apiRequest('submit', params);
                 if (result.status === 'success') {
                     document.getElementById('requestForm').reset();
                     Swal.fire({ icon: 'success', title: 'Success', text: `Job Created: ${result.jobId}`, background: '#1e293b', color: '#fff' });
@@ -328,10 +293,10 @@
             if(!silent) Swal.fire({ title: 'Syncing...', didOpen: () => Swal.showLoading() });
             
             try {
-                const result = await jsonpRequest('fetch');
+                const result = await apiRequest('fetch');
                 if (result.status === 'success') {
                     appData.requests = result.data;
-                    renderStatusTable(); // Now renders Folders
+                    renderStatusTable(); 
                     if(appData.isAdmin) renderAdminTable();
                     if(!silent) Swal.close();
                 } else {
@@ -346,9 +311,9 @@
         // --- LISTS MANAGEMENT ---
         async function fetchLists() {
             try {
-                const d = await jsonpRequest('getDepartments');
+                const d = await apiRequest('getDepartments');
                 if(d.status === 'success') { appData.lists.depts = d.data; renderLists(); renderDropdowns(); }
-                const t = await jsonpRequest('getTechnicians');
+                const t = await apiRequest('getTechnicians');
                 if(t.status === 'success') { appData.lists.techs = t.data; renderLists(); renderDropdowns(); }
             } catch(e) { console.warn("List fetch failed", e); }
         }
@@ -358,7 +323,7 @@
             if(!name) return;
             Swal.fire({ title: 'Processing...', didOpen: () => Swal.showLoading() });
             try {
-                const res = await jsonpRequest(action, { operation: op, name: name });
+                const res = await apiRequest(action, { operation: op, name: name });
                 if(res.status === 'success') {
                     if(inputId) document.getElementById(inputId).value = '';
                     await fetchLists();
@@ -396,7 +361,7 @@
 
             Swal.fire({ title: 'Updating...', didOpen: () => Swal.showLoading() });
             try {
-                const res = await jsonpRequest('update', params);
+                const res = await apiRequest('update', params);
                 if(res.status === 'success') {
                     closeModal();
                     refreshData(true);
@@ -414,12 +379,11 @@
             if(tabId === 'dashboard') updateDashboard();
         }
 
-        // --- NEW: RENDER MONTHLY FOLDERS ---
+        // --- RENDER MONTHLY FOLDERS ---
         function renderStatusTable(query = '') {
             const container = document.getElementById('statusFolders');
             container.innerHTML = '';
             
-            // Filter Data
             const filtered = appData.requests.filter(req => {
                 const text = (req.jobID + req.equipmentLocation + req.problemDetails + req.requesterName).toLowerCase();
                 return text.includes(query.toLowerCase());
@@ -430,7 +394,6 @@
                 return;
             }
 
-            // Group by Month (YYYY-MM)
             const groups = {};
             filtered.forEach(req => {
                 const d = new Date(req.requestDate);
@@ -439,14 +402,13 @@
                 groups[monthKey].push(req);
             });
 
-            // Sort Months Descending
             const sortedMonths = Object.keys(groups).sort().reverse();
 
             sortedMonths.forEach(monthKey => {
                 const [y, m] = monthKey.split('-');
                 const monthName = new Date(y, m-1).toLocaleString('th-TH', { month: 'long', year: 'numeric' });
                 const items = groups[monthKey];
-                const isOpen = query !== '' || monthKey === sortedMonths[0]; // Auto open first month or search results
+                const isOpen = query !== '' || monthKey === sortedMonths[0];
 
                 const folderId = `folder-${monthKey}`;
                 
@@ -571,13 +533,10 @@
                 try {
                     const parsed = JSON.parse(savedConfig);
                     if(parsed.scriptUrl) appData.config.scriptUrl = parsed.scriptUrl;
-                    if(parsed.adminPass) appData.config.adminPass = parsed.adminPass; // Check exist
+                    if(parsed.adminPass) appData.config.adminPass = parsed.adminPass;
                     if(parsed.jobId) appData.config.jobId = parsed.jobId;
-                } catch(e) {
-                    console.error("Config load error", e);
-                }
+                } catch(e) { console.error("Config load error", e); }
             }
-            // Sync UI
             document.getElementById('setting-url').value = appData.config.scriptUrl;
             document.getElementById('conf-prefix').value = appData.config.jobId.prefix;
             document.getElementById('conf-digits').value = appData.config.jobId.digits;
@@ -601,7 +560,7 @@
         async function testConnection() {
             Swal.fire({ title: 'Testing...', didOpen: () => Swal.showLoading() });
             try {
-                const res = await jsonpRequest('fetch');
+                const res = await apiRequest('fetch');
                 if(res.status === 'success') Swal.fire('Connected', 'Data found: ' + res.data.length, 'success');
                 else Swal.fire('Failed', res.message, 'error');
             } catch(e) { Swal.fire('Error', 'Connect failed', 'error'); }
@@ -619,7 +578,7 @@
                 showCancelButton: true
             });
 
-            if (!p) return; // Cancelled
+            if (!p) return;
 
             if (p === appData.config.adminPass) {
                 appData.isAdmin = true;
@@ -654,4 +613,3 @@
     </script>
 </body>
 </html>
-
