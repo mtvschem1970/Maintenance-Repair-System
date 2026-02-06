@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maintenance Repair Notification System</title>
+    <title>Maintenance System (GitHub Linked)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -46,11 +46,7 @@
         ::-webkit-scrollbar-thumb:hover { background: #64748b; }
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        /* Folder Styling */
-        .folder-tab {
-            clip-path: polygon(0 0, 150px 0, 170px 100%, 100% 100%, 100% 100%, 0 100%);
-        }
+        .folder-tab { clip-path: polygon(0 0, 150px 0, 170px 100%, 100% 100%, 100% 100%, 0 100%); }
     </style>
 </head>
 <body class="text-slate-200 h-screen flex flex-col overflow-hidden">
@@ -58,15 +54,17 @@
     <header class="bg-corp-blue border-b border-slate-700 shadow-lg z-20">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-3">
-                <img src="https://sc04.alicdn.com/kf/UTB8j6h1rJnJXKJkSaiy763hwXXaJ.png" alt="Company Logo" class="h-12 w-auto bg-white rounded p-1 object-contain shadow-md">
+                <div class="bg-white rounded p-1 shadow-md h-10 w-10 flex items-center justify-center">
+                    <span class="text-2xl">🐱</span>
+                </div>
                 <div>
                     <h1 class="text-xl font-bold text-white tracking-wide">MAINTENANCE SYSTEM</h1>
-                    <p class="text-xs text-corp-gold font-medium tracking-wider uppercase">Your Company Name</p>
+                    <p class="text-xs text-corp-gold font-medium tracking-wider uppercase">GitHub Database Linked</p>
                 </div>
             </div>
             <div class="flex items-center space-x-3">
                 <button onclick="refreshData()" class="p-2 rounded-full hover:bg-slate-700 transition text-slate-400 hover:text-white" title="Refresh Data">🔄</button>
-                <button id="btnLogin" onclick="showLoginModal()" class="bg-corp-gold hover:bg-corp-goldHover text-corp-blue font-bold py-2 px-4 rounded-md transition shadow-md flex items-center gap-2">🔐 <span class="hidden sm:inline">Admin Login</span></button>
+                <button id="btnLogin" onclick="showLoginModal()" class="bg-corp-gold hover:bg-corp-goldHover text-corp-blue font-bold py-2 px-4 rounded-md transition shadow-md flex items-center gap-2">🔐 <span class="hidden sm:inline">Admin</span></button>
                 <button id="btnLogout" onclick="logout()" class="hidden bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md transition shadow-md flex items-center gap-2">🚪 <span class="hidden sm:inline">Logout</span></button>
             </div>
         </div>
@@ -75,10 +73,10 @@
     <nav class="bg-corp-lightBlue border-b border-slate-700 shadow-md z-10">
         <div class="container mx-auto px-4">
             <div class="flex space-x-1 overflow-x-auto">
-                <button onclick="switchTab('request')" id="tab-request" class="tab-btn px-6 py-3 text-sm font-medium border-b-2 border-transparent hover:text-corp-gold transition whitespace-nowrap text-corp-gold border-corp-gold">📝 Submit Request</button>
-                <button onclick="switchTab('status')" id="tab-status" class="tab-btn px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition whitespace-nowrap">📊 Track Status</button>
-                <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn hidden admin-only px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition whitespace-nowrap">📈 Dashboard</button>
-                <button onclick="switchTab('settings')" id="tab-settings" class="tab-btn hidden admin-only px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition whitespace-nowrap">⚙️ Settings</button>
+                <button onclick="switchTab('request')" id="tab-request" class="tab-btn px-6 py-3 text-sm font-medium border-b-2 border-transparent hover:text-corp-gold transition whitespace-nowrap text-corp-gold border-corp-gold">📝 แจ้งซ่อม</button>
+                <button onclick="switchTab('status')" id="tab-status" class="tab-btn px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition whitespace-nowrap">📊 ติดตามงาน</button>
+                <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn hidden admin-only px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition whitespace-nowrap">📈 แดชบอร์ด</button>
+                <button onclick="switchTab('settings')" id="tab-settings" class="tab-btn hidden admin-only px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition whitespace-nowrap">⚙️ ตั้งค่า (GitHub)</button>
             </div>
         </div>
     </nav>
@@ -88,20 +86,18 @@
         <div id="view-request" class="view-section max-w-3xl mx-auto fade-in">
             <div class="bg-corp-lightBlue rounded-xl shadow-2xl border border-slate-700 overflow-hidden">
                 <div class="bg-gradient-to-r from-corp-blue to-corp-lightBlue p-4 border-b border-slate-700">
-                    <h2 class="text-xl font-bold text-white flex items-center gap-2">📝 แบบฟอร์มแจ้งซ่อม (Repair Request)</h2>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">📝 แบบฟอร์มแจ้งซ่อม</h2>
                 </div>
                 <div class="p-6">
                     <form id="requestForm" onsubmit="submitRequest(event)" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div><label class="block text-sm font-medium text-slate-400 mb-1">ชื่อผู้แจ้ง (Requester)</label><input type="text" id="reqName" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"></div>
-                            <div><label class="block text-sm font-medium text-slate-400 mb-1">แผนก (Department)</label><select id="reqDept" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"><option value="">-- Loading... --</option></select></div>
-                            <div><label class="block text-sm font-medium text-slate-400 mb-1">เบอร์ติดต่อ (Phone)</label><input type="tel" id="reqPhone" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"></div>
-                            
-                            <div><label class="block text-sm font-medium text-slate-400 mb-1">รหัสอุปกรณ์ (Equipment ID)</label><input type="text" id="reqEquipId" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold" placeholder="ระบุรหัส (ถ้ามี)"></div>
-                            
-                            <div class="md:col-span-2"><label class="block text-sm font-medium text-slate-400 mb-1">ชื่ออุปกรณ์/สถานที่ (Equipment Name/Location)</label><input type="text" id="reqEquip" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"></div>
+                            <div><label class="block text-sm font-medium text-slate-400 mb-1">ชื่อผู้แจ้ง</label><input type="text" id="reqName" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"></div>
+                            <div><label class="block text-sm font-medium text-slate-400 mb-1">แผนก</label><select id="reqDept" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"><option value="">-- รอข้อมูลจาก GitHub... --</option></select></div>
+                            <div><label class="block text-sm font-medium text-slate-400 mb-1">เบอร์ติดต่อ</label><input type="tel" id="reqPhone" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"></div>
+                            <div><label class="block text-sm font-medium text-slate-400 mb-1">รหัสอุปกรณ์</label><input type="text" id="reqEquipId" class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold" placeholder="ระบุรหัส (ถ้ามี)"></div>
+                            <div class="md:col-span-2"><label class="block text-sm font-medium text-slate-400 mb-1">ชื่ออุปกรณ์/สถานที่</label><input type="text" id="reqEquip" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"></div>
                         </div>
-                        <div><label class="block text-sm font-medium text-slate-400 mb-1">รายละเอียดปัญหา (Details)</label><textarea id="reqDetail" rows="4" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"></textarea></div>
+                        <div><label class="block text-sm font-medium text-slate-400 mb-1">รายละเอียดปัญหา</label><textarea id="reqDetail" rows="4" required class="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 focus:outline-none focus:border-corp-gold"></textarea></div>
                         <div>
                             <label class="block text-sm font-medium text-slate-400 mb-3">ระดับความเร่งด่วน</label>
                             <div class="flex gap-4">
@@ -118,17 +114,14 @@
 
         <div id="view-status" class="view-section hidden container mx-auto fade-in">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-white flex items-center gap-2">📂 แฟ้มเอกสารงานซ่อม <span class="text-sm font-normal text-slate-400 ml-2">(Monthly Archive)</span></h2>
+                <h2 class="text-2xl font-bold text-white flex items-center gap-2">📂 แฟ้มเอกสารงานซ่อม</h2>
                 <div class="relative w-64">
-                    <input type="text" onkeyup="renderStatusTable(this.value)" placeholder="🔍 ค้นหางานซ่อม..." class="w-full bg-slate-900 border border-slate-600 rounded-full px-4 py-2 pl-10 text-sm focus:outline-none focus:border-corp-gold shadow-lg">
+                    <input type="text" onkeyup="renderStatusTable(this.value)" placeholder="🔍 ค้นหา..." class="w-full bg-slate-900 border border-slate-600 rounded-full px-4 py-2 pl-10 text-sm focus:outline-none focus:border-corp-gold shadow-lg">
                     <span class="absolute left-3 top-2.5 text-slate-400">🔍</span>
                 </div>
             </div>
-            
             <div id="statusFolders" class="space-y-4">
-                <div class="text-center text-slate-500 py-10 bg-slate-900/50 rounded-xl border border-dashed border-slate-700">
-                    กำลังโหลดข้อมูล...
-                </div>
+                <div class="text-center text-slate-500 py-10 bg-slate-900/50 rounded-xl border border-dashed border-slate-700">กำลังโหลดข้อมูล...</div>
             </div>
         </div>
 
@@ -155,50 +148,70 @@
             </div>
         </div>
 
-        <div id="view-settings" class="view-section hidden max-w-4xl mx-auto fade-in">
-            <div class="bg-corp-lightBlue rounded-xl border border-slate-700 p-6 shadow-lg mb-6">
-                <h3 class="text-lg font-bold text-corp-gold mb-4 border-b border-slate-700 pb-2">⚙️ System Configuration</h3>
-                
-                <div class="mb-4">
-                    <label class="block text-sm text-slate-400 mb-1">Google Apps Script URL (Deployed as Web App)</label>
-                    <div class="flex gap-2">
-                        <input type="text" id="setting-url" class="flex-1 bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-slate-300">
-                        <button onclick="testConnection()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded text-xs whitespace-nowrap">⚡ Test Connect</button>
+        <div id="view-settings" class="view-section hidden max-w-5xl mx-auto fade-in">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div class="bg-corp-lightBlue rounded-xl border border-slate-700 p-6 shadow-lg">
+                    <h3 class="text-lg font-bold text-corp-gold mb-4 border-b border-slate-700 pb-2">🔗 Server Connections</h3>
+                    
+                    <div class="mb-4">
+                        <label class="block text-xs text-slate-400 mb-1">Google Apps Script URL (For Jobs)</label>
+                        <input type="text" id="setting-gs-url" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-slate-300">
                     </div>
-                    <p class="text-xs text-slate-500 mt-1">ต้องลงท้ายด้วย /exec และเลือก Who has access เป็น Anyone</p>
-                </div>
-                
-                <div class="flex gap-4 mt-6">
-                    <button onclick="saveSystemSettings()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm transition">Save Config</button>
-                    <button onclick="resetConfig()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm transition">⚠️ Reset Defaults</button>
-                </div>
-            </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-corp-lightBlue rounded-xl border border-slate-700 p-6 shadow-lg">
-                    <h3 class="text-lg font-bold text-corp-gold mb-4 border-b border-slate-700 pb-2">🆔 Job ID Config</h3>
-                    <div class="grid grid-cols-2 gap-4 mb-2">
-                        <div><label class="text-xs text-slate-400">Prefix</label><input type="text" id="conf-prefix" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 uppercase"></div>
-                        <div><label class="text-xs text-slate-400">Digits</label><input type="number" id="conf-digits" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1"></div>
+                    <div class="border-t border-slate-700 pt-4">
+                        <label class="block text-xs text-white font-bold mb-2 flex items-center gap-2">🐱 GitHub Config (For Lists)</label>
+                        <div class="space-y-2">
+                            <input type="password" id="gh-token" placeholder="Token (repo scope)" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs">
+                            <div class="flex gap-2">
+                                <input type="text" id="gh-owner" placeholder="Username" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs">
+                                <input type="text" id="gh-repo" placeholder="Repo Name" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs">
+                            </div>
+                            <input type="text" id="gh-path" value="data.json" placeholder="File Path" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs">
+                        </div>
                     </div>
-                    <div><label class="text-xs text-slate-400">Year Format</label><select id="conf-year" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1"><option value="YYYY">YYYY (2026)</option><option value="YY">YY (26)</option></select></div>
-                    <button onclick="saveJobConfig()" class="mt-4 w-full bg-slate-700 hover:bg-slate-600 text-white py-1 rounded text-sm">Save Job ID Format</button>
+
+                    <button onclick="saveSystemSettings()" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded text-sm transition font-bold">Save All Connections</button>
+                    <div class="flex justify-between mt-2">
+                         <button onclick="testConnection()" class="text-xs text-slate-400 hover:text-white underline">Test GAS</button>
+                         <button onclick="loadGitHubData(true)" class="text-xs text-slate-400 hover:text-white underline">Test GitHub</button>
+                    </div>
                 </div>
-                
+
                 <div class="bg-corp-lightBlue rounded-xl border border-slate-700 p-6 shadow-lg">
-                    <h3 class="text-lg font-bold text-corp-gold mb-4 border-b border-slate-700 pb-2">📋 Server Lists Management</h3>
+                    <h3 class="text-lg font-bold text-corp-gold mb-4 border-b border-slate-700 pb-2">📋 List Management (Sync to GitHub)</h3>
                     
                     <div class="mb-4">
                         <label class="text-xs text-slate-400 block mb-1">Departments</label>
-                        <div class="flex gap-2"><input id="new-dept" class="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs" placeholder="New Dept"><button onclick="manageListApi('manageDepartment','add', 'new-dept')" class="bg-green-600 px-2 rounded text-xs">+</button></div>
-                        <ul id="list-dept" class="h-20 overflow-y-auto bg-slate-900 border border-slate-700 p-1 mt-1 text-xs"></ul>
+                        <div class="flex gap-2 mb-2">
+                            <input id="new-dept" class="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs" placeholder="New Dept">
+                            <button onclick="modifyGitHubList('depts','add', 'new-dept')" class="bg-green-600 hover:bg-green-500 text-white px-3 rounded text-xs font-bold">Add</button>
+                        </div>
+                        <ul id="list-dept" class="h-24 overflow-y-auto bg-slate-900 border border-slate-700 p-1 text-xs text-slate-300 rounded">
+                            <li class="text-center pt-8 text-slate-500">Waiting for GitHub...</li>
+                        </ul>
                     </div>
 
                     <div>
                         <label class="text-xs text-slate-400 block mb-1">Technicians</label>
-                        <div class="flex gap-2"><input id="new-tech" class="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs" placeholder="New Tech"><button onclick="manageListApi('manageTechnician','add', 'new-tech')" class="bg-green-600 px-2 rounded text-xs">+</button></div>
-                        <ul id="list-tech" class="h-20 overflow-y-auto bg-slate-900 border border-slate-700 p-1 mt-1 text-xs"></ul>
+                        <div class="flex gap-2 mb-2">
+                            <input id="new-tech" class="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs" placeholder="New Tech">
+                            <button onclick="modifyGitHubList('techs','add', 'new-tech')" class="bg-green-600 hover:bg-green-500 text-white px-3 rounded text-xs font-bold">Add</button>
+                        </div>
+                        <ul id="list-tech" class="h-24 overflow-y-auto bg-slate-900 border border-slate-700 p-1 text-xs text-slate-300 rounded">
+                            <li class="text-center pt-8 text-slate-500">Waiting for GitHub...</li>
+                        </ul>
                     </div>
+                </div>
+            </div>
+
+            <div class="bg-corp-lightBlue rounded-xl border border-slate-700 p-6 shadow-lg">
+                <h3 class="text-lg font-bold text-corp-gold mb-4 border-b border-slate-700 pb-2">🆔 Job ID Config</h3>
+                <div class="flex gap-4 items-end">
+                    <div><label class="text-xs text-slate-400">Prefix</label><input type="text" id="conf-prefix" class="w-20 bg-slate-900 border border-slate-600 rounded px-2 py-1 uppercase"></div>
+                    <div><label class="text-xs text-slate-400">Digits</label><input type="number" id="conf-digits" class="w-16 bg-slate-900 border border-slate-600 rounded px-2 py-1"></div>
+                    <div><label class="text-xs text-slate-400">Year</label><select id="conf-year" class="bg-slate-900 border border-slate-600 rounded px-2 py-1"><option value="YYYY">YYYY</option><option value="YY">YY</option></select></div>
+                    <button onclick="saveJobConfig()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-1 rounded text-sm h-8">Save Format</button>
                 </div>
             </div>
         </div>
@@ -226,39 +239,147 @@
     </div>
 
     <script>
-        // --- CONFIG & STATE ---
-        const DEFAULT_URL = 'ใส่_URL_ใหม่_ตรงนี้'; // <--- สำคัญ! ใส่ Web App URL ของคุณที่นี่
-        
+        // --- GLOBAL STATE ---
+        // --- GLOBAL STATE ---
         let appData = {
             requests: [],
+            lists: { depts: [], techs: [] },
+            ghSha: null, 
             config: {
-                scriptUrl: DEFAULT_URL,
+                // ใส่ค่าเริ่มต้นตรงนี้ครับ
+                scriptUrl: 'https://script.google.com/macros/s/AKfycbyO_WujuPwMEiUXYUeGHfVccP6exfzIOC2cgkJ_lPcWEfF9LdW_oD4597ofe9m8m2Fleg/exec', 
                 adminPass: 'admin123',
-                jobId: { prefix: 'MTN', year: 'YYYY', digits: 4, startNumber: 1 }
+                jobId: { prefix: 'MTN', year: 'YYYY', digits: 4 },
+                
+                // GitHub Configs (ค่าเริ่มต้น)
+                ghToken: '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', 
+                ghOwner: 'mtvschem1970', 
+                ghRepo: 'Maintenance-Repair-System', 
+                ghPath: 'data.json'
             },
-            isAdmin: false,
-            lists: { depts: [], techs: [] }
+            isAdmin: false
         };
 
-        // --- CORE: FETCH API HANDLER (UPDATED FOR MOBILE) ---
+        // --- INIT ---
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSettings();
+            refreshData(true); // Load Jobs (GAS)
+            loadGitHubData();  // Load Lists (GitHub)
+        });
+
+        // ==========================================
+        // 1. GITHUB API HANDLER (LISTS)
+        // ==========================================
+        async function loadGitHubData(manual = false) {
+            const { ghToken, ghOwner, ghRepo, ghPath } = appData.config;
+            if (!ghToken || !ghOwner || !ghRepo) {
+                if(manual) Swal.fire('Error', 'Please fill GitHub Configs first', 'error');
+                return;
+            }
+
+            if(manual) Swal.fire({title: 'Fetching from GitHub...', didOpen: () => Swal.showLoading()});
+
+            try {
+                // Fetch from GitHub API
+                const url = `https://api.github.com/repos/${ghOwner}/${ghRepo}/contents/${ghPath}`;
+                const res = await fetch(url, {
+                    headers: { 'Authorization': `token ${ghToken}`, 'Accept': 'application/vnd.github.v3+json' },
+                    cache: "no-store"
+                });
+
+                if (!res.ok) throw new Error(`GitHub Error: ${res.status}`);
+
+                const data = await res.json();
+                appData.ghSha = data.sha; // Save SHA for updates
+
+                // Decode Base64 (Unicode Support)
+                const decodedContent = decodeURIComponent(escape(window.atob(data.content)));
+                appData.lists = JSON.parse(decodedContent);
+
+                renderLists();
+                renderDropdowns();
+                if(manual) Swal.fire('Connected', 'Lists loaded from GitHub', 'success');
+
+            } catch (err) {
+                console.error(err);
+                if(manual) Swal.fire('Error', 'Failed to load data.json', 'error');
+            }
+        }
+
+        async function saveToGitHub(newListData) {
+            const { ghToken, ghOwner, ghRepo, ghPath } = appData.config;
+            
+            // Encode Base64
+            const jsonString = JSON.stringify(newListData, null, 2);
+            const encodedContent = window.btoa(unescape(encodeURIComponent(jsonString)));
+
+            const url = `https://api.github.com/repos/${ghOwner}/${ghRepo}/contents/${ghPath}`;
+            const body = {
+                message: "Update lists via App",
+                content: encodedContent,
+                sha: appData.ghSha
+            };
+
+            const res = await fetch(url, {
+                method: 'PUT',
+                headers: { 'Authorization': `token ${ghToken}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            if (!res.ok) throw new Error(`Update Failed: ${res.status}`);
+            
+            const data = await res.json();
+            appData.ghSha = data.content.sha;
+            appData.lists = newListData;
+        }
+
+        async function modifyGitHubList(type, action, inputIdOrValue) {
+            const { ghToken } = appData.config;
+            if(!ghToken) return Swal.fire('Config Error', 'Setup GitHub Token first', 'warning');
+
+            let currentList = [...(appData.lists[type] || [])];
+            let val = '';
+
+            if (action === 'add') {
+                val = document.getElementById(inputIdOrValue).value.trim();
+                if (!val) return;
+                currentList.push(val);
+            } else if (action === 'delete') {
+                val = inputIdOrValue;
+                currentList = currentList.filter(item => item !== val);
+            }
+
+            let newData = { ...appData.lists };
+            newData[type] = currentList;
+
+            Swal.fire({ title: 'Syncing to GitHub...', didOpen: () => Swal.showLoading() });
+            
+            try {
+                await saveToGitHub(newData);
+                if(action === 'add') document.getElementById(inputIdOrValue).value = '';
+                renderLists();
+                renderDropdowns();
+                const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 });
+                Toast.fire({ icon: 'success', title: 'GitHub Updated' });
+            } catch(e) {
+                Swal.fire('Error', 'Save failed: ' + e.message, 'error');
+            }
+        }
+
+        // ==========================================
+        // 2. GOOGLE APPS SCRIPT HANDLER (JOBS)
+        // ==========================================
         async function apiRequest(action, params = {}) {
             const url = appData.config.scriptUrl;
             if (!url) return Promise.reject("No Script URL");
 
-            // Build Query String
             const queryParams = new URLSearchParams({ action: action, ...params });
-            
-            // Fetch with Redirect Follow
             try {
                 const response = await fetch(`${url}?${queryParams.toString()}`, {
                     method: "GET",
                     redirect: "follow"
                 });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP Error: ${response.status}`);
-                }
-
+                if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
                 return await response.json();
             } catch (error) {
                 console.error("Fetch Error:", error);
@@ -266,14 +387,9 @@
             }
         }
 
-        // --- INIT ---
-        document.addEventListener('DOMContentLoaded', () => {
-            loadSettings();
-            refreshData(true);
-            fetchLists(); 
-        });
-
-        // --- MAIN FUNCTIONS (Updated to use apiRequest) ---
+        // ==========================================
+        // 3. MAIN ACTIONS
+        // ==========================================
         async function submitRequest(e) {
             e.preventDefault();
             const equipId = document.getElementById('reqEquipId').value;
@@ -301,15 +417,14 @@
                     Swal.fire({ icon: 'success', title: 'Success', text: `Job Created: ${result.jobId}`, background: '#1e293b', color: '#fff' });
                     refreshData(true);
                     switchTab('status');
-                } else {
-                    throw new Error(result.message);
-                }
+                } else throw new Error(result.message);
             } catch (err) {
                 Swal.fire('Error', err.toString(), 'error');
             }
         }
 
         async function refreshData(silent = false) {
+            if(!appData.config.scriptUrl) return;
             if(!silent) Swal.fire({ title: 'Syncing...', didOpen: () => Swal.showLoading() });
             
             try {
@@ -323,36 +438,10 @@
                     if(!silent) Swal.fire('Error', result.message, 'error');
                 }
             } catch(err) {
-                console.error(err);
-                if(!silent) Swal.fire('Connection Error', 'Check Settings URL', 'error');
+                if(!silent) Swal.fire('Connection Error', 'Check GAS URL', 'error');
             }
         }
 
-        // --- LISTS MANAGEMENT (Updated to use apiRequest) ---
-        async function fetchLists() {
-            try {
-                const d = await apiRequest('getDepartments');
-                if(d.status === 'success') { appData.lists.depts = d.data; renderLists(); renderDropdowns(); }
-                const t = await apiRequest('getTechnicians');
-                if(t.status === 'success') { appData.lists.techs = t.data; renderLists(); renderDropdowns(); }
-            } catch(e) { console.warn("List fetch failed", e); }
-        }
-
-        async function manageListApi(action, op, inputId) {
-            const name = inputId ? document.getElementById(inputId).value : arguments[3]; 
-            if(!name) return;
-            Swal.fire({ title: 'Processing...', didOpen: () => Swal.showLoading() });
-            try {
-                const res = await apiRequest(action, { operation: op, name: name });
-                if(res.status === 'success') {
-                    if(inputId) document.getElementById(inputId).value = '';
-                    await fetchLists();
-                    Swal.close();
-                } else { Swal.fire('Error', res.message, 'error'); }
-            } catch(e) { Swal.fire('Error', e.toString(), 'error'); }
-        }
-
-        // --- ADMIN UPDATE (Updated to use apiRequest) ---
         async function saveJobChanges() {
             const jobId = document.getElementById('modalJobId').value;
             const status = document.getElementById('modalStatus').value;
@@ -367,8 +456,7 @@
                 });
             }
             const params = {
-                jobId: jobId,
-                status: status,
+                jobId: jobId, status: status,
                 technician: document.getElementById('modalTech').value,
                 adminRemarks: document.getElementById('modalRemark').value,
                 cost: totalCost,
@@ -383,23 +471,28 @@
             try {
                 const res = await apiRequest('update', params);
                 if(res.status === 'success') {
-                    closeModal();
-                    refreshData(true);
-                    Swal.fire('Success', 'Updated', 'success');
-                } else { Swal.fire('Error', res.message, 'error'); }
+                    closeModal(); refreshData(true); Swal.fire('Success', 'Updated', 'success');
+                } else Swal.fire('Error', res.message, 'error');
             } catch(e) { Swal.fire('Error', e.toString(), 'error'); }
         }
 
-        // --- UI HELPERS ---
-        function switchTab(tabId) {
-            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.replace('text-corp-gold', 'text-slate-400'));
-            document.getElementById(`view-${tabId}`).classList.remove('hidden');
-            document.getElementById(`tab-${tabId}`).classList.replace('text-slate-400', 'text-corp-gold');
-            if(tabId === 'dashboard') updateDashboard();
+        // ==========================================
+        // 4. UI RENDERERS
+        // ==========================================
+        function renderLists() {
+            document.getElementById('list-dept').innerHTML = (appData.lists.depts || []).map(x => 
+                `<li class="flex justify-between border-b border-slate-700 p-1"><span>${x}</span><button onclick="modifyGitHubList('depts','delete','${x}')" class="text-red-400 font-bold px-2">×</button></li>`).join('');
+            document.getElementById('list-tech').innerHTML = (appData.lists.techs || []).map(x => 
+                `<li class="flex justify-between border-b border-slate-700 p-1"><span>${x}</span><button onclick="modifyGitHubList('techs','delete','${x}')" class="text-red-400 font-bold px-2">×</button></li>`).join('');
         }
 
-        // --- RENDER MONTHLY FOLDERS ---
+        function renderDropdowns() {
+            const d = document.getElementById('reqDept'); 
+            d.innerHTML = '<option value="">-- Select --</option>' + (appData.lists.depts || []).map(x => `<option>${x}</option>`).join('');
+            const t = document.getElementById('modalTech'); 
+            t.innerHTML = '<option value="">-- Select --</option>' + (appData.lists.techs || []).map(x => `<option>${x}</option>`).join('');
+        }
+
         function renderStatusTable(query = '') {
             const container = document.getElementById('statusFolders');
             container.innerHTML = '';
@@ -410,26 +503,22 @@
             });
 
             if (filtered.length === 0) {
-                container.innerHTML = '<div class="text-center text-slate-500 py-10 bg-slate-900/50 rounded-xl border border-dashed border-slate-700">ไม่พบข้อมูล</div>';
+                container.innerHTML = '<div class="text-center text-slate-500 py-10 bg-slate-900/50 rounded-xl border border-dashed border-slate-700">No Data</div>';
                 return;
             }
 
             const groups = {};
             filtered.forEach(req => {
                 const d = new Date(req.requestDate);
-                const monthKey = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}`; // YYYY-MM
+                const monthKey = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}`; 
                 if(!groups[monthKey]) groups[monthKey] = [];
                 groups[monthKey].push(req);
             });
 
-            const sortedMonths = Object.keys(groups).sort().reverse();
-
-            sortedMonths.forEach(monthKey => {
+            Object.keys(groups).sort().reverse().forEach(monthKey => {
                 const [y, m] = monthKey.split('-');
                 const monthName = new Date(y, m-1).toLocaleString('th-TH', { month: 'long', year: 'numeric' });
                 const items = groups[monthKey];
-                const isOpen = query !== '' || monthKey === sortedMonths[0];
-
                 const folderId = `folder-${monthKey}`;
                 
                 const folderHtml = `
@@ -438,15 +527,15 @@
                             <div class="flex items-center gap-3">
                                 <span class="text-2xl">📁</span>
                                 <span class="font-bold text-lg text-white">${monthName}</span>
-                                <span class="bg-slate-600 text-xs px-2 py-1 rounded-full text-slate-200">${items.length} รายการ</span>
+                                <span class="bg-slate-600 text-xs px-2 py-1 rounded-full text-slate-200">${items.length} Jobs</span>
                             </div>
-                            <span id="icon-${folderId}" class="text-slate-400 transform transition ${isOpen ? 'rotate-180' : ''}">▼</span>
+                            <span id="icon-${folderId}" class="text-slate-400 transform transition">▼</span>
                         </div>
-                        <div id="${folderId}" class="${isOpen ? '' : 'hidden'} bg-slate-900/50 border-t border-slate-700">
+                        <div id="${folderId}" class="hidden bg-slate-900/50 border-t border-slate-700">
                             <div class="overflow-x-auto">
                                 <table class="w-full text-left border-collapse text-sm">
                                     <thead class="bg-slate-900 text-slate-400 uppercase text-xs">
-                                        <tr><th class="p-3">Job ID</th><th class="p-3">Date</th><th class="p-3">Equipment</th><th class="p-3">Details</th><th class="p-3">Status</th><th class="p-3">Tech</th></tr>
+                                        <tr><th class="p-3">ID</th><th class="p-3">Date</th><th class="p-3">Equip</th><th class="p-3">Details</th><th class="p-3">Status</th><th class="p-3">Tech</th></tr>
                                     </thead>
                                     <tbody class="divide-y divide-slate-800 text-slate-300">
                                         ${items.map(req => {
@@ -455,8 +544,8 @@
                                             return `<tr class="hover:bg-slate-800/50">
                                                 <td class="p-3 font-mono text-corp-gold whitespace-nowrap">${req.jobID}</td>
                                                 <td class="p-3 whitespace-nowrap">${dateStr}</td>
-                                                <td class="p-3 font-medium">${req.equipmentLocation}</td>
-                                                <td class="p-3 text-slate-400 truncate max-w-xs" title="${req.problemDetails}">${req.problemDetails}</td>
+                                                <td class="p-3">${req.equipmentLocation}</td>
+                                                <td class="p-3 text-slate-400 truncate max-w-xs">${req.problemDetails}</td>
                                                 <td class="p-3 font-bold ${statusClass}">${req.status}</td>
                                                 <td class="p-3">${req.technician}</td>
                                             </tr>`;
@@ -465,19 +554,23 @@
                                 </table>
                             </div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
                 container.insertAdjacentHTML('beforeend', folderHtml);
             });
         }
 
+        // --- UTILS ---
         function toggleFolder(id) {
-            const content = document.getElementById(id);
-            const icon = document.getElementById(`icon-${id}`);
-            content.classList.toggle('hidden');
-            icon.classList.toggle('rotate-180');
+            document.getElementById(id).classList.toggle('hidden');
+            document.getElementById(`icon-${id}`).classList.toggle('rotate-180');
         }
-
+        function switchTab(tabId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.replace('text-corp-gold', 'text-slate-400'));
+            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+            document.getElementById(`tab-${tabId}`).classList.replace('text-slate-400', 'text-corp-gold');
+            if(tabId === 'dashboard') updateDashboard();
+        }
         function renderAdminTable() {
              const tbody = document.getElementById('adminTableBody');
              tbody.innerHTML = '';
@@ -491,7 +584,6 @@
                 </tr>`;
              });
         }
-
         function updateDashboard() {
             renderAdminTable();
             document.getElementById('kpi-total').innerText = appData.requests.length;
@@ -500,28 +592,73 @@
             document.getElementById('kpi-done').innerText = appData.requests.filter(r => r.status === 'Done').length;
         }
 
-        function openAdminModal(id) {
-            const job = appData.requests.find(r => r.jobID === id);
-            if(!job) return;
-            document.getElementById('modalJobId').value = id;
-            document.getElementById('modalStatus').value = job.status;
-            document.getElementById('modalTech').value = job.technician || '';
-            document.getElementById('modalRemark').value = job.adminRemarks || '';
-            document.getElementById('modalAdditionalNotes').value = job.additionalNotes || '';
-            
-            document.getElementById('itemsContainer').innerHTML = '';
-            if(job.itemsData) {
-                try {
-                    const items = JSON.parse(job.itemsData);
-                    items.forEach(i => addItemRow(i.name, i.quantity, i.unitPrice));
-                } catch(e) {}
-            } else {
-                addItemRow();
+        // --- CONFIG ---
+        function loadSettings() {
+            const savedConfig = localStorage.getItem('maint_config_v2');
+            if(savedConfig) {
+                appData.config = { ...appData.config, ...JSON.parse(savedConfig) };
             }
-            toggleCostSection();
-            document.getElementById('adminModal').classList.remove('hidden');
+            // Populate Inputs
+            document.getElementById('setting-gs-url').value = appData.config.scriptUrl || '';
+            document.getElementById('gh-token').value = appData.config.ghToken || '';
+            document.getElementById('gh-owner').value = appData.config.ghOwner || '';
+            document.getElementById('gh-repo').value = appData.config.ghRepo || '';
+            document.getElementById('gh-path').value = appData.config.ghPath || 'data.json';
+            
+            document.getElementById('conf-prefix').value = appData.config.jobId.prefix;
+            document.getElementById('conf-digits').value = appData.config.jobId.digits;
+            document.getElementById('conf-year').value = appData.config.jobId.year;
         }
 
+        function saveSystemSettings() {
+            appData.config.scriptUrl = document.getElementById('setting-gs-url').value;
+            appData.config.ghToken = document.getElementById('gh-token').value;
+            appData.config.ghOwner = document.getElementById('gh-owner').value;
+            appData.config.ghRepo = document.getElementById('gh-repo').value;
+            appData.config.ghPath = document.getElementById('gh-path').value;
+            
+            localStorage.setItem('maint_config_v2', JSON.stringify(appData.config));
+            Swal.fire('Saved', 'Configuration Updated', 'success');
+            refreshData();
+            loadGitHubData();
+        }
+
+        function saveJobConfig() {
+            appData.config.jobId.prefix = document.getElementById('conf-prefix').value;
+            appData.config.jobId.digits = parseInt(document.getElementById('conf-digits').value);
+            appData.config.jobId.year = document.getElementById('conf-year').value;
+            localStorage.setItem('maint_config_v2', JSON.stringify(appData.config));
+            Swal.fire('Saved', 'Job ID Format Updated', 'success');
+        }
+        function resetConfig() { localStorage.removeItem('maint_config_v2'); location.reload(); }
+        
+        async function testConnection() {
+            Swal.fire({ title: 'Testing GAS...', didOpen: () => Swal.showLoading() });
+            try {
+                const res = await apiRequest('fetch');
+                if(res.status === 'success') Swal.fire('Connected', 'GAS Data found: ' + res.data.length, 'success');
+                else Swal.fire('Failed', res.message, 'error');
+            } catch(e) { Swal.fire('Error', 'Connect failed', 'error'); }
+        }
+
+        // --- MODALS & HELPERS ---
+        async function showLoginModal() {
+            const { value: p } = await Swal.fire({ 
+                title: 'Admin Access', input: 'password', background: '#1e293b', color: '#fff' 
+            });
+            if (p === appData.config.adminPass) {
+                appData.isAdmin = true;
+                document.querySelectorAll('.admin-only').forEach(e => e.classList.remove('hidden'));
+                document.getElementById('btnLogin').classList.add('hidden');
+                document.getElementById('btnLogout').classList.remove('hidden');
+                switchTab('dashboard');
+            }
+        }
+        function logout() { location.reload(); }
+        function filterTable(id, q) { 
+            const tr = document.getElementById(id).getElementsByTagName('tr');
+            for(let i=1;i<tr.length;i++) tr[i].style.display = tr[i].innerText.toUpperCase().includes(q.toUpperCase()) ? '' : 'none';
+        }
         function closeModal() { document.getElementById('adminModal').classList.add('hidden'); }
         function toggleCostSection() { document.getElementById('costSection').style.display = document.getElementById('modalStatus').value === 'Done' ? 'block' : 'none'; }
         
@@ -533,105 +670,6 @@
         function calcTotal() {
             let t = 0; document.querySelectorAll('.item-row').forEach(r => t += (r.querySelector('.item-qty').value * r.querySelector('.item-price').value));
             document.getElementById('grandTotalDisplay').innerText = t.toFixed(2) + ' ฿';
-        }
-
-        // --- SETTINGS & LISTS RENDERING ---
-        function renderLists() {
-            document.getElementById('list-dept').innerHTML = appData.lists.depts.map(x => `<li class="flex justify-between border-b border-slate-700 p-1"><span>${x}</span><button onclick="manageListApi('manageDepartment','delete','','${x}')" class="text-red-400">x</button></li>`).join('');
-            document.getElementById('list-tech').innerHTML = appData.lists.techs.map(x => `<li class="flex justify-between border-b border-slate-700 p-1"><span>${x}</span><button onclick="manageListApi('manageTechnician','delete','','${x}')" class="text-red-400">x</button></li>`).join('');
-        }
-        function renderDropdowns() {
-            const d = document.getElementById('reqDept'); 
-            d.innerHTML = '<option value="">-- Select --</option>' + appData.lists.depts.map(x => `<option>${x}</option>`).join('');
-            const t = document.getElementById('modalTech'); 
-            t.innerHTML = '<option value="">-- Select --</option>' + appData.lists.techs.map(x => `<option>${x}</option>`).join('');
-        }
-
-        function loadSettings() {
-            const savedConfig = localStorage.getItem('maint_config');
-            if(savedConfig) {
-                try {
-                    const parsed = JSON.parse(savedConfig);
-                    if(parsed.scriptUrl) appData.config.scriptUrl = parsed.scriptUrl;
-                    if(parsed.adminPass) appData.config.adminPass = parsed.adminPass;
-                    if(parsed.jobId) appData.config.jobId = parsed.jobId;
-                } catch(e) {
-                    console.error("Config load error", e);
-                }
-            }
-            // Sync UI
-            document.getElementById('setting-url').value = appData.config.scriptUrl;
-            document.getElementById('conf-prefix').value = appData.config.jobId.prefix;
-            document.getElementById('conf-digits').value = appData.config.jobId.digits;
-            document.getElementById('conf-year').value = appData.config.jobId.year;
-        }
-        function saveSystemSettings() {
-            appData.config.scriptUrl = document.getElementById('setting-url').value;
-            localStorage.setItem('maint_config', JSON.stringify(appData.config));
-            Swal.fire('Saved', 'Config Updated', 'success');
-            refreshData();
-        }
-        function saveJobConfig() {
-            appData.config.jobId.prefix = document.getElementById('conf-prefix').value;
-            appData.config.jobId.digits = parseInt(document.getElementById('conf-digits').value);
-            appData.config.jobId.year = document.getElementById('conf-year').value;
-            localStorage.setItem('maint_config', JSON.stringify(appData.config));
-            Swal.fire('Saved', 'ID Config Updated', 'success');
-        }
-        function resetConfig() { localStorage.removeItem('maint_config'); location.reload(); }
-        
-        async function testConnection() {
-            Swal.fire({ title: 'Testing...', didOpen: () => Swal.showLoading() });
-            try {
-                const res = await apiRequest('fetch');
-                if(res.status === 'success') Swal.fire('Connected', 'Data found: ' + res.data.length, 'success');
-                else Swal.fire('Failed', res.message, 'error');
-            } catch(e) { Swal.fire('Error', 'Connect failed', 'error'); }
-        }
-
-        async function showLoginModal() {
-            const { value: p } = await Swal.fire({ 
-                title: 'Admin Access', 
-                input: 'password', 
-                inputLabel: 'Enter Password', 
-                inputPlaceholder: 'Default: admin123',
-                background: '#1e293b', 
-                color: '#fff',
-                confirmButtonColor: '#f59e0b',
-                showCancelButton: true
-            });
-
-            if (!p) return; // Cancelled
-
-            if (p === appData.config.adminPass) {
-                appData.isAdmin = true;
-                document.querySelectorAll('.admin-only').forEach(e => e.classList.remove('hidden'));
-                document.getElementById('btnLogin').classList.add('hidden');
-                document.getElementById('btnLogout').classList.remove('hidden');
-                switchTab('dashboard');
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Welcome Admin',
-                    text: 'Logged in successfully',
-                    timer: 1500,
-                    showConfirmButton: false,
-                    background: '#1e293b',
-                    color: '#fff'
-                });
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Access Denied',
-                    text: 'Incorrect Password',
-                    background: '#1e293b',
-                    color: '#fff'
-                });
-            }
-        }
-        function logout() { location.reload(); }
-        function filterTable(id, q) { 
-            const tr = document.getElementById(id).getElementsByTagName('tr');
-            for(let i=1;i<tr.length;i++) tr[i].style.display = tr[i].innerText.toUpperCase().includes(q.toUpperCase()) ? '' : 'none';
         }
     </script>
 </body>
