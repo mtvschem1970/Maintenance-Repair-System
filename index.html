@@ -13,14 +13,12 @@
         ::-webkit-scrollbar { width: 8px; height: 8px; } ::-webkit-scrollbar-track { background: #1e293b; } ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
         .status-waiting { animation: blink-yellow 2s infinite ease-in-out; font-weight: bold; color: #facc15; }
         @keyframes blink-yellow { 0%, 100% { opacity: 1; color: #facc15; text-shadow: 0 0 5px rgba(250, 204, 21, 0.3); } 50% { opacity: 0.6; color: #fde047; text-shadow: none; } }
-        .alert-text-medium { display: block; font-weight: bold; color: #f59e0b; margin-top: 10px; font-size: 1.1em; }
-        .alert-text-high { display: block; font-weight: 800; color: #ef4444; margin-top: 10px; font-size: 1.2em; text-decoration: underline; }
         .img-preview { max-height: 150px; border-radius: 8px; margin-top: 10px; display: none; border: 2px solid #475569; }
         
         /* Popup Image Styles */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 60; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-        .modal-content { max-width: 90%; max-height: 90%; position: relative; animation: zoomIn 0.3s ease; }
-        .modal-close { position: absolute; top: -40px; right: 0; color: white; font-size: 30px; cursor: pointer; font-weight: bold; }
+        .modal-content { max-width: 90%; max-height: 90%; position: relative; animation: zoomIn 0.3s ease; text-align: center; }
+        .modal-close { position: absolute; top: -40px; right: 0; color: white; font-size: 30px; cursor: pointer; font-weight: bold; text-shadow: 0 0 5px black; }
         @keyframes zoomIn { from {transform: scale(0.5); opacity: 0;} to {transform: scale(1); opacity: 1;} }
     </style>
 </head>
@@ -28,8 +26,8 @@
 
     <div id="imageViewerModal" class="modal-overlay" onclick="closeImageViewer()">
         <div class="modal-content" onclick="event.stopPropagation()">
-            <span class="modal-close" onclick="closeImageViewer()">&times; ปิด</span>
-            <img id="imageViewerSrc" src="" class="rounded-lg shadow-2xl border-2 border-slate-700" style="max-height: 85vh;">
+            <span class="modal-close" onclick="closeImageViewer()">× ปิด</span>
+            <img id="imageViewerSrc" src="" class="rounded-lg shadow-2xl border-2 border-slate-700" style="max-height: 85vh; max-width: 100%;">
         </div>
     </div>
 
@@ -120,7 +118,7 @@
                                 <input type="number" id="setting-id-start" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-slate-300" placeholder="เช่น 1">
                             </div>
                         </div>
-                        <p class="text-xs text-slate-500 mt-2">รูปแบบ: <span id="id-preview" class="text-corp-gold font-mono">MTN-2026-0001</span></p>
+                        <p class="text-xs text-slate-500 mt-2">รูปแบบตัวอย่าง: <span id="id-preview" class="text-corp-gold font-mono">MTN-2026-0001</span></p>
                     </div>
 
                     <div class="flex gap-2 mt-4">
@@ -217,7 +215,7 @@
                 folderBefore: '1W30HTKv8BDYJTQPYVNTsqeRLZo7pruRB',
                 folderAfter: '1sMkTHkkX7S6ngFPacQRhNMA7j2ESP1S5',
                 adminPass: '888',
-                jobId: { prefix: 'MTN', startNum: 1 } // เพิ่ม startNum
+                jobId: { prefix: 'MTN', startNum: 1 } 
             }
         };
 
@@ -232,7 +230,7 @@
             return await response.json();
         }
 
-        // --- IMAGES & POPUP ---
+        // --- IMAGES & POPUP (FIXED) ---
         function fileToBase64(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -242,42 +240,59 @@
             });
         }
 
-       function openImageViewer(url) {
+        function previewImage(input, previewId) {
+            const file = input.files[0];
+            const preview = document.getElementById(previewId);
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            } else {
+                preview.src = '';
+                preview.style.display = 'none';
+            }
+        }
+
+        function openImageViewer(url) {
             if(!url) return;
             
             let directUrl = url;
             try {
-                // 1. ดึง ID ด้วย Regex ที่ครอบคลุมกว่าเดิม (รองรับทั้ง /d/ID และ id=ID)
+                // Regex ที่แม่นยำขึ้นสำหรับ Google Drive
                 let id = "";
-                let match = url.match(/\/d\/([-\w]+)/); // หาแพทเทิร์น /d/xxxxxx
+                // 1. ลองหาแบบ /d/XXXX/
+                let match = url.match(/\/d\/([-\w]+)/); 
                 if (match) {
                     id = match[1];
                 } else {
-                    match = url.match(/id=([-\w]+)/); // เผื่อกรณีลิงก์แบบเก่า
+                    // 2. ลองหาแบบ id=XXXX
+                    match = url.match(/id=([-\w]+)/); 
                     if (match) id = match[1];
                 }
 
                 if (id) {
-                    // 2. ใช้ลิงก์ Thumbnail ความละเอียดสูง (sz=s4000) 
-                    // ลิงก์นี้ Google อนุญาตให้ใส่ใน <img> ได้โดยไม่ติด Permission
-                    directUrl = "https://lh3.googleusercontent.com/d/" + id + "=s4000";
+                    // ใช้ lh3.googleusercontent.com เพื่อโหลดรูปโดยตรง (แก้ปัญหา CORS และ Permission)
+                    directUrl = "https://lh3.googleusercontent.com/d/" + id + "=s4000"; // s4000 = ขอรูปใหญ่สุด
                 }
             } catch(e) { console.error("URL Parse Error:", e); }
 
             const modal = document.getElementById('imageViewerModal');
             const img = document.getElementById('imageViewerSrc');
             
-            // Reset src ก่อนเพื่อไม่ให้โชว์รูปเก่าค้าง
-            img.src = ""; 
-            img.src = directUrl;
+            img.src = ""; // Clear old image
+            img.src = directUrl; // Set new image
             
             modal.style.display = 'flex';
         }
 
         function closeImageViewer() {
             document.getElementById('imageViewerModal').style.display = 'none';
-            document.getElementById('imageViewerSrc').src = ""; // เคลียร์รูปเมื่อปิด
+            document.getElementById('imageViewerSrc').src = ""; 
         }
+
         // --- CORE FUNCTIONS ---
         document.addEventListener('DOMContentLoaded', () => { loadSettings(); refreshData(true); loadLists(); });
 
@@ -324,7 +339,7 @@
                 equipmentLocation: document.getElementById('reqEquip').value,
                 problemDetails: document.getElementById('reqDetail').value,
                 urgency: urg, status: 'Waiting', 
-                jobIdConfig: JSON.stringify(appData.cfg.jobId), // Send Config
+                jobIdConfig: JSON.stringify(appData.cfg.jobId), 
                 imageFile: imgData,
                 folderId: appData.cfg.folderBefore
             };
@@ -367,7 +382,6 @@
                 if(n) { const t=q*p; it.push({name:n, quantity:q, unitPrice:p, total:t}); cost+=t; }
             });
 
-            // Handle Admin Image Upload
             const fileInput = document.getElementById('adminImg');
             let imgData = "";
             if(fileInput.files.length > 0) {
@@ -401,7 +415,6 @@
             document.getElementById('reqDept').innerHTML=o(appData.lists.depts); document.getElementById('modalTech').innerHTML=o(appData.lists.techs);
         }
         
-        // ** REDESIGNED: Status Table (Status First, Images Popup) **
         function renderStatus(q='') {
             const c=document.getElementById('statusFolders'); c.innerHTML='';
             const d=appData.reqs.filter(r=>(r.jobID+r.requesterName).toLowerCase().includes(q.toLowerCase()));
@@ -410,40 +423,41 @@
             
             Object.keys(g).sort().reverse().forEach((k,i)=>{
                 const rows = g[k].map(r=>{
-                    // Status Badge
+                    // Status Badge (Col 1)
                     let sHtml = `<span class="px-2 py-1 rounded text-xs font-bold bg-slate-700 text-slate-400">${r.status}</span>`;
                     if(r.status=='Done') sHtml = `<span class="px-2 py-1 rounded text-xs font-bold bg-green-900 text-green-400">Done</span>`;
                     else if(r.status=='Waiting') sHtml = `<span class="px-2 py-1 rounded text-xs font-bold bg-yellow-900 text-yellow-400 status-waiting">Waiting</span>`;
                     else if(r.status=='Processing') sHtml = `<span class="px-2 py-1 rounded text-xs font-bold bg-blue-900 text-blue-400">Processing</span>`;
 
-                    // Images (Click to Popup)
+                    // Images Popup
                     let imgHtml = '';
-                    if(r.imageBefore) imgHtml += `<span class="cursor-pointer text-xl" onclick="openImageViewer('${r.imageBefore}')" title="Before">📄</span>`;
-                    if(r.imageAfter) imgHtml += `<span class="cursor-pointer text-xl ml-1" onclick="openImageViewer('${r.imageAfter}')" title="After">✅</span>`;
+                    if(r.imageBefore) imgHtml += `<span class="cursor-pointer text-xl hover:scale-125 transition inline-block" onclick="openImageViewer('${r.imageBefore}')" title="Before">📄</span>`;
+                    if(r.imageAfter) imgHtml += `<span class="cursor-pointer text-xl ml-2 hover:scale-125 transition inline-block" onclick="openImageViewer('${r.imageAfter}')" title="After">✅</span>`;
                     if(!imgHtml) imgHtml = '<span class="text-slate-600">-</span>';
 
                     return `
                     <tr class="hover:bg-slate-800/50 border-b border-slate-800 text-slate-300">
-                        <td class="p-3">${sHtml}</td>
-                        <td class="p-3 text-corp-gold font-mono">${r.jobID}</td>
-                        <td class="p-3 text-xs text-slate-400">${new Date(r.requestDate).toLocaleDateString('th-TH')}</td>
+                        <td class="p-3 whitespace-nowrap">${sHtml}</td>
+                        <td class="p-3 text-corp-gold font-mono whitespace-nowrap">${r.jobID}</td>
+                        <td class="p-3 text-xs text-slate-400 whitespace-nowrap">${new Date(r.requestDate).toLocaleDateString('th-TH')}</td>
                         <td class="p-3">${r.equipmentLocation}</td>
                         <td class="p-3 truncate max-w-xs text-sm">${r.problemDetails}</td>
-                        <td class="p-3 text-center">${imgHtml}</td>
+                        <td class="p-3 text-center whitespace-nowrap">${imgHtml}</td>
                     </tr>`;
                 }).join('');
                 
                 c.innerHTML+=`
-                <div class="bg-slate-800 rounded mb-2">
-                    <div onclick="this.nextElementSibling.classList.toggle('hidden')" class="p-3 font-bold cursor-pointer hover:bg-slate-700 flex justify-between">
-                        <span>📁 ${k}</span><span class="text-xs bg-slate-600 px-2 rounded">${g[k].length}</span>
+                <div class="bg-slate-800 rounded mb-3 border border-slate-700 overflow-hidden">
+                    <div onclick="this.nextElementSibling.classList.toggle('hidden')" class="p-3 font-bold cursor-pointer hover:bg-slate-700 flex justify-between items-center bg-gradient-to-r from-slate-800 to-slate-900">
+                        <span class="flex items-center gap-2">📁 ${k}</span>
+                        <span class="text-xs bg-slate-600 px-2 py-1 rounded-full text-white">${g[k].length} Jobs</span>
                     </div>
-                    <div class="${(q||i==0)?'':'hidden'} bg-slate-900/50 overflow-x-auto">
+                    <div class="${(q||i==0)?'':'hidden'} bg-slate-900/90 overflow-x-auto">
                         <table class="w-full text-sm text-left">
-                            <thead><tr class="text-slate-500 uppercase text-xs">
-                                <th class="p-3">Status</th><th class="p-3">ID</th><th class="p-3">Date</th><th class="p-3">Equip</th><th class="p-3">Detail</th><th class="p-3 text-center">Images</th>
-                            </tr></thead>
-                            <tbody>${rows}</tbody>
+                            <thead class="bg-slate-950 text-slate-400 uppercase text-xs">
+                                <tr><th class="p-3">Status</th><th class="p-3">ID</th><th class="p-3">Date</th><th class="p-3">Equip</th><th class="p-3">Detail</th><th class="p-3 text-center">Img</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800">${rows}</tbody>
                         </table>
                     </div>
                 </div>`;
@@ -471,7 +485,6 @@
         function loadSettings() {
             const c = JSON.parse(localStorage.getItem('maint_cfg_v15')||'{}');
             appData.cfg = {...appData.cfg, ...c};
-            // Default check
             if(!appData.cfg.folderBefore) appData.cfg.folderBefore = '1W30HTKv8BDYJTQPYVNTsqeRLZo7pruRB';
             if(!appData.cfg.folderAfter) appData.cfg.folderAfter = '1sMkTHkkX7S6ngFPacQRhNMA7j2ESP1S5';
             if(!appData.cfg.jobId) appData.cfg.jobId = { prefix: 'MTN', startNum: 1 };
@@ -480,12 +493,10 @@
             document.getElementById('setting-folder-before').value = appData.cfg.folderBefore;
             document.getElementById('setting-folder-after').value = appData.cfg.folderAfter;
             
-            // Set Job ID settings inputs
             document.getElementById('setting-id-prefix').value = appData.cfg.jobId.prefix || 'MTN';
             document.getElementById('setting-id-start').value = appData.cfg.jobId.startNum || 1;
             updateIdPreview();
             
-            // Add listeners for live preview
             document.getElementById('setting-id-prefix').addEventListener('input', updateIdPreview);
             document.getElementById('setting-id-start').addEventListener('input', updateIdPreview);
         }
@@ -503,7 +514,6 @@
             appData.cfg.folderBefore = document.getElementById('setting-folder-before').value.trim();
             appData.cfg.folderAfter = document.getElementById('setting-folder-after').value.trim();
             
-            // Save Job ID Settings
             appData.cfg.jobId = {
                 prefix: document.getElementById('setting-id-prefix').value.trim() || 'MTN',
                 startNum: parseInt(document.getElementById('setting-id-start').value.trim()) || 1
@@ -514,14 +524,14 @@
         }
         function resetConfig() { localStorage.removeItem('maint_cfg_v15'); location.reload(); }
 
-        // --- AUTH & MODAL ---
-        async function showLoginModal() {
-            const {value:p} = await Swal.fire({title:'Admin', input:'password', background:'#1e293b', color:'#fff'});
-            if(p===appData.cfg.adminPass) { 
-                appData.isAdmin=true; document.querySelectorAll('.admin-only').forEach(e=>e.classList.remove('hidden')); 
-                document.getElementById('btnLogin').classList.add('hidden'); document.getElementById('btnLogout').classList.remove('hidden'); 
-                switchTab('settings');
-            } else if(p) Swal.fire('Error','รหัสผิด','error');
+        function showLoginModal() {
+            Swal.fire({title:'Admin', input:'password', background:'#1e293b', color:'#fff'}).then((r) => {
+                if(r.value===appData.cfg.adminPass) { 
+                    appData.isAdmin=true; document.querySelectorAll('.admin-only').forEach(e=>e.classList.remove('hidden')); 
+                    document.getElementById('btnLogin').classList.add('hidden'); document.getElementById('btnLogout').classList.remove('hidden'); 
+                    switchTab('settings');
+                } else if(r.value) Swal.fire('Error','รหัสผิด','error');
+            });
         }
         function switchTab(id) {
             document.querySelectorAll('.view-section').forEach(e=>e.classList.add('hidden')); document.querySelectorAll('.tab-btn').forEach(e=>e.classList.replace('text-corp-gold','text-slate-400'));
@@ -539,8 +549,6 @@
             document.getElementById('modalTech').value = r.technician;
             document.getElementById('modalRemark').value = r.adminRemarks;
             document.getElementById('modalNotes').value = r.additionalNotes;
-            
-            // Reset Admin Image
             document.getElementById('adminImg').value = '';
             document.getElementById('adminPreview').style.display = 'none';
 
@@ -574,5 +582,3 @@
     </script>
 </body>
 </html>
-
-
