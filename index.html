@@ -247,202 +247,18 @@
         </div>
     </div>
 
-    <script>
-        // --- GLOBAL STATE ---
-        let appData = {
-            reqs: [], lists: {depts: [], techs: []}, sha: null, isAdmin: false,
-            cfg: { coreUrl: '', proxyUrl: '', adminPass: 'admin123', jobId: { prefix: 'MTN', year: 'YYYY', digits: 4 } }
-        };
-
-        // --- API CALLER ---
-        function callApi(url, act, p={}) {
-            return new Promise((res, rej) => {
-                if(!url) return rej("Missing URL");
-                const cb = 'cb_' + Math.round(Math.random()*1e9);
-                const s = document.createElement('script');
-                s.src = `${url}?${new URLSearchParams({action:act, callback:cb, ...p})}`;
-                window[cb] = d => { delete window[cb]; document.body.removeChild(s); res(d); };
-                s.onerror = () => { delete window[cb]; document.body.removeChild(s); rej("Connection Error"); };
-                document.body.appendChild(s);
-            });
-        }
-
-        // --- PROXY LISTS ---
-        async function loadLists(m=false) {
-            if(!appData.cfg.proxyUrl) return;
-            if(m) Swal.showLoading();
-            try {
-                const r = await callApi(appData.cfg.proxyUrl, 'load');
-                if(r.status==='success') { appData.lists=r.data; appData.sha=r.sha; renderLists(); renderDrops(); if(m) Swal.fire('Success','Lists Loaded','success'); }
-            } catch(e) { if(m) Swal.fire('Error',e.toString(),'error'); }
-        }
-        async function modifyList(t, act, id) {
-            const v = act==='add'?document.getElementById(id).value.trim():id; if(!v) return;
-            let l = [...(appData.lists[t]||[])]; if(act==='add') l.push(v); else l=l.filter(x=>x!==v);
-            Swal.showLoading();
-            try {
-                let nd = {...appData.lists}; nd[t]=l;
-                const r = await callApi(appData.cfg.proxyUrl, 'save', { content: JSON.stringify(nd,null,2), sha: appData.sha });
-                if(r.status==='success') { appData.sha=r.sha; appData.lists=nd; if(act==='add') document.getElementById(id).value=''; renderLists(); renderDrops(); Swal.close(); }
-            } catch(e) { Swal.fire('Error', 'Save Failed', 'error'); }
-        }
-
-        // --- APP LOGIC ---
-        document.addEventListener('DOMContentLoaded', () => { loadSettings(); refreshData(true); loadLists(); });
-
-        async function submitRequest(e) {
-            e.preventDefault();
-            const urg = document.querySelector('input[name="urgency"]:checked').value;
-            const equip = document.getElementById('reqEquip').value;
-            const eid = document.getElementById('reqEquipId').value;
-            const p = {
-                requesterName: document.getElementById('reqName').value,
-                positionDept: document.getElementById('reqDept').value,
-                phoneNumber: document.getElementById('reqPhone').value,
-                equipmentLocation: eid ? `[${eid}] ${equip}` : equip,
-                problemDetails: document.getElementById('reqDetail').value,
-                urgency: urg, status: 'Waiting', jobIdConfig: JSON.stringify(appData.cfg.jobId)
-            };
-            Swal.showLoading();
-            try {
-                const r = await callApi(appData.cfg.coreUrl, 'submit', p);
-                if(r.status==='success') {
-                    document.getElementById('requestForm').reset();
-                    
-                    let h = `Job Created: ${r.jobId}`, ic='success', ti='บันทึกสำเร็จ';
-                    if(urg==='Medium') { 
-                        ti='⚠️ แจ้งเตือนด่วน'; ic='warning'; 
-                        h+=`<br><br><div class="medium-alert-text">กรุณาโทรแจ้ง คุณพิทวัส<br>เบอร์ 0982799918 หรือ ไลน์ mtvschem</div>`; 
-                    }
-                    if(urg==='High') { 
-                        ti='🚨 แจ้งเตือนด่วนมาก'; ic='warning'; 
-                        h+=`<br><br><div class="siren-text">กรุณาโทรแจ้ง คุณพิทวัส ทันที<br>เบอร์ 0982799918 หรือ ไลน์ mtvschem</div>`; 
-                    }
-                    Swal.fire({icon:ic, title:ti, html:h, background:'#1e293b', color:'#fff', confirmButtonColor:'#f59e0b'});
-                    refreshData(true); switchTab('status');
-                } else throw new Error(r.message);
-            } catch(e) { Swal.fire('Error', e.toString(), 'error'); }
-        }
-
-        async function refreshData(s) {
-            if(!appData.cfg.coreUrl) return; if(!s) Swal.showLoading();
-            try { const r = await callApi(appData.cfg.coreUrl, 'fetch'); if(r.status==='success') { appData.reqs=r.data; renderStatus(); if(appData.isAdmin) renderAdmin(); if(!s) Swal.close(); } } catch(e) { if(!s) Swal.fire('Error','Connect Fail','error'); }
-        }
-
-        async function saveJob() {
-            const st = document.getElementById('modalStatus').value;
-            let it=[], cost=0;
-            if(st==='Done') document.querySelectorAll('.item-row').forEach(r=>{
-                const n=r.querySelector('.i-n').value, q=r.querySelector('.i-q').value, p=r.querySelector('.i-p').value;
-                if(n) { const t=q*p; it.push({name:n, quantity:q, unitPrice:p, total:t}); cost+=t; }
-            });
-            const p = {
-                jobId: document.getElementById('modalJobId').value, status: st, technician: document.getElementById('modalTech').value,
-                adminRemarks: document.getElementById('modalRemark').value, additionalNotes: document.getElementById('modalAdditionalNotes').value,
-                cost: cost, itemsData: JSON.stringify(it)
-            };
-            if(st==='Processing') p.acceptedDate = new Date().toISOString();
-            if(st==='Done') p.completedDate = new Date().toISOString();
-            Swal.showLoading();
-            try { const r = await callApi(appData.cfg.coreUrl, 'update', p); if(r.status==='success') { closeModal(); refreshData(true); Swal.fire('Saved','','success'); } else throw new Error(r.message); } catch(e) { Swal.fire('Error',e.toString(),'error'); }
-        }
-
-        // --- RENDERERS ---
-        function renderLists() { ['depts','techs'].forEach(k => document.getElementById('list-'+k.slice(0,-1)).innerHTML = (appData.lists[k]||[]).map(x=>`<li class="flex justify-between border-b border-slate-700 p-1"><span>${x}</span><button onclick="modifyList('${k}','del','${x}')" class="text-red-400">×</button></li>`).join('')); }
-        function renderDrops() {
-            const o = l => '<option value="">-- Select --</option>' + (l||[]).map(x=>`<option>${x}</option>`).join('');
-            document.getElementById('reqDept').innerHTML=o(appData.lists.depts); document.getElementById('modalTech').innerHTML=o(appData.lists.techs);
-        }
-        function renderStatus(q='') {
-            const c=document.getElementById('statusFolders'); c.innerHTML='';
-            const d=appData.reqs.filter(r=>(r.jobID+r.equipmentLocation+r.requesterName).toLowerCase().includes(q.toLowerCase()));
-            if(!d.length) return c.innerHTML='<div class="text-center text-slate-500 py-10">No Data</div>';
-            const g = d.reduce((a,r)=>{ const k=(r.requestDate||'').substring(0,7); (a[k]=a[k]||[]).push(r); return a; }, {});
-            Object.keys(g).sort().reverse().forEach((k,i)=>{
-                const rows = g[k].map(r=>{
-                    let s='text-slate-400'; if(r.status=='Done')s='text-green-400 font-bold'; else if(r.status=='Processing')s='text-blue-400 font-bold'; else if(r.status=='Waiting')s='text-yellow-400 font-bold';
-                    return `<tr class="hover:bg-slate-800/50 border-b border-slate-800 text-slate-300"><td class="p-3 text-corp-gold font-mono">${r.jobID}</td><td class="p-3">${new Date(r.requestDate).toLocaleDateString('th-TH')}</td><td class="p-3">${r.equipmentLocation}</td><td class="p-3 truncate max-w-xs">${r.problemDetails}</td><td class="p-3 ${s}">${r.status}</td><td class="p-3">${r.technician}</td></tr>`;
-                }).join('');
-                c.innerHTML+=`<div class="bg-slate-800 rounded shadow border border-slate-700 mb-2 overflow-hidden"><div onclick="this.nextElementSibling.classList.toggle('hidden')" class="p-3 flex justify-between cursor-pointer hover:bg-slate-700"><span class="font-bold">📁 ${k} (${g[k].length})</span><span>▼</span></div><div class="${(q||i==0)?'':'hidden'} bg-slate-900/50"><table class="w-full text-sm text-left"><thead><tr class="text-slate-500"><th class="p-3">ID</th><th class="p-3">Date</th><th class="p-3">Equip</th><th class="p-3">Detail</th><th class="p-3">Status</th><th class="p-3">Tech</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
-            });
-        }
-        function renderAdmin() {
-            document.getElementById('adminTableBody').innerHTML = appData.reqs.map(r => {
-                let s='text-slate-400'; if(r.status=='Done')s='text-green-400'; else if(r.status=='Waiting')s='text-yellow-400';
-                return `<tr class="border-b border-slate-700 hover:bg-slate-800"><td class="p-3"><button onclick="openModal('${r.jobID}')" class="bg-blue-600 px-2 py-1 rounded text-xs">Edit</button></td><td class="p-3 font-mono text-xs">${r.jobID}</td><td class="p-3 text-sm">${r.requesterName}</td><td class="p-3 text-sm">${r.equipmentLocation}</td><td class="p-3 text-xs ${s}">${r.status}</td></tr>`;
-            }).join('');
-        }
-
-        // --- SYSTEM ---
-        function switchTab(id) {
-            document.querySelectorAll('.view-section').forEach(e=>e.classList.add('hidden')); document.querySelectorAll('.tab-btn').forEach(e=>e.classList.replace('text-corp-gold','text-slate-400'));
-            document.getElementById('view-'+id).classList.remove('hidden'); document.getElementById('tab-'+id).classList.replace('text-slate-400','text-corp-gold');
-            if(id==='dashboard') { document.getElementById('kpi-total').innerText=appData.reqs.length; renderAdmin(); }
-        }
-        function loadSettings() {
-            const c = JSON.parse(localStorage.getItem('maint_cfg_v8')||'{}');
-            appData.cfg = {...appData.cfg, ...c};
-            document.getElementById('setting-core-url').value = appData.cfg.coreUrl;
-            document.getElementById('setting-proxy-url').value = appData.cfg.proxyUrl;
-            ['prefix','digits','year'].forEach(k=>document.getElementById('conf-'+k).value=appData.cfg.jobId[k]);
-        }
-        function saveSystemSettings() {
-            appData.cfg.coreUrl = document.getElementById('setting-core-url').value;
-            appData.cfg.proxyUrl = document.getElementById('setting-proxy-url').value;
-            localStorage.setItem('maint_cfg_v8', JSON.stringify(appData.cfg));
-            Swal.fire('Saved','','success'); refreshData(); loadLists();
-        }
-        function saveJobConfig() {
-            ['prefix','digits','year'].forEach(k=>appData.cfg.jobId[k]=document.getElementById('conf-'+k).value);
-            localStorage.setItem('maint_cfg_v8', JSON.stringify(appData.cfg)); Swal.fire('Saved','','success');
-        }
-        function resetConfig() { localStorage.removeItem('maint_cfg_v8'); location.reload(); }
-        function testLink(t) {
-            const u = t==='core'?appData.cfg.coreUrl:appData.cfg.proxyUrl;
-            const a = t==='core'?'fetch':'load';
-            Swal.showLoading(); callApi(u, a).then(()=>Swal.fire('OK','','success')).catch(()=>Swal.fire('Fail','Check URL','error'));
-        }
-
-        // --- MODAL ---
-        async function showLoginModal() {
-            const {value:p} = await Swal.fire({title:'Admin', input:'password'});
-            if(p===appData.config.adminPass) { appData.isAdmin=true; document.querySelectorAll('.admin-only').forEach(e=>e.classList.remove('hidden')); document.getElementById('btnLogin').classList.add('hidden'); document.getElementById('btnLogout').classList.remove('hidden'); switchTab('dashboard'); }
-        }
-        function logout() { location.reload(); }
-        function openModal(id) {
-            const r = appData.reqs.find(x=>x.jobID===id); if(!r) return;
-            document.getElementById('modalJobId').value=id; document.getElementById('modalStatus').value=r.status;
-            document.getElementById('modalTech').value=r.technician; document.getElementById('modalRemark').value=r.adminRemarks;
-            document.getElementById('modalAdditionalNotes').value=r.additionalNotes;
-            document.getElementById('itemsContainer').innerHTML='';
-            try{ JSON.parse(r.itemsData).forEach(i=>addItemRow(i.name,i.quantity,i.unitPrice)); }catch(e){ addItemRow(); }
-            toggleCost(); document.getElementById('adminModal').classList.remove('hidden');
-        }
-        function closeModal() { document.getElementById('adminModal').classList.add('hidden'); }
-        function toggleCost() { document.getElementById('costSection').style.display=document.getElementById('modalStatus').value==='Done'?'block':'none'; }
-        function addItemRow(n='',q=1,p=0) {
-            const d=document.createElement('div'); d.className='grid grid-cols-6 gap-2 item-row';
-            d.innerHTML=`<input class="col-span-3 bg-slate-900 border border-slate-600 rounded px-1 i-n" value="${n}"><input type="number" class="col-span-1 bg-slate-900 border border-slate-600 rounded px-1 i-q" value="${q}" onchange="calcTotal()"><input type="number" class="col-span-1 bg-slate-900 border border-slate-600 rounded px-1 i-p" value="${p}" onchange="calcTotal()"><button onclick="this.parentElement.remove();calcTotal()" class="text-red-400">×</button>`;
-            document.getElementById('itemsContainer').appendChild(d); calcTotal();
-        }
-        function calcTotal() {
-            let t=0; document.querySelectorAll('.item-row').forEach(r => t += r.querySelector('.i-q').value * r.querySelector('.i-p').value);
-            document.getElementById('grandTotal').innerText = t.toFixed(2) + ' ฿';
-        }
-        function filterTable(id, q) { document.querySelectorAll(`#${id} tbody tr`).forEach(r => r.style.display = r.innerText.toLowerCase().includes(q.toLowerCase()) ? '' : 'none'); }
-    </script>
-        <script>
+<script>
         // --- GLOBAL STATE ---
         let appData = {
             reqs: [],
             lists: { depts: [], techs: [] },
             sha: null,
             isAdmin: false,
-            // ตั้งค่า Default ที่นี่
+            // ตั้งค่า Default
             config: {
-                scriptUrl: 'https://script.google.com/macros/s/AKfycbyO_WujuPwMEiUXYUeGHfVccP6exfzIOC2cgkJ_lPcWEfF9LdW_oD4597ofe9m8m2Fleg/exec', // ใส่ URL ของ GAS Core ที่นี่
-                proxyUrl: 'https://script.google.com/macros/s/AKfycbzRwLO09PhQH6p7GrPm5o99kkla8FiLnRZl54oP35uViRESkJqCBfIHEx41zdKlsdt3UA/exec',  // ใส่ URL ของ GAS Proxy ที่นี่
-                adminPass: '888', // <-- แก้รหัสผ่านตรงนี้
+                scriptUrl: 'https://script.google.com/macros/s/AKfycbyO_WujuPwMEiUXYUeGHfVccP6exfzIOC2cgkJ_lPcWEfF9LdW_oD4597ofe9m8m2Fleg/exec',
+                proxyUrl: 'https://script.google.com/macros/s/AKfycbzRwLO09PhQH6p7GrPm5o99kkla8FiLnRZl54oP35uViRESkJqCBfIHEx41zdKlsdt3UA/exec', 
+                adminPass: '888', // <--- รหัสผ่านของคุณ
                 jobId: { prefix: 'MTN', year: 'YYYY', digits: 4 }
             }
         };
@@ -566,7 +382,7 @@
                 jobId: document.getElementById('modalJobId').value,
                 status: st, technician: document.getElementById('modalTech').value,
                 adminRemarks: document.getElementById('modalRemark').value,
-                additionalNotes: document.getElementById('modalNotes').value,
+                additionalNotes: document.getElementById('modalAdditionalNotes').value,
                 cost: cost, itemsData: JSON.stringify(it)
             };
             if (st === 'Processing') p.acceptedDate = new Date().toISOString();
@@ -631,12 +447,12 @@
         }
 
         function loadSettings() {
-            // สำคัญ: บังคับใช้รหัสผ่านจาก HTML ไม่ว่า LocalStorage จะมีอะไรก็ตาม
-            const savedConfig = JSON.parse(localStorage.getItem('maint_cfg_v8') || '{}');
-            const hardcodedPass = appData.config.adminPass; // จำรหัสที่ตั้งในโค้ดไว้
+            // ใช้ v9 เพื่อบังคับล้างค่าเก่า
+            const savedConfig = JSON.parse(localStorage.getItem('maint_cfg_v9') || '{}');
+            const hardcodedPass = appData.config.adminPass; // จำรหัสที่ตั้งในโค้ดไว้ ('888')
             
             appData.config = { ...appData.config, ...savedConfig };
-            appData.config.adminPass = hardcodedPass; // คืนค่ารหัสจากโค้ดลงไป (กัน LocalStorage ทับ)
+            appData.config.adminPass = hardcodedPass; // บังคับคืนค่ารหัส '888'
 
             document.getElementById('setting-core-url').value = appData.config.coreUrl;
             document.getElementById('setting-proxy-url').value = appData.config.proxyUrl;
@@ -646,14 +462,14 @@
         function saveSystemSettings() {
             appData.config.coreUrl = document.getElementById('setting-core-url').value;
             appData.config.proxyUrl = document.getElementById('setting-proxy-url').value;
-            localStorage.setItem('maint_cfg_v8', JSON.stringify(appData.config));
+            localStorage.setItem('maint_cfg_v9', JSON.stringify(appData.config));
             Swal.fire('Saved', '', 'success'); refreshData(); loadLists();
         }
         function saveJobConfig() {
             ['prefix', 'digits', 'year'].forEach(k => appData.config.jobId[k] = document.getElementById('conf-' + k).value);
-            localStorage.setItem('maint_cfg_v8', JSON.stringify(appData.config)); Swal.fire('Saved', '', 'success');
+            localStorage.setItem('maint_cfg_v9', JSON.stringify(appData.config)); Swal.fire('Saved', '', 'success');
         }
-        function resetConfig() { localStorage.removeItem('maint_cfg_v8'); location.reload(); }
+        function resetConfig() { localStorage.removeItem('maint_cfg_v9'); location.reload(); }
         
         async function testLink(t) {
             const u = t === 'core' ? appData.config.coreUrl : appData.config.proxyUrl;
@@ -680,14 +496,14 @@
             });
 
             if (p) {
+                // เช็คตรงๆ กับ appData.config.adminPass ('888')
                 if (p === appData.config.adminPass) {
                     appData.isAdmin = true;
-                    // แสดงเมนู Admin
                     document.querySelectorAll('.admin-only').forEach(e => e.classList.remove('hidden'));
                     document.getElementById('btnLogin').classList.add('hidden');
                     document.getElementById('btnLogout').classList.remove('hidden');
                     
-                    // เด้งไปหน้า Settings ทันที (หรือ Dashboard ถ้าต้องการ)
+                    // สั่งให้กระโดดไปหน้า Settings ทันที
                     switchTab('settings'); 
                     
                     Swal.fire({ icon: 'success', title: 'ยินดีต้อนรับ Admin', timer: 1500, showConfirmButton: false, background: '#1e293b', color: '#fff' });
@@ -728,4 +544,5 @@
     </script>
 </body>
 </html>
+
 
