@@ -242,39 +242,42 @@
             });
         }
 
-        function openImageViewer(url) {
-    if(!url) return;
-    
-    // แปลงลิงก์จาก /view เป็น /uc?export=view (Direct Link)
-    let directUrl = url;
-    try {
-        // ดึง ID ออกมาจากลิงก์
-        let match = url.match(/\/d\/(.+?)\//);
-        if (match && match[1]) {
-            directUrl = "https://drive.google.com/uc?export=view&id=" + match[1];
-        }
-    } catch(e) { console.error(e); }
-
-    const modal = document.getElementById('imageViewerModal');
-    const img = document.getElementById('imageViewerSrc');
-    
-    // ใส่ลิงก์ที่แปลงแล้ว
-    img.src = directUrl;
-    modal.style.display = 'flex';
-}
-
-        // OPEN POPUP
-        function openImageViewer(url) {
+       function openImageViewer(url) {
             if(!url) return;
+            
+            let directUrl = url;
+            try {
+                // 1. ดึง ID ด้วย Regex ที่ครอบคลุมกว่าเดิม (รองรับทั้ง /d/ID และ id=ID)
+                let id = "";
+                let match = url.match(/\/d\/([-\w]+)/); // หาแพทเทิร์น /d/xxxxxx
+                if (match) {
+                    id = match[1];
+                } else {
+                    match = url.match(/id=([-\w]+)/); // เผื่อกรณีลิงก์แบบเก่า
+                    if (match) id = match[1];
+                }
+
+                if (id) {
+                    // 2. ใช้ลิงก์ Thumbnail ความละเอียดสูง (sz=s4000) 
+                    // ลิงก์นี้ Google อนุญาตให้ใส่ใน <img> ได้โดยไม่ติด Permission
+                    directUrl = "https://lh3.googleusercontent.com/d/" + id + "=s4000";
+                }
+            } catch(e) { console.error("URL Parse Error:", e); }
+
             const modal = document.getElementById('imageViewerModal');
             const img = document.getElementById('imageViewerSrc');
-            img.src = url;
+            
+            // Reset src ก่อนเพื่อไม่ให้โชว์รูปเก่าค้าง
+            img.src = ""; 
+            img.src = directUrl;
+            
             modal.style.display = 'flex';
         }
+
         function closeImageViewer() {
             document.getElementById('imageViewerModal').style.display = 'none';
+            document.getElementById('imageViewerSrc').src = ""; // เคลียร์รูปเมื่อปิด
         }
-
         // --- CORE FUNCTIONS ---
         document.addEventListener('DOMContentLoaded', () => { loadSettings(); refreshData(true); loadLists(); });
 
@@ -571,4 +574,5 @@
     </script>
 </body>
 </html>
+
 
