@@ -3,26 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maintenance System - VS Chem (1970)</title>
+    <title>Maintenance System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script> tailwind.config = { theme: { extend: { colors: { corp: { blue: '#0f172a', lightBlue: '#1e293b', accent: '#3b82f6', gold: '#f59e0b' } }, fontFamily: { sans: ['Sarabun', 'sans-serif'] } } } } </script>
     <style>
-        body { background-image: linear-gradient(rgba(15,23,42,0.95), rgba(15,23,42,0.95)), url('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=2070&q=80'); background-size: cover; background-attachment: fixed; font-family: 'Sarabun', sans-serif; -webkit-user-select: none; user-select: none; }
+        body { background-image: linear-gradient(rgba(15,23,42,0.95), rgba(15,23,42,0.95)), url('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=2070&q=80'); background-size: cover; background-attachment: fixed; font-family: 'Sarabun', sans-serif; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
         ::-webkit-scrollbar { width: 8px; height: 8px; } ::-webkit-scrollbar-track { background: #1e293b; } ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
         .status-waiting { animation: blink-yellow 2s infinite ease-in-out; font-weight: bold; color: #facc15; }
         @keyframes blink-yellow { 0%, 100% { opacity: 1; color: #facc15; text-shadow: 0 0 5px rgba(250, 204, 21, 0.3); } 50% { opacity: 0.6; color: #fde047; text-shadow: none; } }
-        .preview-img { width: 100%; max-height: 180px; object-fit: cover; border-radius: 8px; margin-top: 10px; display: none; border: 1px solid #475569; }
+        .alert-text-medium { display: block; font-weight: bold; color: #f59e0b; margin-top: 10px; font-size: 1.1em; }
+        .alert-text-high { display: block; font-weight: 800; color: #ef4444; margin-top: 10px; font-size: 1.2em; text-decoration: underline; }
+        .img-preview { max-height: 150px; border-radius: 8px; margin-top: 10px; display: none; border: 2px solid #475569; }
     </style>
-    <script>
-        document.addEventListener('contextmenu', event => event.preventDefault());
-        document.onkeydown = function(e) {
-            if(e.keyCode == 123) return false;
-            if(e.ctrlKey && e.shiftKey && (e.keyCode == 'I'.charCodeAt(0) || e.keyCode == 'C'.charCodeAt(0) || e.keyCode == 'J'.charCodeAt(0))) return false;
-            if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false;
-        }
-    </script>
 </head>
 <body class="text-slate-200 h-screen flex flex-col overflow-hidden">
 
@@ -33,7 +27,7 @@
                 <div><h1 class="text-xl font-bold text-white">MAINTENANCE SYSTEM</h1><p class="text-xs text-corp-gold font-medium tracking-wider uppercase">Vschem1970 (Phra samut chedi)</p></div>
             </div>
             <div class="flex items-center space-x-3">
-                <button onclick="refreshData()" class="p-2 rounded-full hover:bg-slate-700 transition text-slate-400 hover:text-white">🔄</button>
+                <button onclick="refreshData()" class="p-2 rounded-full hover:bg-slate-700 transition text-slate-400 hover:text-white" title="Refresh">🔄</button>
                 <button id="btnLogin" onclick="showLoginModal()" class="bg-corp-gold text-corp-blue font-bold py-2 px-4 rounded-md shadow-md flex items-center gap-2">🔐 Admin</button>
                 <button id="btnLogout" onclick="logout()" class="hidden bg-red-600 text-white font-bold py-2 px-4 rounded-md shadow-md flex items-center gap-2">🚪 Logout</button>
             </div>
@@ -41,100 +35,138 @@
     </header>
 
     <nav class="bg-corp-lightBlue border-b border-slate-700 shadow-md z-10">
-        <div class="container mx-auto px-4 flex space-x-1 overflow-x-auto">
-            <button onclick="switchTab('request')" id="tab-request" class="tab-btn px-6 py-3 text-sm font-medium border-b-2 border-transparent text-corp-gold border-corp-gold transition">📝 แจ้งซ่อม</button>
+        <div class="container mx-auto px-4"><div class="flex space-x-1 overflow-x-auto">
+            <button onclick="switchTab('request')" id="tab-request" class="tab-btn px-6 py-3 text-sm font-medium border-b-2 border-transparent hover:text-corp-gold transition text-corp-gold border-corp-gold">📝 แจ้งซ่อม</button>
             <button onclick="switchTab('status')" id="tab-status" class="tab-btn px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition">📊 ติดตามงาน</button>
             <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn hidden admin-only px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition">📈 แดชบอร์ด</button>
             <button onclick="switchTab('settings')" id="tab-settings" class="tab-btn hidden admin-only px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition">⚙️ ตั้งค่า</button>
-        </div>
+        </div></div>
     </nav>
 
     <main class="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-900/50 relative">
-        <div id="view-request" class="view-section max-w-3xl mx-auto">
+        <div id="view-request" class="view-section max-w-3xl mx-auto fade-in">
             <div class="bg-corp-lightBlue rounded-xl shadow-2xl border border-slate-700 overflow-hidden">
                 <div class="bg-gradient-to-r from-corp-blue to-corp-lightBlue p-4 border-b border-slate-700"><h2 class="text-xl font-bold text-white">📝 แบบฟอร์มแจ้งซ่อม</h2></div>
                 <div class="p-6">
                     <form id="requestForm" onsubmit="submitRequest(event)" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div><label class="block text-sm text-slate-400 mb-1">ชื่อผู้แจ้ง</label><input type="text" id="reqName" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"></div>
-                            <div><label class="block text-sm text-slate-400 mb-1">สถานที่</label><select id="reqDept" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"><option value="">-- โหลดข้อมูล --</option></select></div>
+                            <div><label class="block text-sm text-slate-400 mb-1">สถานที่</label><select id="reqDept" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"><option value="">-- กำลังโหลด... --</option></select></div>
                             <div><label class="block text-sm text-slate-400 mb-1">เบอร์ติดต่อ</label><input type="tel" id="reqPhone" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"></div>
-                            <div><label class="block text-sm text-slate-400 mb-1">รหัสอุปกรณ์ (ถ้ามี)</label><input type="text" id="reqEquipId" class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"></div>
-                            <div class="md:col-span-2"><label class="block text-sm text-slate-400 mb-1">ชื่ออุปกรณ์ / ปัญหาที่พบ</label><input type="text" id="reqEquip" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"></div>
+                            <div><label class="block text-sm text-slate-400 mb-1">รหัสอุปกรณ์</label><input type="text" id="reqEquipId" class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2" placeholder="ถ้ามี"></div>
+                            <div class="md:col-span-2"><label class="block text-sm text-slate-400 mb-1">ชื่ออุปกรณ์</label><input type="text" id="reqEquip" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"></div>
                         </div>
-                        <div><label class="block text-sm text-slate-400 mb-1">รายละเอียดเพิ่มเติม</label><textarea id="reqDetail" rows="3" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"></textarea></div>
                         
-                        <div>
-                            <label class="block text-sm text-slate-400 mb-2 font-bold">📸 แนบรูปภาพก่อนซ่อม</label>
-                            <input type="file" id="reqPhoto" accept="image/*" onchange="previewImage(this, 'before-preview')" class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-slate-700 file:text-slate-200">
-                            <img id="before-preview" class="preview-img">
+                        <div class="border border-dashed border-slate-600 rounded-lg p-4 text-center hover:bg-slate-800 transition cursor-pointer relative" onclick="document.getElementById('reqImg').click()">
+                            <input type="file" id="reqImg" accept="image/*" class="hidden" onchange="previewImage(this, 'reqPreview')">
+                            <span class="text-corp-gold font-bold">📷 แตะเพื่อแนบรูปภาพ (ก่อนซ่อม)</span>
+                            <p class="text-xs text-slate-500 mt-1">อัปโหลดไปยัง Google Drive (Folder: Before)</p>
+                            <img id="reqPreview" class="img-preview mx-auto">
                         </div>
 
-                        <div><label class="block text-sm text-slate-400 mb-3">ระดับความเร่งด่วน</label>
-                            <div class="flex gap-4">
-                                <label class="flex-1 text-center p-3 rounded border border-slate-600 has-[:checked]:bg-green-500/10 has-[:checked]:border-green-500 cursor-pointer"><input type="radio" name="urgency" value="Low" class="hidden" checked><span class="text-green-400">ปกติ</span></label>
-                                <label class="flex-1 text-center p-3 rounded border border-slate-600 has-[:checked]:bg-yellow-500/10 has-[:checked]:border-yellow-500 cursor-pointer"><input type="radio" name="urgency" value="Medium" class="hidden"><span class="text-yellow-400">ด่วน</span></label>
-                                <label class="flex-1 text-center p-3 rounded border border-slate-600 has-[:checked]:bg-red-500/10 has-[:checked]:border-red-500 cursor-pointer"><input type="radio" name="urgency" value="High" class="hidden"><span class="text-red-400">ด่วนมาก</span></label>
-                            </div>
-                        </div>
-                        <button type="submit" class="w-full bg-gradient-to-r from-corp-gold to-yellow-600 hover:from-yellow-500 text-corp-blue font-bold py-3 rounded shadow-lg">🚀 ส่งข้อมูลแจ้งซ่อม</button>
+                        <div><label class="block text-sm text-slate-400 mb-1">รายละเอียดปัญหา</label><textarea id="reqDetail" rows="4" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"></textarea></div>
+                        <div><label class="block text-sm text-slate-400 mb-3">ระดับความเร่งด่วน</label><div class="flex gap-4">
+                            <label class="flex items-center gap-2 p-3 rounded border border-slate-600 w-full justify-center has-[:checked]:bg-green-500/10 has-[:checked]:border-green-500"><input type="radio" name="urgency" value="Low" class="accent-green-500" checked><span class="text-green-400">ปกติ</span></label>
+                            <label class="flex items-center gap-2 p-3 rounded border border-slate-600 w-full justify-center has-[:checked]:bg-yellow-500/10 has-[:checked]:border-yellow-500"><input type="radio" name="urgency" value="Medium" class="accent-yellow-500"><span class="text-yellow-400">ด่วน</span></label>
+                            <label class="flex items-center gap-2 p-3 rounded border border-slate-600 w-full justify-center has-[:checked]:bg-red-500/10 has-[:checked]:border-red-500"><input type="radio" name="urgency" value="High" class="accent-red-500"><span class="text-red-400">ด่วนมาก</span></label>
+                        </div></div>
+                        <button type="submit" class="w-full bg-gradient-to-r from-corp-gold to-yellow-600 hover:from-yellow-500 text-corp-blue font-bold py-3 rounded shadow-lg">🚀 ส่งข้อมูล</button>
                     </form>
                 </div>
             </div>
         </div>
 
-        <div id="view-status" class="view-section hidden container mx-auto">
-            <div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold text-white">📂 แฟ้มงานซ่อม</h2><input onkeyup="renderStatus(this.value)" placeholder="🔍 ค้นหาเลขที่งาน..." class="bg-slate-900 border border-slate-600 rounded-full px-4 py-2 text-sm w-64"></div>
-            <div id="statusFolders" class="space-y-4"></div>
-        </div>
+        <div id="view-settings" class="view-section hidden max-w-5xl mx-auto fade-in">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div class="bg-corp-lightBlue rounded-xl border border-slate-700 p-6 shadow-lg">
+                    <h3 class="text-lg font-bold text-corp-gold mb-4 border-b border-slate-700 pb-2">🔗 System Config</h3>
+                    <div class="mb-4">
+                        <label class="block text-xs text-slate-400 mb-1">API URL (Google Apps Script)</label>
+                        <input id="setting-api-url" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-slate-300" placeholder="วางลิงก์ GAS ตรงนี้">
+                    </div>
+                    <div class="grid grid-cols-1 gap-4 mb-4">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Folder ID (Before Repair)</label>
+                            <input id="setting-folder-before" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-slate-300">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Folder ID (After Repair)</label>
+                            <input id="setting-folder-after" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-slate-300">
+                        </div>
+                    </div>
+                    <div class="flex gap-2 mt-4">
+                         <button onclick="saveSystemSettings()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded text-sm font-bold">บันทึก & รีโหลด</button>
+                         <button onclick="resetConfig()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">Reset</button>
+                    </div>
+                </div>
 
-        <div id="view-dashboard" class="view-section hidden container mx-auto">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6" id="kpi-stats"></div>
+                <div class="bg-corp-lightBlue rounded-xl border border-slate-700 p-6 shadow-lg">
+                    <h3 class="text-lg font-bold text-corp-gold mb-4 border-b border-slate-700 pb-2">📋 List Management</h3>
+                    <div class="mb-4">
+                        <label class="text-xs text-slate-400 block mb-1">Departments</label>
+                        <div class="flex gap-2 mb-2"><input id="new-dept" class="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs" placeholder="เพิ่มแผนก..."><button onclick="modifyList('depts','add', 'new-dept')" class="bg-green-600 px-3 rounded text-xs font-bold">Add</button></div>
+                        <ul id="list-depts" class="h-24 overflow-y-auto bg-slate-900 border border-slate-700 p-1 text-xs text-slate-300 rounded"><li class="text-center pt-8 text-slate-500">กำลังโหลด...</li></ul>
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">Technicians</label>
+                        <div class="flex gap-2 mb-2"><input id="new-tech" class="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs" placeholder="เพิ่มช่าง..."><button onclick="modifyList('techs','add', 'new-tech')" class="bg-green-600 px-3 rounded text-xs font-bold">Add</button></div>
+                        <ul id="list-techs" class="h-24 overflow-y-auto bg-slate-900 border border-slate-700 p-1 text-xs text-slate-300 rounded"><li class="text-center pt-8 text-slate-500">กำลังโหลด...</li></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="view-status" class="view-section hidden container mx-auto fade-in"><div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold text-white">📂 แฟ้มงานซ่อม</h2><input onkeyup="renderStatus(this.value)" placeholder="🔍 ค้นหา..." class="bg-slate-900 border border-slate-600 rounded-full px-4 py-2 text-sm w-64"></div><div id="statusFolders" class="space-y-4"></div></div>
+        
+        <div id="view-dashboard" class="view-section hidden container mx-auto fade-in">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-corp-lightBlue p-4 rounded-xl border border-slate-700 shadow-lg"> <div class="text-slate-400 text-xs font-bold">TOTAL JOBS</div> <div class="text-3xl font-bold text-white mt-1" id="kpi-total">0</div> </div>
+                <div class="bg-corp-lightBlue p-4 rounded-xl border-l-4 border-yellow-500 shadow-lg"> <div class="text-slate-400 text-xs font-bold">WAITING</div> <div class="text-3xl font-bold text-yellow-400 mt-1" id="kpi-waiting">0</div> </div>
+                <div class="bg-corp-lightBlue p-4 rounded-xl border-l-4 border-blue-500 shadow-lg"> <div class="text-slate-400 text-xs font-bold">PROCESSING</div> <div class="text-3xl font-bold text-blue-400 mt-1" id="kpi-processing">0</div> </div>
+                <div class="bg-corp-lightBlue p-4 rounded-xl border-l-4 border-green-500 shadow-lg"> <div class="text-slate-400 text-xs font-bold">DONE</div> <div class="text-3xl font-bold text-green-400 mt-1" id="kpi-done">0</div> </div>
+            </div>
             <div class="bg-corp-lightBlue rounded-xl shadow-2xl border border-slate-700 overflow-hidden">
-                <div class="p-4 border-b border-slate-700 bg-slate-800 flex justify-between"><h2 class="text-xl font-bold text-corp-gold">📋 จัดการงานซ่อม</h2></div>
+                <div class="p-4 border-b border-slate-700 bg-slate-800 flex justify-between"><h2 class="text-xl font-bold text-corp-gold">📋 จัดการงานซ่อม</h2><input onkeyup="filterTable('adminTable', this.value)" placeholder="🔍 ค้นหางาน..." class="bg-slate-900 border border-slate-600 rounded-lg px-3 py-1 text-sm focus:outline-none focus:border-corp-gold"></div>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left" id="adminTable">
-                        <thead class="bg-slate-900 text-slate-400 text-xs uppercase"><tr><th class="p-4">Action</th><th class="p-4">ID</th><th class="p-4">User</th><th class="p-4">Equipment</th><th class="p-4">Status</th></tr></thead>
+                    <table class="w-full text-left border-collapse" id="adminTable">
+                        <thead class="bg-slate-900 text-slate-400 uppercase text-xs"><tr><th class="p-4">Action</th><th class="p-4">ID</th><th class="p-4">User</th><th class="p-4">Equipment</th><th class="p-4">Status</th></tr></thead>
                         <tbody id="adminTableBody" class="text-sm divide-y divide-slate-700"></tbody>
                     </table>
                 </div>
             </div>
         </div>
-
-        <div id="view-settings" class="view-section hidden max-w-2xl mx-auto">
-            <div class="bg-corp-lightBlue p-6 rounded-xl border border-slate-700">
-                <h3 class="text-corp-gold font-bold mb-4 border-b border-slate-700 pb-2">⚙️ ตั้งค่าระบบ</h3>
-                <label class="block text-xs text-slate-400 mb-1">API URL (Google Apps Script)</label>
-                <input id="setting-api-url" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-xs mb-4">
-                <button onclick="saveSystemSettings()" class="w-full bg-blue-600 hover:bg-blue-700 py-2 rounded font-bold">บันทึก & รีโหลด</button>
-            </div>
-        </div>
     </main>
 
-    <div id="adminModal" class="fixed inset-0 bg-black/80 hidden z-50 flex items-center justify-center backdrop-blur-sm p-4">
-        <div class="bg-corp-lightBlue w-full max-w-2xl rounded-xl border border-slate-600 shadow-2xl p-6 overflow-y-auto max-h-[90vh]">
-            <h3 class="text-xl font-bold text-corp-gold mb-4 border-b border-slate-700 pb-2">Manage Job: <span id="modalJobDisplay"></span></h3>
+    <div id="adminModal" class="fixed inset-0 bg-black/80 hidden z-50 flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-corp-lightBlue w-full max-w-2xl rounded-xl border border-slate-600 shadow-2xl p-6 m-4 max-h-[90vh] overflow-y-auto">
+            <h3 class="text-xl font-bold text-corp-gold mb-4">Manage Job</h3>
             <input type="hidden" id="modalJobId">
             <div class="grid grid-cols-2 gap-4 mb-4">
-                <div><label class="text-xs text-slate-400">สถานะ</label><select id="modalStatus" onchange="toggleAdminPhoto()" class="w-full bg-slate-900 border border-slate-600 rounded p-2"><option>Waiting</option><option>Processing</option><option>Done</option></select></div>
-                <div><label class="text-xs text-slate-400">ช่างผู้รับงาน</label><select id="modalTech" class="w-full bg-slate-900 border border-slate-600 rounded p-2"></select></div>
+                <div><label class="text-xs text-slate-400">Status</label><select id="modalStatus" onchange="toggleAdminFields()" class="w-full bg-slate-900 border border-slate-600 rounded p-2"><option>Waiting</option><option>Processing</option><option>Done</option></select></div>
+                <div><label class="text-xs text-slate-400">Tech</label><select id="modalTech" class="w-full bg-slate-900 border border-slate-600 rounded p-2"></select></div>
             </div>
-            <div class="mb-4"><label class="text-xs text-slate-400">บันทึกเพิ่มเติม</label><textarea id="modalRemark" class="w-full bg-slate-900 border border-slate-600 rounded p-2" rows="2"></textarea></div>
             
-            <div id="adminPhotoSection" class="hidden border-t border-slate-700 pt-4 mb-4">
-                <label class="block text-sm text-green-400 mb-2 font-bold">📸 แนบรูปภาพหลังซ่อม (เสร็จสิ้นงาน)</label>
-                <input type="file" id="modalPhoto" accept="image/*" onchange="previewImage(this, 'after-preview')" class="w-full text-xs text-slate-400">
-                <img id="after-preview" class="preview-img">
+            <div class="mb-4"><label class="text-xs text-slate-400">Remarks</label><textarea id="modalRemark" class="w-full bg-slate-900 border border-slate-600 rounded p-2" rows="2"></textarea></div>
+            
+            <div id="adminImageSection" class="hidden mb-4 border border-slate-600 rounded p-3 bg-slate-800/30">
+                <label class="text-xs text-green-400 font-bold mb-2 block">📷 Evidence (After Repair)</label>
+                <div class="flex items-center gap-3">
+                    <button onclick="document.getElementById('adminImg').click()" class="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded">Choose Image</button>
+                    <input type="file" id="adminImg" accept="image/*" class="hidden" onchange="previewImage(this, 'adminPreview')">
+                    <div class="text-xs text-slate-500">Upload to Drive (After)</div>
+                </div>
+                <img id="adminPreview" class="img-preview mt-2 max-h-24">
             </div>
 
-            <div id="costSection" class="hidden border-t border-slate-600 pt-4">
-                <h4 class="text-green-400 font-bold mb-2 flex justify-between"><span>💰 สรุปค่าใช้จ่าย</span><span id="grandTotal">0.00 ฿</span></h4>
+            <div id="costSection" class="hidden border-t border-slate-600 pt-4 bg-slate-800/50 p-4 rounded-lg mb-4">
+                <h4 class="text-green-400 font-bold mb-2 flex justify-between"><span>💰 Cost</span><span id="grandTotal">0.00 ฿</span></h4>
                 <div id="itemsContainer" class="space-y-2 mb-2"></div>
-                <button onclick="addItemRow()" class="text-xs bg-slate-700 px-2 py-1 rounded">+ เพิ่มรายการอะไหล่</button>
+                <button onclick="addItemRow()" class="text-xs bg-slate-700 hover:bg-slate-600 text-white px-2 py-1 rounded">+ Item</button>
+                <div class="mt-2"><label class="text-xs text-slate-400">Notes</label><textarea id="modalNotes" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-xs"></textarea></div>
             </div>
-            <div class="flex justify-end gap-3 mt-6">
-                <button onclick="closeModal()" class="px-4 py-2 text-slate-400 hover:bg-slate-700 rounded">ยกเลิก</button>
-                <button onclick="saveJob()" class="bg-corp-gold text-corp-blue font-bold px-8 py-2 rounded">บันทึกข้อมูล</button>
+            <div class="flex justify-end gap-2">
+                <button onclick="closeModal()" class="px-4 py-2 rounded text-slate-300 hover:bg-slate-700">Cancel</button>
+                <button onclick="saveJob()" class="bg-corp-gold text-corp-blue font-bold px-6 py-2 rounded">Save</button>
             </div>
         </div>
     </div>
@@ -142,215 +174,287 @@
     <script>
         // --- CONFIG & STATE ---
         let appData = {
-            reqs: [], lists: { depts: [], techs: [] }, isAdmin: false,
-            cfg: { apiUrl: '', adminPass: '888', jobId: { prefix: 'MTN', digits: 4 } }
+            reqs: [], 
+            lists: { depts: [], techs: [] },
+            isAdmin: false,
+            cfg: {
+                apiUrl: 'https://script.google.com/macros/s/AKfycbyO_WujuPwMEiUXYUeGHfVccP6exfzIOC2cgkJ_lPcWEfF9LdW_oD4597ofe9m8m2Fleg/exec',
+                folderBefore: '1W30HTKv8BDYJTQPYVNTsqeRLZo7pruRB',
+                folderAfter: '1sMkTHkkX7S6ngFPacQRhNMA7j2ESP1S5',
+                adminPass: '888',
+                jobId: { prefix: 'MTN', year: 'YYYY', digits: 4 }
+            }
         };
 
-        // --- NEW API CALLER (POST) ---
-        async function callApi(act, payload = {}) {
-            if(!appData.cfg.apiUrl) return;
-            const formData = new FormData();
-            formData.append('action', act);
-            for (let key in payload) { formData.append(key, payload[key]); }
-            try {
-                const response = await fetch(appData.cfg.apiUrl, { method: 'POST', body: formData });
-                return await response.json();
-            } catch (e) { console.error(e); return {status:'error', message:'Connection Error'}; }
+        // --- API CALLER (MODIFIED TO FETCH POST) ---
+        async function callApi(act, p={}) {
+            if(!appData.cfg.apiUrl) throw "ไม่พบ URL API";
+            const payload = { action: act, ...p };
+            
+            // Use Fetch POST to handle large data (images)
+            const response = await fetch(appData.cfg.apiUrl, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            return await response.json();
         }
 
-        // --- HELPERS ---
-        function getBase64(file) {
-            return new Promise((resolve) => {
-                if (!file) resolve("");
+        // --- HELPER: FILE TO BASE64 ---
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
                 reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
             });
         }
 
         function previewImage(input, previewId) {
+            const file = input.files[0];
             const preview = document.getElementById(previewId);
-            if (input.files && input.files[0]) {
+            if (file) {
                 const reader = new FileReader();
-                reader.onload = (e) => { preview.src = e.target.result; preview.style.display = 'block'; }
-                reader.readAsDataURL(input.files[0]);
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            } else {
+                preview.src = '';
+                preview.style.display = 'none';
             }
         }
 
-        // --- CORE LOGIC ---
-        document.addEventListener('DOMContentLoaded', () => { loadSettings(); refreshData(); });
+        // --- CORE FUNCTIONS ---
+        document.addEventListener('DOMContentLoaded', () => { loadSettings(); refreshData(true); loadLists(); });
+
+        async function loadLists(manual=false) {
+            if(manual) Swal.showLoading();
+            try {
+                const r = await callApi('getLists');
+                if(r.status==='success') { appData.lists = r.data; renderLists(); renderDrops(); if(manual) Swal.close(); }
+            } catch(e) {}
+        }
+
+        async function modifyList(type, act, id) {
+            const val = act==='add' ? document.getElementById(id).value.trim() : id;
+            if(!val) return;
+            Swal.showLoading();
+            try {
+                const r = await callApi('manageList', { type: type, act: act, value: val });
+                if(r.status==='success') { 
+                    if(act==='add') document.getElementById(id).value=''; 
+                    await loadLists(); Swal.close(); 
+                } else throw new Error(r.message);
+            } catch(e) { Swal.fire('Error', e.toString(), 'error'); }
+        }
 
         async function submitRequest(e) {
             e.preventDefault();
-            Swal.fire({title:'กำลังส่งข้อมูล...', allowOutsideClick:false, didOpen:()=>Swal.showLoading()});
+            const urg = document.querySelector('input[name="urgency"]:checked').value;
+            const fileInput = document.getElementById('reqImg');
             
-            const photoBase64 = await getBase64(document.getElementById('reqPhoto').files[0]);
+            let imgData = "";
+            if(fileInput.files.length > 0) {
+                try {
+                    imgData = await fileToBase64(fileInput.files[0]);
+                } catch(err) {
+                    return Swal.fire('Image Error', 'Failed to process image', 'error');
+                }
+            }
+
             const p = {
                 requesterName: document.getElementById('reqName').value,
                 positionDept: document.getElementById('reqDept').value,
                 phoneNumber: document.getElementById('reqPhone').value,
-                equipmentLocation: (document.getElementById('reqEquipId').value ? `[${document.getElementById('reqEquipId').value}] ` : '') + document.getElementById('reqEquip').value,
+                equipId: document.getElementById('reqEquipId').value,
+                equipmentLocation: document.getElementById('reqEquip').value,
                 problemDetails: document.getElementById('reqDetail').value,
-                urgency: document.querySelector('input[name="urgency"]:checked').value,
-                status: 'Waiting',
-                photoBefore: photoBase64
+                urgency: urg, status: 'Waiting', jobIdConfig: JSON.stringify(appData.cfg.jobId),
+                imageFile: imgData, // Send Base64
+                folderId: appData.cfg.folderBefore // Send Folder ID
             };
+            
+            Swal.fire({ title: 'Sending...', text: 'กำลังอัปโหลดรูปภาพและบันทึกข้อมูล', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            
+            try {
+                const r = await callApi('submit', p);
+                if(r.status==='success') {
+                    document.getElementById('requestForm').reset();
+                    document.getElementById('reqPreview').style.display = 'none';
+                    let h = `Job: ${r.jobId}`, ti='Saved', ic='success';
+                    if(urg==='Medium') { ti='⚠️ แจ้งเตือนด่วน'; ic='warning'; h+=`<br><div class="alert-text-medium">โทร: 0982799918</div>`; }
+                    if(urg==='High') { ti='🚨 แจ้งเตือนด่วนมาก'; ic='warning'; h+=`<br><div class="alert-text-high">โทรทันที: 0982799918</div>`; }
+                    Swal.fire({icon:ic, title:ti, html:h, background:'#1e293b', color:'#fff', confirmButtonColor:'#f59e0b'});
+                    refreshData(true); switchTab('status');
+                } else throw new Error(r.message);
+            } catch(e) { Swal.fire('Error', e.toString(), 'error'); }
+        }
 
-            const r = await callApi('submit', p);
-            if(r.status==='success') {
-                Swal.fire('สำเร็จ!', `เลขที่งาน: ${r.jobId}`, 'success');
-                document.getElementById('requestForm').reset();
-                document.getElementById('before-preview').style.display='none';
-                refreshData(); switchTab('status');
-            } else Swal.fire('Error', r.message, 'error');
+        async function refreshData(s) {
+            if(!s) Swal.showLoading();
+            try {
+                const r = await callApi('fetch');
+                if(r.status==='success') { 
+                    appData.reqs=r.data; 
+                    renderStatus(); 
+                    if(appData.isAdmin) renderAdmin(); 
+                    updateDashboard();
+                    if(!s) Swal.close(); 
+                }
+            } catch(e) {}
         }
 
         async function saveJob() {
             const st = document.getElementById('modalStatus').value;
-            const photoAfterBase64 = st === 'Done' ? await getBase64(document.getElementById('modalPhoto').files[0]) : "";
-            
             let it=[], cost=0;
             if(st==='Done') document.querySelectorAll('.item-row').forEach(r=>{
                 const n=r.querySelector('.i-n').value, q=r.querySelector('.i-q').value, p=r.querySelector('.i-p').value;
-                if(n) { const t=q*p; it.push({name:n, q:q, p:p, t:t}); cost+=t; }
+                if(n) { const t=q*p; it.push({name:n, quantity:q, unitPrice:p, total:t}); cost+=t; }
             });
 
-            Swal.fire({title:'กำลังบันทึก...', allowOutsideClick:false, didOpen:()=>Swal.showLoading()});
-            const p = {
-                jobId: document.getElementById('modalJobId').value,
-                status: st,
-                technician: document.getElementById('modalTech').value,
-                adminRemarks: document.getElementById('modalRemark').value,
-                cost: cost,
-                itemsData: JSON.stringify(it),
-                photoAfter: photoAfterBase64
-            };
-
-            const r = await callApi('update', p);
-            if(r.status==='success') { closeModal(); refreshData(); Swal.fire('Saved','','success'); }
-        }
-
-        // --- UI RENDERERS ---
-        async function refreshData() {
-            const r = await callApi('fetch');
-            if(r && r.status==='success') {
-                appData.reqs = r.data;
-                appData.lists = r.lists || { depts: [], techs: [] };
-                renderStatus(); renderDrops();
-                if(appData.isAdmin) { renderAdmin(); renderDashboard(); }
+            // Handle Admin Image Upload
+            const fileInput = document.getElementById('adminImg');
+            let imgData = "";
+            if(fileInput.files.length > 0) {
+                 try { imgData = await fileToBase64(fileInput.files[0]); } catch(err) { console.error(err); }
             }
+
+            const p = {
+                jobId: document.getElementById('modalJobId').value, status: st, technician: document.getElementById('modalTech').value,
+                adminRemarks: document.getElementById('modalRemark').value, additionalNotes: document.getElementById('modalNotes').value,
+                cost: cost, itemsData: JSON.stringify(it),
+                imageFile: imgData,
+                folderId: appData.cfg.folderAfter
+            };
+            
+            Swal.fire({ title: 'Saving...', text: 'Updating job and uploading...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            try { const r = await callApi('update', p); if(r.status==='success') { closeModal(); refreshData(true); Swal.fire('Saved','','success'); } else throw new Error(r.message); } catch(e) { Swal.fire('Error',e.toString(),'error'); }
         }
 
-        function renderStatus(q='') {
-            const c = document.getElementById('statusFolders'); c.innerHTML = '';
-            const filtered = appData.reqs.filter(r => (r.jobID + r.requesterName).toLowerCase().includes(q.toLowerCase()));
-            filtered.forEach(r => {
-                let sClass = r.status === 'Waiting' ? 'status-waiting' : (r.status === 'Done' ? 'text-green-400 font-bold' : 'text-blue-400 font-bold');
-                c.innerHTML += `
-                    <div class="bg-slate-800 p-4 rounded-lg border border-slate-700 flex justify-between items-center">
-                        <div><div class="text-xs text-corp-gold font-mono">${r.jobID}</div><div class="font-bold">${r.equipmentLocation}</div></div>
-                        <div class="${sClass} text-sm uppercase">${r.status}</div>
-                    </div>`;
+        // --- RENDERERS ---
+        function renderLists() {
+            ['depts','techs'].forEach(k => {
+                const list = appData.lists[k] || [];
+                const el = document.getElementById('list-'+k);
+                el.innerHTML = list.length 
+                    ? list.map(x => `<li class="flex justify-between border-b border-slate-700 p-1"><span>${x}</span><button onclick="modifyList('${k}','del','${x}')" class="text-red-400 font-bold px-2">×</button></li>`).join('')
+                    : `<li class="text-center pt-8 text-slate-500">Empty</li>`;
             });
         }
-
-        function renderAdmin() {
-            document.getElementById('adminTableBody').innerHTML = appData.reqs.map(r => `
-                <tr class="hover:bg-slate-800 border-b border-slate-700">
-                    <td class="p-4"><button onclick="openModal('${r.jobID}')" class="bg-blue-600 px-3 py-1 rounded text-xs">Edit</button></td>
-                    <td class="p-4 font-mono text-corp-gold">${r.jobID}</td>
-                    <td class="p-4">${r.requesterName}</td>
-                    <td class="p-4">${r.equipmentLocation}</td>
-                    <td class="p-4 ${r.status==='Waiting'?'status-waiting':''}">${r.status}</td>
-                </tr>`).join('');
-        }
-
         function renderDrops() {
-            const opt = (list) => '<option value="">-- เลือก --</option>' + list.map(x => `<option value="${x}">${x}</option>`).join('');
-            document.getElementById('reqDept').innerHTML = opt(appData.lists.depts || []);
-            document.getElementById('modalTech').innerHTML = opt(appData.lists.techs || []);
+            const o = l => '<option value="">-- Select --</option>' + (l||[]).map(x=>`<option value="${x}">${x}</option>`).join('');
+            document.getElementById('reqDept').innerHTML=o(appData.lists.depts); document.getElementById('modalTech').innerHTML=o(appData.lists.techs);
         }
-
-        function renderDashboard() {
+        function renderStatus(q='') {
+            const c=document.getElementById('statusFolders'); c.innerHTML='';
+            const d=appData.reqs.filter(r=>(r.jobID+r.requesterName).toLowerCase().includes(q.toLowerCase()));
+            if(!d.length) return c.innerHTML='<div class="text-center text-slate-500 py-10">No Data</div>';
+            const g = d.reduce((a,r)=>{ const k=(r.requestDate||'').substring(0,7); (a[k]=a[k]||[]).push(r); return a; }, {});
+            Object.keys(g).sort().reverse().forEach((k,i)=>{
+                const rows = g[k].map(r=>{
+                    let s='text-slate-400'; if(r.status=='Done')s='text-green-400 font-bold'; else if(r.status=='Waiting')s='status-waiting';
+                    let imgIcon = r.imageBefore ? `<a href="${r.imageBefore}" target="_blank" class="text-blue-400 hover:underline">📷 View</a>` : '-';
+                    return `<tr class="hover:bg-slate-800/50 border-b border-slate-800 text-slate-300"><td class="p-3 text-corp-gold font-mono">${r.jobID}</td><td class="p-3">${new Date(r.requestDate).toLocaleDateString('th-TH')}</td><td class="p-3">${r.equipmentLocation}</td><td class="p-3 truncate max-w-xs">${r.problemDetails}</td><td class="p-3">${imgIcon}</td><td class="p-3 ${s}">${r.status}</td></tr>`;
+                }).join('');
+                c.innerHTML+=`<div class="bg-slate-800 rounded mb-2"><div onclick="this.nextElementSibling.classList.toggle('hidden')" class="p-3 font-bold cursor-pointer hover:bg-slate-700">📁 ${k} (${g[k].length})</div><div class="${(q||i==0)?'':'hidden'} bg-slate-900/50"><table class="w-full text-sm text-left"><thead><tr class="text-slate-500"><th class="p-3">ID</th><th class="p-3">Date</th><th class="p-3">Equip</th><th class="p-3">Detail</th><th class="p-3">Img</th><th class="p-3">Status</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+            });
+        }
+        function renderAdmin() {
+            document.getElementById('adminTableBody').innerHTML = appData.reqs.map(r => {
+                let s='text-slate-400'; 
+                if(r.status=='Done') s='text-green-400 font-bold'; 
+                else if(r.status=='Waiting') s='status-waiting';
+                else if(r.status=='Processing') s='text-blue-400 font-bold';
+                return `<tr class="border-b border-slate-700 hover:bg-slate-800"><td class="p-3"><button onclick="openModal('${r.jobID}')" class="bg-blue-600 px-2 py-1 rounded text-xs hover:bg-blue-500 transition">Edit</button></td><td class="p-3 font-mono text-xs">${r.jobID}</td><td class="p-3 text-sm">${r.requesterName}</td><td class="p-3 text-sm">${r.equipmentLocation}</td><td class="p-3 text-xs ${s}">${r.status}</td></tr>`
+            }).join('');
+        }
+        function updateDashboard() {
             const r = appData.reqs;
-            const stats = [
-                { label: 'TOTAL', val: r.length, color: 'white' },
-                { label: 'WAITING', val: r.filter(x=>x.status==='Waiting').length, color: 'yellow-400' },
-                { label: 'PROCESS', val: r.filter(x=>x.status==='Processing').length, color: 'blue-400' },
-                { label: 'DONE', val: r.filter(x=>x.status==='Done').length, color: 'green-400' }
-            ];
-            document.getElementById('kpi-stats').innerHTML = stats.map(s => `
-                <div class="bg-corp-lightBlue p-4 rounded-xl border border-slate-700 shadow-lg">
-                    <div class="text-slate-400 text-xs font-bold">${s.label}</div>
-                    <div class="text-3xl font-bold text-${s.color} mt-1">${s.val}</div>
-                </div>`).join('');
+            document.getElementById('kpi-total').innerText = r.length;
+            document.getElementById('kpi-waiting').innerText = r.filter(x => x.status === 'Waiting').length;
+            document.getElementById('kpi-processing').innerText = r.filter(x => x.status === 'Processing').length;
+            document.getElementById('kpi-done').innerText = r.filter(x => x.status === 'Done').length;
         }
 
         // --- SYSTEM ---
-        function toggleAdminPhoto() {
-            const isDone = document.getElementById('modalStatus').value === 'Done';
-            document.getElementById('adminPhotoSection').classList.toggle('hidden', !isDone);
-            document.getElementById('costSection').classList.toggle('hidden', !isDone);
+        function loadSettings() {
+            const c = JSON.parse(localStorage.getItem('maint_cfg_v15')||'{}');
+            appData.cfg = {...appData.cfg, ...c};
+            // Default check
+            if(!appData.cfg.folderBefore) appData.cfg.folderBefore = '1W30HTKv8BDYJTQPYVNTsqeRLZo7pruRB';
+            if(!appData.cfg.folderAfter) appData.cfg.folderAfter = '1sMkTHkkX7S6ngFPacQRhNMA7j2ESP1S5';
+            
+            document.getElementById('setting-api-url').value = appData.cfg.apiUrl;
+            document.getElementById('setting-folder-before').value = appData.cfg.folderBefore;
+            document.getElementById('setting-folder-after').value = appData.cfg.folderAfter;
         }
-
-        function openModal(id) {
-            const r = appData.reqs.find(x => x.jobID === id);
-            if(!r) return;
-            document.getElementById('modalJobId').value = id;
-            document.getElementById('modalJobDisplay').innerText = id;
-            document.getElementById('modalStatus').value = r.status;
-            document.getElementById('modalTech').value = r.technician || "";
-            document.getElementById('modalRemark').value = r.adminRemarks || "";
-            document.getElementById('itemsContainer').innerHTML = '';
-            document.getElementById('after-preview').style.display = 'none';
-            toggleAdminPhoto();
-            document.getElementById('adminModal').classList.remove('hidden');
-        }
-
-        function closeModal() { document.getElementById('adminModal').classList.add('hidden'); }
-
-        function switchTab(id) {
-            document.querySelectorAll('.view-section').forEach(e => e.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(e => e.classList.replace('text-corp-gold', 'text-slate-400'));
-            document.querySelectorAll('.tab-btn').forEach(e => e.classList.remove('border-corp-gold'));
-            document.getElementById('view-' + id).classList.remove('hidden');
-            document.getElementById('tab-' + id).classList.replace('text-slate-400', 'text-corp-gold');
-            document.getElementById('tab-' + id).classList.add('border-corp-gold');
-        }
-
-        async function showLoginModal() {
-            const {value:p} = await Swal.fire({title:'Admin Login', input:'password', background:'#1e293b', color:'#fff'});
-            if(p===appData.cfg.adminPass) {
-                appData.isAdmin=true; document.querySelectorAll('.admin-only').forEach(e=>e.classList.remove('hidden'));
-                document.getElementById('btnLogin').classList.add('hidden'); document.getElementById('btnLogout').classList.remove('hidden');
-                refreshData(); switchTab('dashboard');
-            }
-        }
-
         function saveSystemSettings() {
             appData.cfg.apiUrl = document.getElementById('setting-api-url').value.trim();
-            localStorage.setItem('vschem_cfg_v2', JSON.stringify(appData.cfg));
+            appData.cfg.folderBefore = document.getElementById('setting-folder-before').value.trim();
+            appData.cfg.folderAfter = document.getElementById('setting-folder-after').value.trim();
+            localStorage.setItem('maint_cfg_v15', JSON.stringify(appData.cfg));
             location.reload();
         }
+        function resetConfig() { localStorage.removeItem('maint_cfg_v15'); location.reload(); }
 
-        function loadSettings() {
-            const c = JSON.parse(localStorage.getItem('vschem_cfg_v2') || '{}');
-            appData.cfg = {...appData.cfg, ...c};
-            document.getElementById('setting-api-url').value = appData.cfg.apiUrl;
+        // --- AUTH & MODAL ---
+        async function showLoginModal() {
+            const {value:p} = await Swal.fire({title:'Admin', input:'password', background:'#1e293b', color:'#fff'});
+            if(p===appData.cfg.adminPass) { 
+                appData.isAdmin=true; document.querySelectorAll('.admin-only').forEach(e=>e.classList.remove('hidden')); 
+                document.getElementById('btnLogin').classList.add('hidden'); document.getElementById('btnLogout').classList.remove('hidden'); 
+                switchTab('settings');
+            } else if(p) Swal.fire('Error','รหัสผิด','error');
         }
-
-        function addItemRow() {
-            const d = document.createElement('div'); d.className='grid grid-cols-6 gap-2 item-row';
-            d.innerHTML = `<input class="col-span-3 bg-slate-900 border border-slate-600 rounded px-1 i-n" placeholder="ชื่ออะไหล่"><input type="number" class="col-span-1 bg-slate-900 border border-slate-600 rounded px-1 i-q" value="1" onchange="calcTotal()"><input type="number" class="col-span-1 bg-slate-900 border border-slate-600 rounded px-1 i-p" value="0" onchange="calcTotal()"><button onclick="this.parentElement.remove();calcTotal()" class="text-red-400">×</button>`;
-            document.getElementById('itemsContainer').appendChild(d);
+        function switchTab(id) {
+            document.querySelectorAll('.view-section').forEach(e=>e.classList.add('hidden')); document.querySelectorAll('.tab-btn').forEach(e=>e.classList.replace('text-corp-gold','text-slate-400'));
+            document.getElementById('view-'+id).classList.remove('hidden'); document.getElementById('tab-'+id).classList.replace('text-slate-400','text-corp-gold');
+            if(id==='dashboard') { refreshData(true); }
         }
+        function logout() { location.reload(); }
+        
+        function openModal(id) {
+            const r = appData.reqs.find(x=>x.jobID===id); 
+            if(!r) return Swal.fire('Error', 'ไม่พบข้อมูลงาน', 'error');
+            
+            document.getElementById('modalJobId').value = id;
+            document.getElementById('modalStatus').value = r.status;
+            document.getElementById('modalTech').value = r.technician;
+            document.getElementById('modalRemark').value = r.adminRemarks;
+            document.getElementById('modalNotes').value = r.additionalNotes;
+            
+            // Reset Admin Image
+            document.getElementById('adminImg').value = '';
+            document.getElementById('adminPreview').style.display = 'none';
 
+            document.getElementById('itemsContainer').innerHTML='';
+            try { 
+                const items = JSON.parse(r.itemsData); 
+                if(items && items.length > 0) items.forEach(i=>addItemRow(i.name,i.quantity,i.unitPrice));
+                else addItemRow();
+            } catch(e) { addItemRow(); }
+            
+            toggleAdminFields(); 
+            document.getElementById('adminModal').classList.remove('hidden');
+        }
+        function closeModal() { document.getElementById('adminModal').classList.add('hidden'); }
+        function toggleAdminFields() { 
+            const st = document.getElementById('modalStatus').value;
+            document.getElementById('costSection').style.display= st==='Done'?'block':'none'; 
+            document.getElementById('adminImageSection').style.display= (st==='Done' || st==='Processing')?'block':'none';
+        }
+        
+        function addItemRow(n='',q=1,p=0) {
+            const d=document.createElement('div'); d.className='grid grid-cols-6 gap-2 item-row';
+            d.innerHTML=`<input class="col-span-3 bg-slate-900 border border-slate-600 rounded px-1 i-n" value="${n}"><input type="number" class="col-span-1 bg-slate-900 border border-slate-600 rounded px-1 i-q" value="${q}" onchange="calcTotal()"><input type="number" class="col-span-1 bg-slate-900 border border-slate-600 rounded px-1 i-p" value="${p}" onchange="calcTotal()"><button onclick="this.parentElement.remove();calcTotal()" class="text-red-400">×</button>`;
+            document.getElementById('itemsContainer').appendChild(d); calcTotal();
+        }
         function calcTotal() {
             let t=0; document.querySelectorAll('.item-row').forEach(r => t += r.querySelector('.i-q').value * r.querySelector('.i-p').value);
             document.getElementById('grandTotal').innerText = t.toFixed(2) + ' ฿';
         }
-
-        function logout() { location.reload(); }
+        function filterTable(id, q) { document.querySelectorAll(`#${id} tbody tr`).forEach(r => r.style.display = r.innerText.toLowerCase().includes(q.toLowerCase()) ? '' : 'none'); }
     </script>
 </body>
 </html>
