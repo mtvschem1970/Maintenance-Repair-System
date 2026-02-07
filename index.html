@@ -47,7 +47,7 @@
         
         .folder-tab { clip-path: polygon(0 0, 150px 0, 170px 100%, 100% 100%, 100% 100%, 0 100%); }
 
-        /* Animation สถานะ Waiting (สีเหลืองกระพริบ) */
+        /* Animation สถานะ Waiting (สีเหลืองกระพริบช้าๆ ยังคงไว้ตามเดิม) */
         @keyframes blink-yellow {
             0%, 100% { opacity: 1; color: #facc15; text-shadow: 0 0 5px rgba(250, 204, 21, 0.3); }
             50% { opacity: 0.6; color: #fde047; text-shadow: none; }
@@ -58,26 +58,21 @@
             color: #facc15;
         }
 
-        /* Animation ไซเรนหวอ (แดง-น้ำเงิน) สำหรับด่วนมาก */
-        @keyframes siren-flash {
-            0% { color: #ef4444; text-shadow: 0 0 10px #ef4444; transform: scale(1); } /* แดง */
-            50% { color: #3b82f6; text-shadow: 0 0 10px #3b82f6; transform: scale(1.05); } /* น้ำเงิน */
-            100% { color: #ef4444; text-shadow: 0 0 10px #ef4444; transform: scale(1); } /* แดง */
-        }
-        .siren-text {
-            display: block;
-            font-weight: 800; /* ตัวหนามาก */
-            font-size: 1.1em;
-            margin-top: 10px;
-            animation: siren-flash 0.8s infinite linear; /* กระพริบเร็วเหมือนหวอ */
-        }
-        
-        .medium-alert-text {
+        /* Style สำหรับแจ้งเตือนใน Popup (ไม่มีกระพริบแล้ว) */
+        .alert-text-medium {
             display: block;
             font-weight: bold;
             color: #f59e0b; /* สีส้ม */
             margin-top: 10px;
             font-size: 1.1em;
+        }
+        .alert-text-high {
+            display: block;
+            font-weight: 800; /* ตัวหนามาก */
+            color: #ef4444;   /* สีแดงเข้ม */
+            margin-top: 10px;
+            font-size: 1.2em; /* ตัวใหญ่ขึ้นนิดหน่อย */
+            text-decoration: underline; /* ขีดเส้นใต้เน้นย้ำ */
         }
     </style>
 </head>
@@ -471,7 +466,7 @@
                 if (result.status === 'success') {
                     document.getElementById('requestForm').reset();
                     
-                    // --- Custom Alerts Logic ---
+                    // --- Custom Alerts Logic (Edited: No Flashing) ---
                     let alertHtml = `Job Created: ${result.jobId}`;
                     let alertIcon = 'success';
                     let alertTitle = 'บันทึกสำเร็จ';
@@ -479,11 +474,12 @@
                     if (urgency === 'Medium') {
                         alertTitle = '⚠️ แจ้งเตือนด่วน';
                         alertIcon = 'warning';
-                        alertHtml += `<br><br><div class="medium-alert-text">กรุณาโทรแจ้ง คุณพิทวัส<br>เบอร์ 0982799918 หรือ ไลน์ mtvschem</div>`;
+                        alertHtml += `<br><br><div class="alert-text-medium">กรุณาโทรแจ้ง คุณพิทวัส<br>เบอร์ 0982799918 หรือ ไลน์ mtvschem</div>`;
                     } else if (urgency === 'High') {
                         alertTitle = '🚨 แจ้งเตือนด่วนมาก';
                         alertIcon = 'warning';
-                        alertHtml += `<br><br><div class="siren-text">กรุณาโทรแจ้ง คุณพิทวัส ทันที<br>เบอร์ 0982799918 หรือ ไลน์ mtvschem</div>`;
+                        // ใช้ class .alert-text-high แทน .siren-text (ไม่มีกระพริบ)
+                        alertHtml += `<br><br><div class="alert-text-high">กรุณาโทรแจ้ง คุณพิทวัส ทันที<br>เบอร์ 0982799918 หรือ ไลน์ mtvschem</div>`;
                     }
 
                     // Show Popup
