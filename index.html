@@ -472,11 +472,11 @@
                     let alertTitle = 'บันทึกสำเร็จ';
 
                     if (urgency === 'Medium') {
-                        alertTitle = '⚠️ แจ้งเตือนด่วน';
+                        alertTitle = '⚠️ หากเป็นงานด่วน ⚠️';
                         alertIcon = 'warning';
                         alertHtml += `<br><br><div class="alert-text-medium">กรุณาโทรแจ้ง คุณพิทวัส<br>เบอร์ 0982799918 หรือ ไลน์ mtvschem</div>`;
                     } else if (urgency === 'High') {
-                        alertTitle = '🚨 แจ้งเตือนด่วนมาก';
+                        alertTitle = '🚨 หากเป็นงานฉุกเฉิน 🚨';
                         alertIcon = 'warning';
                         // ใช้ class .alert-text-high แทน .siren-text (ไม่มีกระพริบ)
                         alertHtml += `<br><br><div class="alert-text-high">กรุณาโทรแจ้ง คุณพิทวัส ทันที<br>เบอร์ 0982799918 หรือ ไลน์ mtvschem</div>`;
@@ -781,3 +781,4 @@
     </script>
 </body>
 </html>
+
