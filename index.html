@@ -53,7 +53,7 @@
                             <div><label class="block text-sm text-slate-400 mb-1">ชื่อผู้แจ้ง</label><input type="text" id="reqName" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"></div>
                             <div><label class="block text-sm text-slate-400 mb-1">สถานที่</label><select id="reqDept" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"><option value="">-- รอข้อมูล... --</option></select></div>
                             <div><label class="block text-sm text-slate-400 mb-1">เบอร์ติดต่อ</label><input type="tel" id="reqPhone" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"></div>
-                            <div><label class="block text-sm text-slate-400 mb-1">รหัสอุปกรณ์</label><input type="text" id="reqEquipId" class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"></div>
+                            <div><label class="block text-sm text-slate-400 mb-1">รหัสอุปกรณ์</label><input type="text" id="reqEquipId" class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2" placeholder="ถ้ามี"></div>
                             <div class="md:col-span-2"><label class="block text-sm text-slate-400 mb-1">ชื่ออุปกรณ์</label><input type="text" id="reqEquip" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"></div>
                         </div>
                         <div><label class="block text-sm text-slate-400 mb-1">รายละเอียดปัญหา</label><textarea id="reqDetail" rows="4" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"></textarea></div>
@@ -112,28 +112,49 @@
     <script>
         let appData = { reqs: [], lists: {depts:[], techs:[]}, sha: null, isAdmin: false, cfg: { coreUrl:'', proxyUrl:'', adminPass:'888', jobId:{prefix:'MTN', year:'YYYY', digits:4} } };
 
+        // --- 1. API CALLER (JSONP) ---
         function callApi(url, act, p={}) {
             return new Promise((res, rej) => {
-                if(!url) return rej("ไม่พบ URL: กรุณาไปตั้งค่าในเมนู Settings");
-                const cb = 'cb_'+Math.round(Math.random()*1e9), s = document.createElement('script');
+                if(!url) return rej("ไม่พบ URL (กรุณาตั้งค่า)");
+                const cb = 'cb_'+Math.round(Math.random()*1e9);
+                const s = document.createElement('script');
                 s.src = `${url}?${new URLSearchParams({action:act, callback:cb, ...p})}`;
-                window[cb] = d => { delete window[cb]; document.body.removeChild(s); res(d); };
-                s.onerror = () => { delete window[cb]; document.body.removeChild(s); rej("เชื่อมต่อล้มเหลว (เช็ค URL)"); };
+                
+                // Timeout
+                const tm = setTimeout(()=>{ cleanup(); rej("Timeout"); }, 15000);
+                function cleanup() { delete window[cb]; if(document.body.contains(s)) document.body.removeChild(s); clearTimeout(tm); }
+
+                window[cb] = d => { cleanup(); res(d); };
+                s.onerror = () => { cleanup(); rej("Connection Error"); };
                 document.body.appendChild(s);
             });
         }
 
-        // --- LISTS & PROXY ---
+        // --- 2. LOGIC: TEST LINK (DIRECT INPUT) ---
+        async function testLink(type) {
+            const id = type === 'core' ? 'setting-core-url' : 'setting-proxy-url';
+            const url = document.getElementById(id).value.trim();
+            const act = type === 'core' ? 'fetch' : 'load';
+
+            if(!url) return Swal.fire('แจ้งเตือน', 'กรุณาวางลิงก์ในช่องก่อนกดทดสอบ', 'warning');
+            
+            Swal.fire({title:`กำลังทดสอบ ${type}...`, didOpen:()=>Swal.showLoading()});
+            try {
+                const r = await callApi(url, act);
+                if(r.status==='success') Swal.fire('สำเร็จ ✅', type==='core' ? `Jobs: ${r.data.length}` : `Lists Loaded`, 'success');
+                else throw new Error(r.message);
+            } catch(e) { Swal.fire('ล้มเหลว ❌', e.toString(), 'error'); }
+        }
+
+        // --- 3. PROXY LISTS ---
         async function loadLists(m=false) {
             if(!appData.cfg.proxyUrl) return;
             if(m) Swal.showLoading();
             try {
                 const r = await callApi(appData.cfg.proxyUrl, 'load');
-                if(r.status==='success') { 
-                    appData.lists=r.data; appData.sha=r.sha; renderLists(); renderDrops(); 
-                    if(m) Swal.fire('สำเร็จ', 'โหลดรายชื่อแล้ว', 'success');
-                } else throw new Error(r.message);
-            } catch(e) { if(m) Swal.fire('Error', e.toString(), 'error'); }
+                if(r.status==='success') { appData.lists=r.data; appData.sha=r.sha; renderLists(); renderDrops(); if(m) Swal.fire('Success','Loaded','success'); }
+                else throw new Error(r.message);
+            } catch(e) { if(m) Swal.fire('Error',e.toString(),'error'); }
         }
         async function modifyList(t, act, id) {
             const v = act==='add'?document.getElementById(id).value.trim():id; if(!v) return;
@@ -141,14 +162,14 @@
             Swal.showLoading();
             try {
                 let nd = {...appData.lists}; nd[t]=l;
-                const r = await callApi(appData.cfg.proxyUrl, 'save', { content: JSON.stringify(nd,null,2), sha: appData.sha });
+                const r = await callApi(appData.cfg.proxyUrl, 'save', { content: JSON.stringify(nd), sha: appData.sha });
                 if(r.status==='success') { appData.sha=r.sha; appData.lists=nd; if(act==='add') document.getElementById(id).value=''; renderLists(); renderDrops(); Swal.close(); }
                 else throw new Error(r.message);
-            } catch(e) { Swal.fire('Error', 'บันทึกไม่สำเร็จ: '+e, 'error'); }
+            } catch(e) { Swal.fire('Error', e.toString(), 'error'); }
         }
 
-        // --- CORE LOGIC ---
-        document.addEventListener('DOMContentLoaded', () => { loadSettings(); refreshData(true); loadLists(); });
+        // --- 4. CORE JOB ---
+        document.addEventListener('DOMContentLoaded', () => { loadSettings(); if(appData.cfg.coreUrl) refreshData(true); if(appData.cfg.proxyUrl) loadLists(); });
 
         async function submitRequest(e) {
             e.preventDefault();
@@ -157,7 +178,7 @@
                 requesterName: document.getElementById('reqName').value,
                 positionDept: document.getElementById('reqDept').value,
                 phoneNumber: document.getElementById('reqPhone').value,
-                equipmentLocation: document.getElementById('reqEquip').value,
+                equipmentLocation: (document.getElementById('reqEquipId').value ? `[${document.getElementById('reqEquipId').value}] ` : '') + document.getElementById('reqEquip').value,
                 problemDetails: document.getElementById('reqDetail').value,
                 urgency: urg, status: 'Waiting', jobIdConfig: JSON.stringify(appData.cfg.jobId)
             };
@@ -166,7 +187,7 @@
                 const r = await callApi(appData.cfg.coreUrl, 'submit', p);
                 if(r.status==='success') {
                     document.getElementById('requestForm').reset();
-                    let h = `Job: ${r.jobId}`, ic='success', ti='บันทึกสำเร็จ';
+                    let h = `Job: ${r.jobId}`, ic='success', ti='Saved';
                     if(urg==='Medium') { ti='⚠️ แจ้งเตือนด่วน'; ic='warning'; h+=`<br><div class="alert-text-medium">โทร: 0982799918 (คุณพิทวัส)</div>`; }
                     if(urg==='High') { ti='🚨 แจ้งเตือนด่วนมาก'; ic='warning'; h+=`<br><div class="alert-text-high">โทรทันที: 0982799918 (คุณพิทวัส)</div>`; }
                     Swal.fire({icon:ic, title:ti, html:h, background:'#1e293b', color:'#fff', confirmButtonColor:'#f59e0b'});
@@ -179,8 +200,26 @@
             if(!appData.cfg.coreUrl) return; if(!s) Swal.showLoading();
             try { const r = await callApi(appData.cfg.coreUrl, 'fetch'); if(r.status==='success') { appData.reqs=r.data; renderStatus(); if(appData.isAdmin) renderAdmin(); if(!s) Swal.close(); } } catch(e) {}
         }
-        
-        // --- UI ---
+
+        async function saveJob() {
+            const st = document.getElementById('modalStatus').value;
+            let it=[], cost=0;
+            if(st==='Done') document.querySelectorAll('.item-row').forEach(r=>{
+                const n=r.querySelector('.i-n').value, q=r.querySelector('.i-q').value, p=r.querySelector('.i-p').value;
+                if(n) { const t=q*p; it.push({name:n, quantity:q, unitPrice:p, total:t}); cost+=t; }
+            });
+            const p = {
+                jobId: document.getElementById('modalJobId').value, status: st, technician: document.getElementById('modalTech').value,
+                adminRemarks: document.getElementById('modalRemark').value, additionalNotes: document.getElementById('modalNotes').value,
+                cost: cost, itemsData: JSON.stringify(it)
+            };
+            if(st==='Processing') p.acceptedDate = new Date().toISOString();
+            if(st==='Done') p.completedDate = new Date().toISOString();
+            Swal.showLoading();
+            try { const r = await callApi(appData.cfg.coreUrl, 'update', p); if(r.status==='success') { closeModal(); refreshData(true); Swal.fire('Saved','','success'); } else throw new Error(r.message); } catch(e) { Swal.fire('Error',e.toString(),'error'); }
+        }
+
+        // --- 5. UI ---
         function renderLists() { ['depts','techs'].forEach(k => document.getElementById('list-'+k.slice(0,-1)).innerHTML = (appData.lists[k]||[]).map(x=>`<li class="flex justify-between border-b border-slate-700 p-1"><span>${x}</span><button onclick="modifyList('${k}','del','${x}')" class="text-red-400">×</button></li>`).join('')); }
         function renderDrops() {
             const o = l => '<option value="">-- เลือก --</option>' + (l||[]).map(x=>`<option>${x}</option>`).join('');
@@ -193,7 +232,7 @@
             const g = d.reduce((a,r)=>{ const k=(r.requestDate||'').substring(0,7); (a[k]=a[k]||[]).push(r); return a; }, {});
             Object.keys(g).sort().reverse().forEach((k,i)=>{
                 const rows = g[k].map(r=>{
-                    let s='text-slate-400'; if(r.status=='Done')s='text-green-400'; else if(r.status=='Waiting')s='status-waiting';
+                    let s='text-slate-400'; if(r.status=='Done')s='text-green-400 font-bold'; else if(r.status=='Waiting')s='status-waiting';
                     return `<tr class="hover:bg-slate-800/50 border-b border-slate-800 text-slate-300"><td class="p-3 text-corp-gold font-mono">${r.jobID}</td><td class="p-3">${new Date(r.requestDate).toLocaleDateString('th-TH')}</td><td class="p-3">${r.equipmentLocation}</td><td class="p-3 truncate max-w-xs">${r.problemDetails}</td><td class="p-3 ${s}">${r.status}</td></tr>`;
                 }).join('');
                 c.innerHTML+=`<div class="bg-slate-800 rounded mb-2"><div onclick="this.nextElementSibling.classList.toggle('hidden')" class="p-3 font-bold cursor-pointer hover:bg-slate-700">📁 ${k} (${g[k].length})</div><div class="${(q||i==0)?'':'hidden'} bg-slate-900/50"><table class="w-full text-sm text-left"><thead><tr class="text-slate-500"><th class="p-3">ID</th><th class="p-3">Date</th><th class="p-3">Equip</th><th class="p-3">Detail</th><th class="p-3">Status</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
@@ -203,29 +242,27 @@
             document.getElementById('adminTableBody').innerHTML = appData.reqs.map(r => `<tr class="border-b border-slate-700 hover:bg-slate-800"><td class="p-3"><button onclick="openModal('${r.jobID}')" class="bg-blue-600 px-2 py-1 rounded text-xs">Edit</button></td><td class="p-3 font-mono text-xs">${r.jobID}</td><td class="p-3 text-sm">${r.requesterName}</td><td class="p-3 text-sm">${r.equipmentLocation}</td><td class="p-3 text-xs">${r.status}</td></tr>`).join('');
         }
 
-        // --- SYSTEM ---
+        // --- 6. SETTINGS ---
         function loadSettings() {
-            const c = JSON.parse(localStorage.getItem('maint_cfg_v11')||'{}');
+            const c = JSON.parse(localStorage.getItem('maint_cfg_v13')||'{}');
             appData.cfg = {...appData.cfg, ...c};
-            // Force hardcoded pass (กัน localstorage ทับ)
             appData.cfg.adminPass = '888'; 
             document.getElementById('setting-core-url').value = appData.cfg.coreUrl;
             document.getElementById('setting-proxy-url').value = appData.cfg.proxyUrl;
         }
         function saveSystemSettings() {
-            appData.cfg.coreUrl = document.getElementById('setting-core-url').value;
-            appData.cfg.proxyUrl = document.getElementById('setting-proxy-url').value;
-            localStorage.setItem('maint_cfg_v11', JSON.stringify(appData.cfg));
+            appData.cfg.coreUrl = document.getElementById('setting-core-url').value.trim();
+            appData.cfg.proxyUrl = document.getElementById('setting-proxy-url').value.trim();
+            localStorage.setItem('maint_cfg_v13', JSON.stringify(appData.cfg));
             Swal.fire('Saved','','success'); refreshData(); loadLists();
         }
-        function resetConfig() { localStorage.removeItem('maint_cfg_v11'); location.reload(); }
-        function testLink(t) {
-            const u = t==='core'?appData.cfg.coreUrl:appData.cfg.proxyUrl;
-            const a = t==='core'?'fetch':'load';
-            Swal.showLoading(); callApi(u, a).then(()=>Swal.fire('OK','เชื่อมต่อสำเร็จ','success')).catch(()=>Swal.fire('Fail','ตรวจสอบ URL','error'));
+        function saveJobConfig() {
+            ['prefix','digits','year'].forEach(k=>appData.cfg.jobId[k]=document.getElementById('conf-'+k).value);
+            localStorage.setItem('maint_cfg_v13', JSON.stringify(appData.cfg)); Swal.fire('Saved','','success');
         }
+        function resetConfig() { localStorage.removeItem('maint_cfg_v13'); location.reload(); }
 
-        // --- AUTH ---
+        // --- 7. MISC ---
         async function showLoginModal() {
             const {value:p} = await Swal.fire({title:'Admin', input:'password', background:'#1e293b', color:'#fff'});
             if(p===appData.cfg.adminPass) { 
@@ -242,25 +279,6 @@
             if(id==='dashboard') { document.getElementById('kpi-total').innerText=appData.reqs.length; renderAdmin(); }
         }
         function logout() { location.reload(); }
-
-        // --- MODAL JOB ---
-        async function saveJob() {
-            const st = document.getElementById('modalStatus').value;
-            let it=[], cost=0;
-            if(st==='Done') document.querySelectorAll('.item-row').forEach(r=>{
-                const n=r.querySelector('.i-n').value, q=r.querySelector('.i-q').value, p=r.querySelector('.i-p').value;
-                if(n) { const t=q*p; it.push({name:n, quantity:q, unitPrice:p, total:t}); cost+=t; }
-            });
-            const p = {
-                jobId: document.getElementById('modalJobId').value, status: st, technician: document.getElementById('modalTech').value,
-                adminRemarks: document.getElementById('modalRemark').value, additionalNotes: document.getElementById('modalAdditionalNotes').value,
-                cost: cost, itemsData: JSON.stringify(it)
-            };
-            if(st==='Processing') p.acceptedDate = new Date().toISOString();
-            if(st==='Done') p.completedDate = new Date().toISOString();
-            Swal.showLoading();
-            try { const r = await callApi(appData.cfg.coreUrl, 'update', p); if(r.status==='success') { closeModal(); refreshData(true); Swal.fire('Saved','','success'); } else throw new Error(r.message); } catch(e) { Swal.fire('Error',e.toString(),'error'); }
-        }
         function openModal(id) {
             const r = appData.reqs.find(x=>x.jobID===id); if(!r) return;
             document.getElementById('modalJobId').value=id; document.getElementById('modalStatus').value=r.status;
