@@ -24,7 +24,7 @@
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-3">
                 <div class="bg-white rounded p-1 shadow-md h-12 w-12 flex items-center justify-center overflow-hidden"><span class="text-2xl">🛠️</span></div>
-                <div><h1 class="text-xl font-bold text-white">MAINTENANCE SYSTEM</h1><p class="text-xs text-corp-gold font-medium tracking-wider uppercase">Secure Dual-Link System</p></div>
+                <div><h1 class="text-xl font-bold text-white">MAINTENANCE SYSTEM</h1><p class="text-xs text-corp-gold font-medium tracking-wider uppercase">Centralized System</p></div>
             </div>
             <div class="flex items-center space-x-3">
                 <button onclick="refreshData()" class="p-2 rounded-full hover:bg-slate-700 transition text-slate-400 hover:text-white" title="Refresh">🔄</button>
@@ -51,7 +51,7 @@
                     <form id="requestForm" onsubmit="submitRequest(event)" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div><label class="block text-sm text-slate-400 mb-1">ชื่อผู้แจ้ง</label><input type="text" id="reqName" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"></div>
-                            <div><label class="block text-sm text-slate-400 mb-1">สถานที่</label><select id="reqDept" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"><option value="">-- รอข้อมูล... --</option></select></div>
+                            <div><label class="block text-sm text-slate-400 mb-1">สถานที่</label><select id="reqDept" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"><option value="">-- กำลังโหลด... --</option></select></div>
                             <div><label class="block text-sm text-slate-400 mb-1">เบอร์ติดต่อ</label><input type="tel" id="reqPhone" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"></div>
                             <div><label class="block text-sm text-slate-400 mb-1">รหัสอุปกรณ์</label><input type="text" id="reqEquipId" class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2" placeholder="ถ้ามี"></div>
                             <div class="md:col-span-2"><label class="block text-sm text-slate-400 mb-1">ชื่ออุปกรณ์</label><input type="text" id="reqEquip" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"></div>
@@ -71,18 +71,13 @@
         <div id="view-settings" class="view-section hidden max-w-5xl mx-auto fade-in">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div class="bg-corp-lightBlue rounded-xl border border-slate-700 p-6 shadow-lg">
-                    <h3 class="text-lg font-bold text-corp-gold mb-4 border-b border-slate-700 pb-2">🔗 System Links</h3>
+                    <h3 class="text-lg font-bold text-corp-gold mb-4 border-b border-slate-700 pb-2">🔗 System Config</h3>
                     <div class="mb-4">
-                        <label class="block text-xs text-slate-400 mb-1">1. Core Job URL (GAS 1: Jobs)</label>
-                        <input id="setting-core-url" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs" placeholder="วางลิงก์ GAS ที่ 1 ตรงนี้">
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-xs text-slate-400 mb-1">2. GitHub Proxy URL (GAS 2: Lists)</label>
-                        <input id="setting-proxy-url" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs" placeholder="วางลิงก์ GAS ที่ 2 ตรงนี้">
+                        <label class="block text-xs text-slate-400 mb-1">API URL (Google Apps Script)</label>
+                        <input id="setting-api-url" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs" placeholder="วางลิงก์ GAS ตรงนี้">
                     </div>
                     <div class="flex gap-2 mt-4">
-                         <button onclick="saveSystemSettings()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded text-sm font-bold">บันทึก URL</button>
-                         <button onclick="testLink('proxy')" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-sm">Test List</button>
+                         <button onclick="saveSystemSettings()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded text-sm font-bold">บันทึก & รีโหลด</button>
                          <button onclick="resetConfig()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">Reset</button>
                     </div>
                 </div>
@@ -92,12 +87,12 @@
                     <div class="mb-4">
                         <label class="text-xs text-slate-400 block mb-1">Departments</label>
                         <div class="flex gap-2 mb-2"><input id="new-dept" class="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs" placeholder="เพิ่มแผนก..."><button onclick="modifyList('depts','add', 'new-dept')" class="bg-green-600 px-3 rounded text-xs font-bold">Add</button></div>
-                        <ul id="list-dept" class="h-24 overflow-y-auto bg-slate-900 border border-slate-700 p-1 text-xs text-slate-300 rounded"><li class="text-center pt-8 text-slate-500">รอการเชื่อมต่อ...</li></ul>
+                        <ul id="list-depts" class="h-24 overflow-y-auto bg-slate-900 border border-slate-700 p-1 text-xs text-slate-300 rounded"><li class="text-center pt-8 text-slate-500">กำลังโหลด...</li></ul>
                     </div>
                     <div>
                         <label class="text-xs text-slate-400 block mb-1">Technicians</label>
                         <div class="flex gap-2 mb-2"><input id="new-tech" class="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs" placeholder="เพิ่มช่าง..."><button onclick="modifyList('techs','add', 'new-tech')" class="bg-green-600 px-3 rounded text-xs font-bold">Add</button></div>
-                        <ul id="list-tech" class="h-24 overflow-y-auto bg-slate-900 border border-slate-700 p-1 text-xs text-slate-300 rounded"><li class="text-center pt-8 text-slate-500">รอการเชื่อมต่อ...</li></ul>
+                        <ul id="list-techs" class="h-24 overflow-y-auto bg-slate-900 border border-slate-700 p-1 text-xs text-slate-300 rounded"><li class="text-center pt-8 text-slate-500">กำลังโหลด...</li></ul>
                     </div>
                 </div>
             </div>
@@ -110,66 +105,54 @@
     <div id="adminModal" class="fixed inset-0 bg-black/80 hidden z-50 flex items-center justify-center backdrop-blur-sm"><div class="bg-corp-lightBlue w-full max-w-2xl rounded-xl border border-slate-600 shadow-2xl p-6 m-4 max-h-[90vh] overflow-y-auto"><h3 class="text-xl font-bold text-corp-gold mb-4">Manage Job</h3><input type="hidden" id="modalJobId"><div class="grid grid-cols-2 gap-4 mb-4"><div><label class="text-xs text-slate-400">Status</label><select id="modalStatus" onchange="toggleCost()" class="w-full bg-slate-900 border border-slate-600 rounded p-2"><option>Waiting</option><option>Processing</option><option>Done</option></select></div><div><label class="text-xs text-slate-400">Tech</label><select id="modalTech" class="w-full bg-slate-900 border border-slate-600 rounded p-2"></select></div></div><div class="mb-4"><label class="text-xs text-slate-400">Remarks</label><textarea id="modalRemark" class="w-full bg-slate-900 border border-slate-600 rounded p-2" rows="2"></textarea></div><div id="costSection" class="hidden border-t border-slate-600 pt-4 bg-slate-800/50 p-4 rounded-lg mb-4"><h4 class="text-green-400 font-bold mb-2 flex justify-between"><span>💰 Cost</span><span id="grandTotal">0.00 ฿</span></h4><div id="itemsContainer" class="space-y-2 mb-2"></div><button onclick="addItemRow()" class="text-xs bg-slate-700 hover:bg-slate-600 text-white px-2 py-1 rounded">+ Item</button><div class="mt-2"><label class="text-xs text-slate-400">Notes</label><textarea id="modalNotes" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-xs"></textarea></div></div><div class="flex justify-end gap-2"><button onclick="closeModal()" class="px-4 py-2 rounded text-slate-300 hover:bg-slate-700">Cancel</button><button onclick="saveJob()" class="bg-corp-gold text-corp-blue font-bold px-6 py-2 rounded">Save</button></div></div></div>
 
     <script>
-        let appData = { reqs: [], lists: {depts:[], techs:[]}, sha: null, isAdmin: false, cfg: { coreUrl:'', proxyUrl:'', adminPass:'888', jobId:{prefix:'MTN', year:'YYYY', digits:4} } };
+        // --- CONFIG & STATE ---
+        let appData = {
+            reqs: [], 
+            lists: { depts: [], techs: [] },
+            isAdmin: false,
+            cfg: {
+                apiUrl: 'https://script.google.com/macros/s/AKfycbyO_WujuPwMEiUXYUeGHfVccP6exfzIOC2cgkJ_lPcWEfF9LdW_oD4597ofe9m8m2Fleg/exec',
+                adminPass: '888',
+                jobId: { prefix: 'MTN', year: 'YYYY', digits: 4 }
+            }
+        };
 
-        // --- 1. API CALLER (JSONP) ---
-        function callApi(url, act, p={}) {
+        // --- API CALLER ---
+        function callApi(act, p={}) {
             return new Promise((res, rej) => {
-                if(!url) return rej("ไม่พบ URL (กรุณาตั้งค่า)");
+                if(!appData.cfg.apiUrl) return rej("ไม่พบ URL API");
                 const cb = 'cb_'+Math.round(Math.random()*1e9);
                 const s = document.createElement('script');
-                s.src = `${url}?${new URLSearchParams({action:act, callback:cb, ...p})}`;
-                
-                // Timeout
-                const tm = setTimeout(()=>{ cleanup(); rej("Timeout"); }, 15000);
-                function cleanup() { delete window[cb]; if(document.body.contains(s)) document.body.removeChild(s); clearTimeout(tm); }
-
-                window[cb] = d => { cleanup(); res(d); };
-                s.onerror = () => { cleanup(); rej("Connection Error"); };
+                s.src = `${appData.cfg.apiUrl}?${new URLSearchParams({action:act, callback:cb, ...p})}`;
+                window[cb] = d => { delete window[cb]; document.body.removeChild(s); res(d); };
+                s.onerror = () => { delete window[cb]; document.body.removeChild(s); rej("Connection Error"); };
                 document.body.appendChild(s);
             });
         }
 
-        // --- 2. LOGIC: TEST LINK (DIRECT INPUT) ---
-        async function testLink(type) {
-            const id = type === 'core' ? 'setting-core-url' : 'setting-proxy-url';
-            const url = document.getElementById(id).value.trim();
-            const act = type === 'core' ? 'fetch' : 'load';
+        // --- CORE FUNCTIONS ---
+        document.addEventListener('DOMContentLoaded', () => { loadSettings(); refreshData(true); loadLists(); });
 
-            if(!url) return Swal.fire('แจ้งเตือน', 'กรุณาวางลิงก์ในช่องก่อนกดทดสอบ', 'warning');
-            
-            Swal.fire({title:`กำลังทดสอบ ${type}...`, didOpen:()=>Swal.showLoading()});
+        async function loadLists(manual=false) {
+            if(manual) Swal.showLoading();
             try {
-                const r = await callApi(url, act);
-                if(r.status==='success') Swal.fire('สำเร็จ ✅', type==='core' ? `Jobs: ${r.data.length}` : `Lists Loaded`, 'success');
-                else throw new Error(r.message);
-            } catch(e) { Swal.fire('ล้มเหลว ❌', e.toString(), 'error'); }
+                const r = await callApi('getLists');
+                if(r.status==='success') { appData.lists = r.data; renderLists(); renderDrops(); if(manual) Swal.close(); }
+            } catch(e) {}
         }
 
-        // --- 3. PROXY LISTS ---
-        async function loadLists(m=false) {
-            if(!appData.cfg.proxyUrl) return;
-            if(m) Swal.showLoading();
-            try {
-                const r = await callApi(appData.cfg.proxyUrl, 'load');
-                if(r.status==='success') { appData.lists=r.data; appData.sha=r.sha; renderLists(); renderDrops(); if(m) Swal.fire('Success','Loaded','success'); }
-                else throw new Error(r.message);
-            } catch(e) { if(m) Swal.fire('Error',e.toString(),'error'); }
-        }
-        async function modifyList(t, act, id) {
-            const v = act==='add'?document.getElementById(id).value.trim():id; if(!v) return;
-            let l = [...(appData.lists[t]||[])]; if(act==='add') l.push(v); else l=l.filter(x=>x!==v);
+        async function modifyList(type, act, id) {
+            const val = act==='add' ? document.getElementById(id).value.trim() : id;
+            if(!val) return;
             Swal.showLoading();
             try {
-                let nd = {...appData.lists}; nd[t]=l;
-                const r = await callApi(appData.cfg.proxyUrl, 'save', { content: JSON.stringify(nd), sha: appData.sha });
-                if(r.status==='success') { appData.sha=r.sha; appData.lists=nd; if(act==='add') document.getElementById(id).value=''; renderLists(); renderDrops(); Swal.close(); }
-                else throw new Error(r.message);
+                const r = await callApi('manageList', { type: type, act: act, value: val });
+                if(r.status==='success') { 
+                    if(act==='add') document.getElementById(id).value=''; 
+                    await loadLists(); Swal.close(); 
+                } else throw new Error(r.message);
             } catch(e) { Swal.fire('Error', e.toString(), 'error'); }
         }
-
-        // --- 4. CORE JOB ---
-        document.addEventListener('DOMContentLoaded', () => { loadSettings(); if(appData.cfg.coreUrl) refreshData(true); if(appData.cfg.proxyUrl) loadLists(); });
 
         async function submitRequest(e) {
             e.preventDefault();
@@ -184,12 +167,12 @@
             };
             Swal.showLoading();
             try {
-                const r = await callApi(appData.cfg.coreUrl, 'submit', p);
+                const r = await callApi('submit', p);
                 if(r.status==='success') {
                     document.getElementById('requestForm').reset();
-                    let h = `Job: ${r.jobId}`, ic='success', ti='Saved';
-                    if(urg==='Medium') { ti='⚠️ แจ้งเตือนด่วน'; ic='warning'; h+=`<br><div class="alert-text-medium">โทร: 0982799918 (คุณพิทวัส)</div>`; }
-                    if(urg==='High') { ti='🚨 แจ้งเตือนด่วนมาก'; ic='warning'; h+=`<br><div class="alert-text-high">โทรทันที: 0982799918 (คุณพิทวัส)</div>`; }
+                    let h = `Job: ${r.jobId}`, ti='Saved', ic='success';
+                    if(urg==='Medium') { ti='⚠️ แจ้งเตือนด่วน'; ic='warning'; h+=`<br><div class="alert-text-medium">โทร: 0982799918</div>`; }
+                    if(urg==='High') { ti='🚨 แจ้งเตือนด่วนมาก'; ic='warning'; h+=`<br><div class="alert-text-high">โทรทันที: 0982799918</div>`; }
                     Swal.fire({icon:ic, title:ti, html:h, background:'#1e293b', color:'#fff', confirmButtonColor:'#f59e0b'});
                     refreshData(true); switchTab('status');
                 } else throw new Error(r.message);
@@ -197,8 +180,11 @@
         }
 
         async function refreshData(s) {
-            if(!appData.cfg.coreUrl) return; if(!s) Swal.showLoading();
-            try { const r = await callApi(appData.cfg.coreUrl, 'fetch'); if(r.status==='success') { appData.reqs=r.data; renderStatus(); if(appData.isAdmin) renderAdmin(); if(!s) Swal.close(); } } catch(e) {}
+            if(!s) Swal.showLoading();
+            try {
+                const r = await callApi('fetch');
+                if(r.status==='success') { appData.reqs=r.data; renderStatus(); if(appData.isAdmin) renderAdmin(); if(!s) Swal.close(); }
+            } catch(e) {}
         }
 
         async function saveJob() {
@@ -215,20 +201,29 @@
             };
             if(st==='Processing') p.acceptedDate = new Date().toISOString();
             if(st==='Done') p.completedDate = new Date().toISOString();
+            
             Swal.showLoading();
-            try { const r = await callApi(appData.cfg.coreUrl, 'update', p); if(r.status==='success') { closeModal(); refreshData(true); Swal.fire('Saved','','success'); } else throw new Error(r.message); } catch(e) { Swal.fire('Error',e.toString(),'error'); }
+            try { const r = await callApi('update', p); if(r.status==='success') { closeModal(); refreshData(true); Swal.fire('Saved','','success'); } else throw new Error(r.message); } catch(e) { Swal.fire('Error',e.toString(),'error'); }
         }
 
-        // --- 5. UI ---
-        function renderLists() { ['depts','techs'].forEach(k => document.getElementById('list-'+k.slice(0,-1)).innerHTML = (appData.lists[k]||[]).map(x=>`<li class="flex justify-between border-b border-slate-700 p-1"><span>${x}</span><button onclick="modifyList('${k}','del','${x}')" class="text-red-400">×</button></li>`).join('')); }
+        // --- RENDERERS ---
+        function renderLists() {
+            ['depts','techs'].forEach(k => {
+                const list = appData.lists[k] || [];
+                const el = document.getElementById('list-'+k);
+                el.innerHTML = list.length 
+                    ? list.map(x => `<li class="flex justify-between border-b border-slate-700 p-1"><span>${x}</span><button onclick="modifyList('${k}','del','${x}')" class="text-red-400 font-bold px-2">×</button></li>`).join('')
+                    : `<li class="text-center pt-8 text-slate-500">Empty</li>`;
+            });
+        }
         function renderDrops() {
-            const o = l => '<option value="">-- เลือก --</option>' + (l||[]).map(x=>`<option>${x}</option>`).join('');
+            const o = l => '<option value="">-- Select --</option>' + (l||[]).map(x=>`<option value="${x}">${x}</option>`).join('');
             document.getElementById('reqDept').innerHTML=o(appData.lists.depts); document.getElementById('modalTech').innerHTML=o(appData.lists.techs);
         }
         function renderStatus(q='') {
             const c=document.getElementById('statusFolders'); c.innerHTML='';
             const d=appData.reqs.filter(r=>(r.jobID+r.requesterName).toLowerCase().includes(q.toLowerCase()));
-            if(!d.length) return c.innerHTML='<div class="text-center text-slate-500 py-10">ไม่พบข้อมูล</div>';
+            if(!d.length) return c.innerHTML='<div class="text-center text-slate-500 py-10">No Data</div>';
             const g = d.reduce((a,r)=>{ const k=(r.requestDate||'').substring(0,7); (a[k]=a[k]||[]).push(r); return a; }, {});
             Object.keys(g).sort().reverse().forEach((k,i)=>{
                 const rows = g[k].map(r=>{
@@ -242,34 +237,28 @@
             document.getElementById('adminTableBody').innerHTML = appData.reqs.map(r => `<tr class="border-b border-slate-700 hover:bg-slate-800"><td class="p-3"><button onclick="openModal('${r.jobID}')" class="bg-blue-600 px-2 py-1 rounded text-xs">Edit</button></td><td class="p-3 font-mono text-xs">${r.jobID}</td><td class="p-3 text-sm">${r.requesterName}</td><td class="p-3 text-sm">${r.equipmentLocation}</td><td class="p-3 text-xs">${r.status}</td></tr>`).join('');
         }
 
-        // --- 6. SETTINGS ---
+        // --- SYSTEM ---
         function loadSettings() {
-            const c = JSON.parse(localStorage.getItem('maint_cfg_v13')||'{}');
+            const c = JSON.parse(localStorage.getItem('maint_cfg_v14')||'{}');
             appData.cfg = {...appData.cfg, ...c};
-            appData.cfg.adminPass = '888'; 
-            document.getElementById('setting-core-url').value = appData.cfg.coreUrl;
-            document.getElementById('setting-proxy-url').value = appData.cfg.proxyUrl;
+            // Force Default URL if empty
+            if(!appData.cfg.apiUrl) appData.cfg.apiUrl = 'https://script.google.com/macros/s/AKfycbyO_WujuPwMEiUXYUeGHfVccP6exfzIOC2cgkJ_lPcWEfF9LdW_oD4597ofe9m8m2Fleg/exec';
+            appData.cfg.adminPass = '888';
+            document.getElementById('setting-api-url').value = appData.cfg.apiUrl;
         }
         function saveSystemSettings() {
-            appData.cfg.coreUrl = document.getElementById('setting-core-url').value.trim();
-            appData.cfg.proxyUrl = document.getElementById('setting-proxy-url').value.trim();
-            localStorage.setItem('maint_cfg_v13', JSON.stringify(appData.cfg));
-            Swal.fire('Saved','','success'); refreshData(); loadLists();
+            appData.cfg.apiUrl = document.getElementById('setting-api-url').value.trim();
+            localStorage.setItem('maint_cfg_v14', JSON.stringify(appData.cfg));
+            location.reload();
         }
-        function saveJobConfig() {
-            ['prefix','digits','year'].forEach(k=>appData.cfg.jobId[k]=document.getElementById('conf-'+k).value);
-            localStorage.setItem('maint_cfg_v13', JSON.stringify(appData.cfg)); Swal.fire('Saved','','success');
-        }
-        function resetConfig() { localStorage.removeItem('maint_cfg_v13'); location.reload(); }
+        function resetConfig() { localStorage.removeItem('maint_cfg_v14'); location.reload(); }
 
-        // --- 7. MISC ---
+        // --- AUTH & MODAL ---
         async function showLoginModal() {
             const {value:p} = await Swal.fire({title:'Admin', input:'password', background:'#1e293b', color:'#fff'});
             if(p===appData.cfg.adminPass) { 
-                appData.isAdmin=true; 
-                document.querySelectorAll('.admin-only').forEach(e=>e.classList.remove('hidden')); 
-                document.getElementById('btnLogin').classList.add('hidden'); 
-                document.getElementById('btnLogout').classList.remove('hidden'); 
+                appData.isAdmin=true; document.querySelectorAll('.admin-only').forEach(e=>e.classList.remove('hidden')); 
+                document.getElementById('btnLogin').classList.add('hidden'); document.getElementById('btnLogout').classList.remove('hidden'); 
                 switchTab('settings');
             } else if(p) Swal.fire('Error','รหัสผิด','error');
         }
