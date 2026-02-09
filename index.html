@@ -209,6 +209,89 @@
         </div>
     </div>
 
+    <div id="detailModal" class="modal-overlay" onclick="closeDetailModal()">
+        <div class="bg-corp-lightBlue w-full max-w-md rounded-xl border border-slate-600 shadow-2xl overflow-hidden m-4 flex flex-col max-h-[90vh] animate-zoomIn" onclick="event.stopPropagation()">
+            <div class="bg-slate-800 p-4 border-b border-slate-600 flex justify-between items-center sticky top-0 z-10">
+                <div>
+                    <h3 class="text-lg font-bold text-corp-gold flex items-center gap-2">📄 รายละเอียดงาน</h3>
+                    <p id="d-jobId" class="text-xs text-slate-400 font-mono"></p>
+                </div>
+                <button onclick="closeDetailModal()" class="text-slate-400 hover:text-white text-2xl font-bold px-2">×</button>
+            </div>
+            
+            <div class="p-5 overflow-y-auto space-y-4 text-sm">
+                
+                <div class="flex justify-between items-center bg-slate-900/50 p-3 rounded-lg border border-slate-700">
+                    <div class="flex flex-col">
+                        <span class="text-xs text-slate-500">สถานะ (Status)</span>
+                        <span id="d-status" class="font-bold text-lg"></span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs text-slate-500 block">วันที่แจ้ง</span>
+                        <span id="d-date" class="text-white font-medium"></span>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-corp-gold text-xs uppercase font-bold border-b border-slate-700 pb-1 mb-2">👤 ผู้แจ้งซ่อม</h4>
+                    <div class="grid grid-cols-2 gap-y-2">
+                        <div><span class="text-slate-500 text-xs block">ชื่อ</span><span id="d-req" class="text-slate-200"></span></div>
+                        <div><span class="text-slate-500 text-xs block">แผนก/สถานที่</span><span id="d-dept" class="text-slate-200"></span></div>
+                        <div class="col-span-2"><span class="text-slate-500 text-xs block">เบอร์โทร</span><span id="d-phone" class="text-slate-200"></span></div>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-corp-gold text-xs uppercase font-bold border-b border-slate-700 pb-1 mb-2">⚙️ อุปกรณ์ & ปัญหา</h4>
+                    <div class="space-y-2">
+                        <div><span class="text-slate-500 text-xs block">ชื่ออุปกรณ์</span><span id="d-equip" class="text-white font-medium"></span></div>
+                        <div><span class="text-slate-500 text-xs block">รหัสอุปกรณ์</span><span id="d-equipId" class="text-slate-200"></span></div>
+                        <div class="bg-slate-800 p-3 rounded border border-slate-700 mt-2">
+                            <span class="text-slate-500 text-xs block mb-1">อาการเสีย</span>
+                            <p id="d-prob" class="text-slate-200"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="d-admin-sec" class="hidden">
+                    <h4 class="text-blue-400 text-xs uppercase font-bold border-b border-blue-900/50 pb-1 mb-2">🛠️ การดำเนินการ</h4>
+                    <div class="space-y-2">
+                        <div><span class="text-slate-500 text-xs block">ช่างผู้รับผิดชอบ</span><span id="d-tech" class="text-slate-200"></span></div>
+                        <div class="bg-blue-900/20 p-3 rounded border border-blue-900/50">
+                            <span class="text-slate-500 text-xs block mb-1">หมายเหตุช่าง (Admin Remark)</span>
+                            <p id="d-remark" class="text-blue-200 italic"></p>
+                        </div>
+                        <div id="d-cost-box" class="flex justify-between items-center mt-2 border-t border-slate-700 pt-2">
+                            <span class="text-slate-400">ค่าใช้จ่ายรวม:</span>
+                            <span id="d-cost" class="text-green-400 font-bold text-lg"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-corp-gold text-xs uppercase font-bold border-b border-slate-700 pb-1 mb-2">📷 รูปภาพ</h4>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="text-center">
+                            <span class="text-[10px] text-slate-500 block mb-1">ก่อนซ่อม</span>
+                            <div id="d-img-before" class="h-24 bg-slate-800 rounded flex items-center justify-center border border-slate-700 text-slate-600 text-xs">ไม่มีรูป</div>
+                        </div>
+                        <div class="text-center">
+                            <span class="text-[10px] text-slate-500 block mb-1">หลังซ่อม</span>
+                            <div id="d-img-after" class="h-24 bg-slate-800 rounded flex items-center justify-center border border-slate-700 text-slate-600 text-xs">ยังไม่ดำเนินการ</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="d-verify-area" class="pt-2"></div>
+
+            </div>
+            
+            <div class="p-4 bg-slate-800 border-t border-slate-600">
+                <button onclick="closeDetailModal()" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 rounded transition">ปิดหน้าต่าง</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // --- CONFIG & STATE ---
         let appData = {
@@ -238,10 +321,44 @@
         // --- IMAGES & POPUP ---
         function fileToBase64(file) {
             return new Promise((resolve, reject) => {
+                if (!file.type.match('image.*')) {
+                    reject("File is not an image");
+                    return;
+                }
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(error);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const maxWidth = 800; 
+                        const maxHeight = 800;
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > maxWidth) {
+                                height *= maxWidth / width;
+                                width = maxWidth;
+                            }
+                        } else {
+                            if (height > maxHeight) {
+                                width *= maxHeight / height;
+                                height = maxHeight;
+                            }
+                        }
+
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        resolve(canvas.toDataURL('image/jpeg', 0.6)); 
+                    };
+                    img.onerror = (error) => reject(error);
+                };
+                reader.onerror = (error) => reject(error);
             });
         }
 
@@ -455,40 +572,39 @@
             
             Object.keys(g).sort().reverse().forEach((k,i)=>{
                 const rows = g[k].map(r=>{
-                    // Status Badge (Col 1)
+                    // Status Badge
                     let sHtml = `<span class="px-2 py-1 rounded text-xs font-bold bg-slate-700 text-slate-400">${r.status}</span>`;
                     if(r.status=='Done') sHtml = `<span class="px-2 py-1 rounded text-xs font-bold bg-green-900 text-green-400">Wait Verify</span>`;
                     else if(r.status=='Closed') sHtml = `<span class="px-2 py-1 rounded text-xs font-bold bg-green-500 text-slate-900">✅ Completed</span>`;
                     else if(r.status=='Waiting') sHtml = `<span class="px-2 py-1 rounded text-xs font-bold bg-yellow-900 text-yellow-400 status-waiting">Waiting</span>`;
                     else if(r.status=='Processing') sHtml = `<span class="px-2 py-1 rounded text-xs font-bold bg-blue-900 text-blue-400">Processing</span>`;
 
-                    // Images Popup
+                    // Images Popup (ใส่ stopPropagation)
                     let imgHtml = '';
-                    if(r.imageBefore) imgHtml += `<span class="cursor-pointer text-xl hover:scale-125 transition inline-block" onclick="openImageViewer('${r.imageBefore}')" title="Before">📄</span>`;
-                    if(r.imageAfter) imgHtml += `<span class="cursor-pointer text-xl ml-2 hover:scale-125 transition inline-block" onclick="openImageViewer('${r.imageAfter}')" title="After">✅</span>`;
+                    if(r.imageBefore) imgHtml += `<span class="cursor-pointer text-xl hover:scale-125 transition inline-block" onclick="event.stopPropagation(); openImageViewer('${r.imageBefore}')" title="Before">📄</span>`;
+                    if(r.imageAfter) imgHtml += `<span class="cursor-pointer text-xl ml-2 hover:scale-125 transition inline-block" onclick="event.stopPropagation(); openImageViewer('${r.imageAfter}')" title="After">✅</span>`;
                     if(!imgHtml) imgHtml = '<span class="text-slate-600">-</span>';
 
-                    // === LOGIC UPDATE FOR REQUIREMENT 2 (Remark Display) ===
+                    // Remark Display
                     let displayDetail = r.problemDetails;
-                    // ถ้ามี Admin Remark และไม่ได้ว่าง ให้แสดงอันนั้นแทนและเปลี่ยนสี
                     if(r.adminRemarks && r.adminRemarks.trim() !== "") {
                         displayDetail = `<div class="flex flex-col"><span class="text-[10px] text-slate-500">Note:</span><span class="text-corp-gold font-bold italic">"${r.adminRemarks}"</span></div>`;
                     }
 
-                    // === LOGIC UPDATE FOR REQUIREMENT 1 (User Verify Button) ===
+                    // Verify Button (ใส่ stopPropagation)
                     let verifyBtn = '';
                     if(r.status === 'Done') {
-                        // ส่ง PIN ไปกับฟังก์ชัน (ในระบบจริงควรทำที่ Server แต่แบบนี้ง่ายสุดสำหรับ Google Sheets)
-                        verifyBtn = `<div class="mt-1"><button onclick="verifyUserJob('${r.jobID}', '${r.userPin || ''}')" class="text-xs bg-green-600 hover:bg-green-500 text-white px-2 py-1 rounded shadow-md border border-green-400">🔒 ยืนยันจบงาน</button></div>`;
+                        verifyBtn = `<div class="mt-1"><button onclick="event.stopPropagation(); verifyUserJob('${r.jobID}', '${r.userPin || ''}')" class="text-xs bg-green-600 hover:bg-green-500 text-white px-2 py-1 rounded shadow-md border border-green-400">🔒 ยืนยันจบงาน</button></div>`;
                     }
 
+                    // ** เพิ่ม onclick เพื่อเปิด Detail Modal **
                     return `
-                    <tr class="hover:bg-slate-800/50 border-b border-slate-800 text-slate-300">
+                    <tr onclick="openDetailModal('${r.jobID}')" class="hover:bg-slate-800/50 border-b border-slate-800 text-slate-300 cursor-pointer transition active:bg-slate-700">
                         <td class="p-3 whitespace-nowrap">
                             ${sHtml}
                             ${verifyBtn}
                         </td>
-                        <td class="p-3 text-corp-gold font-mono whitespace-nowrap">${r.jobID}</td>
+                        <td class="p-3 text-corp-gold font-mono whitespace-nowrap text-xs">${r.jobID}</td>
                         <td class="p-3 text-xs text-slate-400 whitespace-nowrap">${new Date(r.requestDate).toLocaleDateString('th-TH')}</td>
                         <td class="p-3">${r.equipmentLocation}</td>
                         <td class="p-3 truncate max-w-xs text-sm">${displayDetail}</td>
@@ -631,6 +747,90 @@
             document.getElementById('grandTotal').innerText = t.toFixed(2) + ' ฿';
         }
         function filterTable(id, q) { document.querySelectorAll(`#${id} tbody tr`).forEach(r => r.style.display = r.innerText.toLowerCase().includes(q.toLowerCase()) ? '' : 'none'); }
+
+        // --- DETAIL MODAL FUNCTIONS (NEW) ---
+        function openDetailModal(jobId) {
+            const r = appData.reqs.find(x => x.jobID === jobId);
+            if(!r) return;
+
+            // Helper to set text
+            const setTxt = (id, val) => document.getElementById(id).innerText = val || '-';
+            
+            // 1. Set Basic Info
+            setTxt('d-jobId', r.jobID);
+            setTxt('d-date', new Date(r.requestDate).toLocaleString('th-TH'));
+            setTxt('d-req', r.requesterName);
+            setTxt('d-dept', r.positionDept);
+            setTxt('d-phone', r.phoneNumber);
+            setTxt('d-equip', r.equipmentLocation);
+            setTxt('d-equipId', r.equipId);
+            setTxt('d-prob', r.problemDetails);
+
+            // 2. Status Styling
+            const sEl = document.getElementById('d-status');
+            sEl.innerText = r.status;
+            sEl.className = 'font-bold text-lg ';
+            if(r.status === 'Waiting') sEl.classList.add('text-yellow-400', 'status-waiting');
+            else if(r.status === 'Processing') sEl.classList.add('text-blue-400');
+            else if(r.status === 'Done') sEl.classList.add('text-green-400');
+            else if(r.status === 'Closed') { sEl.classList.add('text-green-500'); sEl.innerText = '✅ Closed (Completed)'; }
+
+            // 3. Admin Section (Show only if processed)
+            const admSec = document.getElementById('d-admin-sec');
+            if(r.status !== 'Waiting') {
+                admSec.classList.remove('hidden');
+                setTxt('d-tech', r.technician);
+                setTxt('d-remark', r.adminRemarks || 'กำลังดำเนินการ...');
+                
+                if(r.cost && r.cost > 0) {
+                    document.getElementById('d-cost-box').classList.remove('hidden');
+                    document.getElementById('d-cost').innerText = parseFloat(r.cost).toLocaleString() + ' ฿';
+                } else {
+                    document.getElementById('d-cost-box').classList.add('hidden');
+                }
+            } else {
+                admSec.classList.add('hidden');
+            }
+
+            // 4. Images
+            const setImg = (id, url, label) => {
+                const div = document.getElementById(id);
+                if(url) {
+                    div.innerHTML = `<img src="${url}" class="h-full w-full object-cover rounded cursor-pointer hover:scale-105 transition" onclick="openImageViewer('${url}')">`;
+                } else {
+                    div.innerHTML = `<span class="text-slate-600 text-xs">${label}</span>`;
+                }
+            };
+            
+            // Image handling (using existing logic to construct URL if needed, or simple placeholder)
+            const getDirectUrl = (url) => {
+               if(!url) return null;
+               try {
+                   let id = "";
+                   let match = url.match(/\/d\/([-\w]+)/); 
+                   if (match) id = match[1]; 
+                   else { match = url.match(/id=([-\w]+)/); if (match) id = match[1]; }
+                   if (id) return "https://lh3.googleusercontent.com/d/" + id + "=s4000";
+               } catch(e) {}
+               return null;
+            }
+
+            setImg('d-img-before', getDirectUrl(r.imageBefore), 'ไม่มีรูป');
+            setImg('d-img-after', getDirectUrl(r.imageAfter), 'ไม่มีรูป');
+
+            // 5. Verify Button inside Modal
+            const vDiv = document.getElementById('d-verify-area');
+            vDiv.innerHTML = '';
+            if(r.status === 'Done') {
+                vDiv.innerHTML = `<button onclick="closeDetailModal(); verifyUserJob('${r.jobID}', '${r.userPin || ''}')" class="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 text-white font-bold py-3 rounded shadow-lg border border-green-400 mt-2 animate-pulse">🔒 ยืนยันจบงาน (Verify & Close)</button>`;
+            }
+
+            document.getElementById('detailModal').style.display = 'flex';
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailModal').style.display = 'none';
+        }
     </script>
 </body>
 </html>
