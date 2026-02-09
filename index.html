@@ -15,18 +15,21 @@
         @keyframes blink-yellow { 0%, 100% { opacity: 1; color: #facc15; text-shadow: 0 0 5px rgba(250, 204, 21, 0.3); } 50% { opacity: 0.6; color: #fde047; text-shadow: none; } }
         .img-preview { max-height: 150px; border-radius: 8px; margin-top: 10px; display: none; border: 2px solid #475569; }
         
-        /* Popup Image Styles */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 60; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-        .modal-content { max-width: 90%; max-height: 90%; position: relative; animation: zoomIn 0.3s ease; text-align: center; }
-        .modal-close { position: absolute; top: -40px; right: 0; color: white; font-size: 30px; cursor: pointer; font-weight: bold; text-shadow: 0 0 5px black; }
-        @keyframes zoomIn { from {transform: scale(0.5); opacity: 0;} to {transform: scale(1); opacity: 1;} }
+        /* Popup Animation & Style */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 60; display: none; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
+        .animate-zoomIn { animation: zoomIn 0.2s ease-out; }
+        @keyframes zoomIn { from {transform: scale(0.9); opacity: 0;} to {transform: scale(1); opacity: 1;} }
+        
+        /* Image Viewer */
+        .modal-content-img { max-width: 95%; max-height: 95%; position: relative; animation: zoomIn 0.3s ease; text-align: center; }
+        .modal-close-img { position: absolute; top: -40px; right: 0; color: white; font-size: 30px; cursor: pointer; font-weight: bold; text-shadow: 0 0 5px black; }
     </style>
 </head>
 <body class="text-slate-200 h-screen flex flex-col overflow-hidden">
 
-    <div id="imageViewerModal" class="modal-overlay" onclick="closeImageViewer()">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <span class="modal-close" onclick="closeImageViewer()">× ปิด</span>
+    <div id="imageViewerModal" class="modal-overlay" onclick="closeImageViewer()" style="z-index: 70;">
+        <div class="modal-content-img" onclick="event.stopPropagation()">
+            <span class="modal-close-img" onclick="closeImageViewer()">× ปิด</span>
             <img id="imageViewerSrc" src="" class="rounded-lg shadow-2xl border-2 border-slate-700" style="max-height: 85vh; max-width: 100%;">
         </div>
     </div>
@@ -55,6 +58,7 @@
     </nav>
 
     <main class="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-900/50 relative">
+        
         <div id="view-request" class="view-section max-w-3xl mx-auto fade-in">
             <div class="bg-corp-lightBlue rounded-xl shadow-2xl border border-slate-700 overflow-hidden">
                 <div class="bg-gradient-to-r from-corp-blue to-corp-lightBlue p-4 border-b border-slate-700"><h2 class="text-xl font-bold text-white">📝 แบบฟอร์มแจ้งซ่อม</h2></div>
@@ -64,11 +68,13 @@
                             <div><label class="block text-sm text-slate-400 mb-1">ชื่อผู้แจ้ง</label><input type="text" id="reqName" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"></div>
                             <div><label class="block text-sm text-slate-400 mb-1">สถานที่/แผนก</label><select id="reqDept" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"><option value="">-- กำลังโหลด... --</option></select></div>
                             <div><label class="block text-sm text-slate-400 mb-1">ข้อมูลติดต่อกลับ</label><input type="tel" id="reqPhone" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"></div>
+                            
                             <div class="bg-slate-800/50 p-2 rounded border border-yellow-500/30">
                                 <label class="block text-sm text-yellow-400 font-bold mb-1">🔑 รหัสยืนยัน (PIN)</label>
                                 <input type="tel" id="reqPin" required maxlength="6" class="w-full bg-slate-900 border border-yellow-500/50 rounded px-4 py-2 text-center tracking-widest text-lg font-bold text-yellow-400" placeholder="ตั้งรหัสยืนยันปิดงาน">
-                                <p class="text-[10px] text-slate-500 mt-1">* ใช้รหัสนี้เพื่อยืนยันเมื่อช่างซ่อมเสร็จแล้ว</p>
+                                <p class="text-[10px] text-slate-500 mt-1">* ใช้รหัสนี้เพื่อยืนยันจบงาน (ห้ามลืม)</p>
                             </div>
+
                             <div><label class="block text-sm text-slate-400 mb-1">รหัสอุปกรณ์</label><input type="text" id="reqEquipId" class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2" placeholder="ถ้ามี"></div>
                             <div class="md:col-span-2"><label class="block text-sm text-slate-400 mb-1">ชื่ออุปกรณ์</label><input type="text" id="reqEquip" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"></div>
                         </div>
@@ -76,7 +82,7 @@
                         <div class="border border-dashed border-slate-600 rounded-lg p-4 text-center hover:bg-slate-800 transition cursor-pointer relative" onclick="document.getElementById('reqImg').click()">
                             <input type="file" id="reqImg" accept="image/*" class="hidden" onchange="previewImage(this, 'reqPreview')">
                             <span class="text-corp-gold font-bold">📷 แตะเพื่อแนบรูปภาพ (ก่อนซ่อม)</span>
-                            <p class="text-xs text-slate-500 mt-1">อัปโหลดไปยัง Google Drive (Folder: Before)</p>
+                            <p class="text-xs text-slate-500 mt-1">อัปโหลดไปยัง Google Drive</p>
                             <img id="reqPreview" class="img-preview mx-auto">
                         </div>
 
@@ -101,37 +107,22 @@
                         <input id="setting-api-url" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-slate-300" placeholder="วางลิงก์ GAS ตรงนี้">
                     </div>
                     <div class="grid grid-cols-1 gap-4 mb-4">
-                        <div>
-                            <label class="block text-xs text-slate-400 mb-1">Folder ID (Before Repair)</label>
-                            <input id="setting-folder-before" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-slate-300">
-                        </div>
-                        <div>
-                            <label class="block text-xs text-slate-400 mb-1">Folder ID (After Repair)</label>
-                            <input id="setting-folder-after" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-slate-300">
-                        </div>
+                        <div><label class="block text-xs text-slate-400 mb-1">Folder ID (Before Repair)</label><input id="setting-folder-before" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-slate-300"></div>
+                        <div><label class="block text-xs text-slate-400 mb-1">Folder ID (After Repair)</label><input id="setting-folder-after" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-slate-300"></div>
                     </div>
-                    
                     <div class="border-t border-slate-700 pt-4 mt-4">
                         <h4 class="text-sm font-bold text-white mb-3">🆔 ตั้งค่าหมายเลขงาน (Job ID)</h4>
                         <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs text-slate-400 mb-1">คำนำหน้า (Prefix)</label>
-                                <input id="setting-id-prefix" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-slate-300" placeholder="เช่น MTN">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-slate-400 mb-1">เลขเริ่มต้น (Start Number)</label>
-                                <input type="number" id="setting-id-start" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-slate-300" placeholder="เช่น 1">
-                            </div>
+                            <div><label class="block text-xs text-slate-400 mb-1">คำนำหน้า (Prefix)</label><input id="setting-id-prefix" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-slate-300" placeholder="เช่น MTN"></div>
+                            <div><label class="block text-xs text-slate-400 mb-1">เลขเริ่มต้น (Start Number)</label><input type="number" id="setting-id-start" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-slate-300" placeholder="เช่น 1"></div>
                         </div>
                         <p class="text-xs text-slate-500 mt-2">รูปแบบตัวอย่าง: <span id="id-preview" class="text-corp-gold font-mono">MTN-2026-0001</span></p>
                     </div>
-
                     <div class="flex gap-2 mt-4">
                          <button onclick="saveSystemSettings()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded text-sm font-bold">บันทึก & รีโหลด</button>
                          <button onclick="resetConfig()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">Reset</button>
                     </div>
                 </div>
-
                 <div class="bg-corp-lightBlue rounded-xl border border-slate-700 p-6 shadow-lg">
                     <h3 class="text-lg font-bold text-corp-gold mb-4 border-b border-slate-700 pb-2">📋 List Management</h3>
                     <div class="mb-4">
@@ -151,9 +142,9 @@
         <div id="view-status" class="view-section hidden container mx-auto fade-in">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold text-white">📂 แฟ้มงานซ่อม</h2>
-                <input onkeyup="renderStatus(this.value)" placeholder="🔍 ค้นหา..." class="bg-slate-900 border border-slate-600 rounded-full px-4 py-2 text-sm w-64">
+                <input onkeyup="renderStatus(this.value)" placeholder="🔍 ค้นหา..." class="bg-slate-900 border border-slate-600 rounded-full px-4 py-2 text-sm w-64 focus:outline-none focus:border-corp-gold">
             </div>
-            <div id="statusFolders" class="space-y-4"></div>
+            <div id="statusFolders" class="space-y-4 pb-10"></div>
         </div>
         
         <div id="view-dashboard" class="view-section hidden container mx-auto fade-in">
@@ -183,9 +174,7 @@
                 <div><label class="text-xs text-slate-400">Status</label><select id="modalStatus" onchange="toggleAdminFields()" class="w-full bg-slate-900 border border-slate-600 rounded p-2"><option>Waiting</option><option>Processing</option><option>Done</option><option>Closed</option></select></div>
                 <div><label class="text-xs text-slate-400">Tech</label><select id="modalTech" class="w-full bg-slate-900 border border-slate-600 rounded p-2"></select></div>
             </div>
-            
             <div class="mb-4"><label class="text-xs text-slate-400">Remarks</label><textarea id="modalRemark" class="w-full bg-slate-900 border border-slate-600 rounded p-2" rows="2"></textarea></div>
-            
             <div id="adminImageSection" class="hidden mb-4 border border-slate-600 rounded p-3 bg-slate-800/30">
                 <label class="text-xs text-green-400 font-bold mb-2 block">📷 Evidence (After Repair)</label>
                 <div class="flex items-center gap-3">
@@ -195,7 +184,6 @@
                 </div>
                 <img id="adminPreview" class="img-preview mt-2 max-h-24">
             </div>
-
             <div id="costSection" class="hidden border-t border-slate-600 pt-4 bg-slate-800/50 p-4 rounded-lg mb-4">
                 <h4 class="text-green-400 font-bold mb-2 flex justify-between"><span>💰 Cost</span><span id="grandTotal">0.00 ฿</span></h4>
                 <div id="itemsContainer" class="space-y-2 mb-2"></div>
@@ -218,9 +206,7 @@
                 </div>
                 <button onclick="closeDetailModal()" class="text-slate-400 hover:text-white text-2xl font-bold px-2">×</button>
             </div>
-            
             <div class="p-5 overflow-y-auto space-y-4 text-sm">
-                
                 <div class="flex justify-between items-center bg-slate-900/50 p-3 rounded-lg border border-slate-700">
                     <div class="flex flex-col">
                         <span class="text-xs text-slate-500">สถานะ (Status)</span>
@@ -231,61 +217,48 @@
                         <span id="d-date" class="text-white font-medium"></span>
                     </div>
                 </div>
-
                 <div>
                     <h4 class="text-corp-gold text-xs uppercase font-bold border-b border-slate-700 pb-1 mb-2">👤 ผู้แจ้งซ่อม</h4>
                     <div class="grid grid-cols-2 gap-y-2">
                         <div><span class="text-slate-500 text-xs block">ชื่อ</span><span id="d-req" class="text-slate-200"></span></div>
-                        <div><span class="text-slate-500 text-xs block">แผนก/สถานที่</span><span id="d-dept" class="text-slate-200"></span></div>
+                        <div><span class="text-slate-500 text-xs block">แผนก</span><span id="d-dept" class="text-slate-200"></span></div>
                         <div class="col-span-2"><span class="text-slate-500 text-xs block">เบอร์โทร</span><span id="d-phone" class="text-slate-200"></span></div>
                     </div>
                 </div>
-
                 <div>
                     <h4 class="text-corp-gold text-xs uppercase font-bold border-b border-slate-700 pb-1 mb-2">⚙️ อุปกรณ์ & ปัญหา</h4>
                     <div class="space-y-2">
                         <div><span class="text-slate-500 text-xs block">ชื่ออุปกรณ์</span><span id="d-equip" class="text-white font-medium"></span></div>
-                        <div><span class="text-slate-500 text-xs block">รหัสอุปกรณ์</span><span id="d-equipId" class="text-slate-200"></span></div>
+                        <div><span class="text-slate-500 text-xs block">รหัส</span><span id="d-equipId" class="text-slate-200"></span></div>
                         <div class="bg-slate-800 p-3 rounded border border-slate-700 mt-2">
                             <span class="text-slate-500 text-xs block mb-1">อาการเสีย</span>
                             <p id="d-prob" class="text-slate-200"></p>
                         </div>
                     </div>
                 </div>
-
                 <div id="d-admin-sec" class="hidden">
                     <h4 class="text-blue-400 text-xs uppercase font-bold border-b border-blue-900/50 pb-1 mb-2">🛠️ การดำเนินการ</h4>
                     <div class="space-y-2">
-                        <div><span class="text-slate-500 text-xs block">ช่างผู้รับผิดชอบ</span><span id="d-tech" class="text-slate-200"></span></div>
+                        <div><span class="text-slate-500 text-xs block">ช่าง</span><span id="d-tech" class="text-slate-200"></span></div>
                         <div class="bg-blue-900/20 p-3 rounded border border-blue-900/50">
                             <span class="text-slate-500 text-xs block mb-1">หมายเหตุช่าง (Admin Remark)</span>
                             <p id="d-remark" class="text-blue-200 italic"></p>
                         </div>
                         <div id="d-cost-box" class="flex justify-between items-center mt-2 border-t border-slate-700 pt-2">
-                            <span class="text-slate-400">ค่าใช้จ่ายรวม:</span>
+                            <span class="text-slate-400">ค่าใช้จ่าย:</span>
                             <span id="d-cost" class="text-green-400 font-bold text-lg"></span>
                         </div>
                     </div>
                 </div>
-
                 <div>
                     <h4 class="text-corp-gold text-xs uppercase font-bold border-b border-slate-700 pb-1 mb-2">📷 รูปภาพ</h4>
                     <div class="grid grid-cols-2 gap-3">
-                        <div class="text-center">
-                            <span class="text-[10px] text-slate-500 block mb-1">ก่อนซ่อม</span>
-                            <div id="d-img-before" class="h-24 bg-slate-800 rounded flex items-center justify-center border border-slate-700 text-slate-600 text-xs">ไม่มีรูป</div>
-                        </div>
-                        <div class="text-center">
-                            <span class="text-[10px] text-slate-500 block mb-1">หลังซ่อม</span>
-                            <div id="d-img-after" class="h-24 bg-slate-800 rounded flex items-center justify-center border border-slate-700 text-slate-600 text-xs">ยังไม่ดำเนินการ</div>
-                        </div>
+                        <div class="text-center"><span class="text-[10px] text-slate-500 block mb-1">ก่อนซ่อม</span><div id="d-img-before" class="h-24 bg-slate-800 rounded flex items-center justify-center border border-slate-700 text-slate-600 text-xs">ไม่มีรูป</div></div>
+                        <div class="text-center"><span class="text-[10px] text-slate-500 block mb-1">หลังซ่อม</span><div id="d-img-after" class="h-24 bg-slate-800 rounded flex items-center justify-center border border-slate-700 text-slate-600 text-xs">ยังไม่ดำเนินการ</div></div>
                     </div>
                 </div>
-
                 <div id="d-verify-area" class="pt-2"></div>
-
             </div>
-            
             <div class="p-4 bg-slate-800 border-t border-slate-600">
                 <button onclick="closeDetailModal()" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 rounded transition">ปิดหน้าต่าง</button>
             </div>
@@ -311,49 +284,28 @@
         async function callApi(act, p={}) {
             if(!appData.cfg.apiUrl) throw "ไม่พบ URL API";
             const payload = { action: act, ...p };
-            const response = await fetch(appData.cfg.apiUrl, {
-                method: 'POST',
-                body: JSON.stringify(payload)
-            });
+            const response = await fetch(appData.cfg.apiUrl, { method: 'POST', body: JSON.stringify(payload) });
             return await response.json();
         }
 
-        // --- IMAGES & POPUP ---
+        // --- IMAGE UTILS (AUTO RESIZE) ---
         function fileToBase64(file) {
             return new Promise((resolve, reject) => {
-                if (!file.type.match('image.*')) {
-                    reject("File is not an image");
-                    return;
-                }
+                if (!file.type.match('image.*')) { reject("File is not an image"); return; }
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
                 reader.onload = (event) => {
                     const img = new Image();
                     img.src = event.target.result;
                     img.onload = () => {
-                        const maxWidth = 800; 
-                        const maxHeight = 800;
-                        let width = img.width;
-                        let height = img.height;
-
-                        if (width > height) {
-                            if (width > maxWidth) {
-                                height *= maxWidth / width;
-                                width = maxWidth;
-                            }
-                        } else {
-                            if (height > maxHeight) {
-                                width *= maxHeight / height;
-                                height = maxHeight;
-                            }
-                        }
-
+                        const maxWidth = 800; const maxHeight = 800;
+                        let width = img.width; let height = img.height;
+                        if (width > height) { if (width > maxWidth) { height *= maxWidth / width; width = maxWidth; } } 
+                        else { if (height > maxHeight) { width *= maxHeight / height; height = maxHeight; } }
                         const canvas = document.createElement('canvas');
-                        canvas.width = width;
-                        canvas.height = height;
+                        canvas.width = width; canvas.height = height;
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
-                        
                         resolve(canvas.toDataURL('image/jpeg', 0.6)); 
                     };
                     img.onerror = (error) => reject(error);
@@ -367,37 +319,24 @@
             const preview = document.getElementById(previewId);
             if (file) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    preview.src = e.target.result;
-                    preview.style.display = 'block';
-                }
+                reader.onload = function(e) { preview.src = e.target.result; preview.style.display = 'block'; }
                 reader.readAsDataURL(file);
-            } else {
-                preview.src = '';
-                preview.style.display = 'none';
-            }
+            } else { preview.src = ''; preview.style.display = 'none'; }
         }
 
         function openImageViewer(url) {
             if(!url) return;
             let directUrl = url;
             try {
-                let id = "";
-                let match = url.match(/\/d\/([-\w]+)/); 
-                if (match) { id = match[1]; } 
-                else { match = url.match(/id=([-\w]+)/); if (match) id = match[1]; }
-                if (id) { directUrl = "https://lh3.googleusercontent.com/d/" + id + "=s4000"; }
-            } catch(e) { console.error("URL Parse Error:", e); }
+                let id = ""; let match = url.match(/\/d\/([-\w]+)/); 
+                if (match) id = match[1]; else { match = url.match(/id=([-\w]+)/); if (match) id = match[1]; }
+                if (id) directUrl = "https://lh3.googleusercontent.com/d/" + id + "=s4000";
+            } catch(e) {}
             const modal = document.getElementById('imageViewerModal');
             const img = document.getElementById('imageViewerSrc');
-            img.src = ""; img.src = directUrl; 
-            modal.style.display = 'flex';
+            img.src = ""; img.src = directUrl; modal.style.display = 'flex';
         }
-
-        function closeImageViewer() {
-            document.getElementById('imageViewerModal').style.display = 'none';
-            document.getElementById('imageViewerSrc').src = ""; 
-        }
+        function closeImageViewer() { document.getElementById('imageViewerModal').style.display = 'none'; document.getElementById('imageViewerSrc').src = ""; }
 
         // --- CORE FUNCTIONS ---
         document.addEventListener('DOMContentLoaded', () => { loadSettings(); refreshData(true); loadLists(); });
@@ -416,29 +355,21 @@
             Swal.showLoading();
             try {
                 const r = await callApi('manageList', { type: type, act: act, value: val });
-                if(r.status==='success') { 
-                    if(act==='add') document.getElementById(id).value=''; 
-                    await loadLists(); Swal.close(); 
-                } else throw new Error(r.message);
+                if(r.status==='success') { if(act==='add') document.getElementById(id).value=''; await loadLists(); Swal.close(); } 
+                else throw new Error(r.message);
             } catch(e) { Swal.fire('Error', e.toString(), 'error'); }
         }
 
         async function submitRequest(e) {
             e.preventDefault();
             const urg = document.querySelector('input[name="urgency"]:checked').value;
-            const userPin = document.getElementById('reqPin').value; // Get PIN
-            
-            // Basic PIN validation
-            if(!userPin || userPin.length < 4) {
-                 return Swal.fire('ข้อผิดพลาด', 'กรุณาตั้งรหัสยืนยันอย่างน้อย 4 หลัก', 'warning');
-            }
+            const userPin = document.getElementById('reqPin').value;
+            if(!userPin || userPin.length < 4) return Swal.fire('ข้อผิดพลาด', 'กรุณาตั้งรหัสยืนยันอย่างน้อย 4 หลัก', 'warning');
 
             const fileInput = document.getElementById('reqImg');
-            
             let imgData = "";
             if(fileInput.files.length > 0) {
-                try { imgData = await fileToBase64(fileInput.files[0]); } 
-                catch(err) { return Swal.fire('Image Error', 'Failed to process image', 'error'); }
+                try { imgData = await fileToBase64(fileInput.files[0]); } catch(err) { return Swal.fire('Image Error', 'Failed to process image', 'error'); }
             }
 
             const p = {
@@ -452,19 +383,18 @@
                 jobIdConfig: JSON.stringify(appData.cfg.jobId), 
                 imageFile: imgData,
                 folderId: appData.cfg.folderBefore,
-                userPin: userPin // Send PIN to Backend
+                userPin: userPin 
             };
             
-            Swal.fire({ title: 'Sending...', text: 'กำลังอัปโหลดรูปภาพและบันทึกข้อมูล', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-            
+            Swal.fire({ title: 'Sending...', text: 'กำลังส่งข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
             try {
                 const r = await callApi('submit', p);
                 if(r.status==='success') {
                     document.getElementById('requestForm').reset();
                     document.getElementById('reqPreview').style.display = 'none';
                     let h = `Job: ${r.jobId}<br><span class="text-yellow-400">PIN: ${userPin}</span>`, ti='Saved', ic='success';
-                    if(urg==='Medium') { ti='⚠️ แจ้งเตือนด่วน'; ic='warning'; h+=`<br><div class="alert-text-medium">โทร: 0982799918</div>`; }
-                    if(urg==='High') { ti='🚨 แจ้งเตือนด่วนมาก'; ic='warning'; h+=`<br><div class="alert-text-high">โทรทันที: 0982799918</div>`; }
+                    if(urg==='Medium') { ti='⚠️ แจ้งเตือนด่วน'; ic='warning'; h+=`<br>โทร: 0982799918`; }
+                    if(urg==='High') { ti='🚨 แจ้งเตือนด่วนมาก'; ic='warning'; h+=`<br>โทรทันที: 0982799918`; }
                     Swal.fire({icon:ic, title:ti, html:h, background:'#1e293b', color:'#fff', confirmButtonColor:'#f59e0b'});
                     refreshData(true); switchTab('status');
                 } else throw new Error(r.message);
@@ -475,37 +405,18 @@
             const { value: enteredPin } = await Swal.fire({
                 title: 'ยืนยันการจบงาน',
                 text: "กรุณาใส่รหัส PIN ที่คุณตั้งไว้ตอนแจ้งซ่อม",
-                input: 'password',
-                inputPlaceholder: 'Enter PIN',
-                background: '#1e293b',
-                color: '#fff',
-                confirmButtonColor: '#22c55e',
-                showCancelButton: true
+                input: 'password', inputPlaceholder: 'Enter PIN',
+                background: '#1e293b', color: '#fff', confirmButtonColor: '#22c55e', showCancelButton: true
             });
-
             if (enteredPin) {
                 if(enteredPin == correctPin) {
-                     // PIN Match -> Call API to close job
                      Swal.fire({title:'Verifying...', didOpen:()=>Swal.showLoading()});
                      try {
-                         // Send update to close job
-                         const p = { 
-                             jobId: jobId, 
-                             status: 'Closed', // เปลี่ยนสถานะเป็น Closed (จบงานสมบูรณ์)
-                             technician: '', // keep same logic as update
-                             adminRemarks: 'User Verified Completion',
-                             folderId: appData.cfg.folderAfter // just to pass check
-                         };
-                         // Re-use update endpoint but mainly to change status
+                         const p = { jobId: jobId, status: 'Closed', technician: '', adminRemarks: 'User Verified Completion', folderId: appData.cfg.folderAfter };
                          const r = await callApi('update', p);
-                         if(r.status==='success') {
-                             refreshData(true);
-                             Swal.fire('สำเร็จ', 'ยืนยันจบงานเรียบร้อยแล้ว', 'success');
-                         }
+                         if(r.status==='success') { refreshData(true); Swal.fire('สำเร็จ', 'ยืนยันจบงานเรียบร้อยแล้ว', 'success'); }
                      } catch(e) { Swal.fire('Error', e.message, 'error'); }
-                } else {
-                    Swal.fire('รหัสไม่ถูกต้อง', 'กรุณาลองใหม่อีกครั้ง', 'error');
-                }
+                } else { Swal.fire('รหัสไม่ถูกต้อง', 'กรุณาลองใหม่อีกครั้ง', 'error'); }
             }
         }
 
@@ -513,13 +424,7 @@
             if(!s) Swal.showLoading();
             try {
                 const r = await callApi('fetch');
-                if(r.status==='success') { 
-                    appData.reqs=r.data; 
-                    renderStatus(); 
-                    if(appData.isAdmin) renderAdmin(); 
-                    updateDashboard();
-                    if(!s) Swal.close(); 
-                }
+                if(r.status==='success') { appData.reqs=r.data; renderStatus(); if(appData.isAdmin) renderAdmin(); updateDashboard(); if(!s) Swal.close(); }
             } catch(e) {}
         }
 
@@ -530,22 +435,15 @@
                 const n=r.querySelector('.i-n').value, q=r.querySelector('.i-q').value, p=r.querySelector('.i-p').value;
                 if(n) { const t=q*p; it.push({name:n, quantity:q, unitPrice:p, total:t}); cost+=t; }
             });
-
             const fileInput = document.getElementById('adminImg');
             let imgData = "";
-            if(fileInput.files.length > 0) {
-                 try { imgData = await fileToBase64(fileInput.files[0]); } catch(err) { console.error(err); }
-            }
-
+            if(fileInput.files.length > 0) { try { imgData = await fileToBase64(fileInput.files[0]); } catch(err) {} }
             const p = {
                 jobId: document.getElementById('modalJobId').value, status: st, technician: document.getElementById('modalTech').value,
                 adminRemarks: document.getElementById('modalRemark').value, additionalNotes: document.getElementById('modalNotes').value,
-                cost: cost, itemsData: JSON.stringify(it),
-                imageFile: imgData,
-                folderId: appData.cfg.folderAfter
+                cost: cost, itemsData: JSON.stringify(it), imageFile: imgData, folderId: appData.cfg.folderAfter
             };
-            
-            Swal.fire({ title: 'Saving...', text: 'Updating job and uploading...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            Swal.fire({ title: 'Saving...', text: 'Updating job...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
             try { const r = await callApi('update', p); if(r.status==='success') { closeModal(); refreshData(true); Swal.fire('Saved','','success'); } else throw new Error(r.message); } catch(e) { Swal.fire('Error',e.toString(),'error'); }
         }
 
@@ -554,9 +452,7 @@
             ['depts','techs'].forEach(k => {
                 const list = appData.lists[k] || [];
                 const el = document.getElementById('list-'+k);
-                el.innerHTML = list.length 
-                    ? list.map(x => `<li class="flex justify-between border-b border-slate-700 p-1"><span>${x}</span><button onclick="modifyList('${k}','del','${x}')" class="text-red-400 font-bold px-2">×</button></li>`).join('')
-                    : `<li class="text-center pt-8 text-slate-500">Empty</li>`;
+                el.innerHTML = list.length ? list.map(x => `<li class="flex justify-between border-b border-slate-700 p-1"><span>${x}</span><button onclick="modifyList('${k}','del','${x}')" class="text-red-400 font-bold px-2">×</button></li>`).join('') : `<li class="text-center pt-8 text-slate-500">Empty</li>`;
             });
         }
         function renderDrops() {
@@ -567,76 +463,39 @@
         function renderStatus(q='') {
             const c=document.getElementById('statusFolders'); c.innerHTML='';
             const d=appData.reqs.filter(r=>(r.jobID+r.requesterName).toLowerCase().includes(q.toLowerCase()));
-            if(!d.length) return c.innerHTML='<div class="text-center text-slate-500 py-10">No Data</div>';
+            if(!d.length) return c.innerHTML='<div class="text-center text-slate-500 py-10">ไม่พบข้อมูล (No Data)</div>';
             const g = d.reduce((a,r)=>{ const k=(r.requestDate||'').substring(0,7); (a[k]=a[k]||[]).push(r); return a; }, {});
             
             Object.keys(g).sort().reverse().forEach((k,i)=>{
                 const rows = g[k].map(r=>{
-                    // Status Badge
-                    let sHtml = `<span class="px-2 py-1 rounded text-xs font-bold bg-slate-700 text-slate-400">${r.status}</span>`;
-                    if(r.status=='Done') sHtml = `<span class="px-2 py-1 rounded text-xs font-bold bg-green-900 text-green-400">Wait Verify</span>`;
-                    else if(r.status=='Closed') sHtml = `<span class="px-2 py-1 rounded text-xs font-bold bg-green-500 text-slate-900">✅ Completed</span>`;
-                    else if(r.status=='Waiting') sHtml = `<span class="px-2 py-1 rounded text-xs font-bold bg-yellow-900 text-yellow-400 status-waiting">Waiting</span>`;
-                    else if(r.status=='Processing') sHtml = `<span class="px-2 py-1 rounded text-xs font-bold bg-blue-900 text-blue-400">Processing</span>`;
+                    let sHtml = `<span class="inline-block px-2 py-1 rounded text-xs font-bold bg-slate-700 text-slate-400 border border-slate-600">${r.status}</span>`;
+                    if(r.status=='Done') sHtml = `<span class="inline-block px-2 py-1 rounded text-xs font-bold bg-green-900/30 text-green-400 border border-green-500/50 animate-pulse">Wait Verify</span>`;
+                    else if(r.status=='Closed') sHtml = `<span class="inline-block px-2 py-1 rounded text-xs font-bold bg-green-500 text-slate-900">✅ Closed</span>`;
+                    else if(r.status=='Waiting') sHtml = `<span class="inline-block px-2 py-1 rounded text-xs font-bold bg-yellow-900/30 text-yellow-400 border border-yellow-500/50 status-waiting">Waiting</span>`;
+                    else if(r.status=='Processing') sHtml = `<span class="inline-block px-2 py-1 rounded text-xs font-bold bg-blue-900/30 text-blue-400 border border-blue-500/50">Processing</span>`;
 
-                    // Images Popup (ใส่ stopPropagation)
-                    let imgHtml = '';
-                    if(r.imageBefore) imgHtml += `<span class="cursor-pointer text-xl hover:scale-125 transition inline-block" onclick="event.stopPropagation(); openImageViewer('${r.imageBefore}')" title="Before">📄</span>`;
-                    if(r.imageAfter) imgHtml += `<span class="cursor-pointer text-xl ml-2 hover:scale-125 transition inline-block" onclick="event.stopPropagation(); openImageViewer('${r.imageAfter}')" title="After">✅</span>`;
-                    if(!imgHtml) imgHtml = '<span class="text-slate-600">-</span>';
-
-                    // Remark Display
                     let displayDetail = r.problemDetails;
-                    if(r.adminRemarks && r.adminRemarks.trim() !== "") {
-                        displayDetail = `<div class="flex flex-col"><span class="text-[10px] text-slate-500">Note:</span><span class="text-corp-gold font-bold italic">"${r.adminRemarks}"</span></div>`;
-                    }
+                    let isRemark = false;
+                    if(r.adminRemarks && r.adminRemarks.trim() !== "") { displayDetail = `💬 Note: ${r.adminRemarks}`; isRemark = true; }
 
-                    // Verify Button (ใส่ stopPropagation)
-                    let verifyBtn = '';
-                    if(r.status === 'Done') {
-                        verifyBtn = `<div class="mt-1"><button onclick="event.stopPropagation(); verifyUserJob('${r.jobID}', '${r.userPin || ''}')" class="text-xs bg-green-600 hover:bg-green-500 text-white px-2 py-1 rounded shadow-md border border-green-400">🔒 ยืนยันจบงาน</button></div>`;
-                    }
-
-                    // ** เพิ่ม onclick เพื่อเปิด Detail Modal **
                     return `
-                    <tr onclick="openDetailModal('${r.jobID}')" class="hover:bg-slate-800/50 border-b border-slate-800 text-slate-300 cursor-pointer transition active:bg-slate-700">
-                        <td class="p-3 whitespace-nowrap">
-                            ${sHtml}
-                            ${verifyBtn}
-                        </td>
-                        <td class="p-3 text-corp-gold font-mono whitespace-nowrap text-xs">${r.jobID}</td>
-                        <td class="p-3 text-xs text-slate-400 whitespace-nowrap">${new Date(r.requestDate).toLocaleDateString('th-TH')}</td>
-                        <td class="p-3">${r.equipmentLocation}</td>
-                        <td class="p-3 truncate max-w-xs text-sm">${displayDetail}</td>
-                        <td class="p-3 text-center whitespace-nowrap">${imgHtml}</td>
-                    </tr>`;
+                    <div onclick="openDetailModal('${r.jobID}')" class="p-4 border-b border-slate-800 hover:bg-slate-800/80 cursor-pointer transition active:bg-slate-700 group bg-slate-900/40">
+                        <div class="flex justify-between items-center mb-2"><span class="text-corp-gold font-mono text-xs tracking-wider opacity-80">${r.jobID}</span><div>${sHtml}</div></div>
+                        <div class="mb-2"><span class="text-white font-bold text-sm block leading-relaxed break-words">${r.equipmentLocation}</span></div>
+                        <div class="text-xs ${isRemark ? 'text-corp-gold italic' : 'text-slate-400'} break-words leading-relaxed border-l-2 ${isRemark ? 'border-corp-gold' : 'border-slate-700'} pl-2">${displayDetail}</div>
+                        <div class="mt-2 text-[10px] text-slate-600 flex justify-end items-center gap-1 group-hover:text-slate-400 transition">แตะเพื่อดูรายละเอียด <span class="text-lg">›</span></div>
+                    </div>`;
                 }).join('');
                 
-                c.innerHTML+=`
-                <div class="bg-slate-800 rounded mb-3 border border-slate-700 overflow-hidden">
-                    <div onclick="this.nextElementSibling.classList.toggle('hidden')" class="p-3 font-bold cursor-pointer hover:bg-slate-700 flex justify-between items-center bg-gradient-to-r from-slate-800 to-slate-900">
-                        <span class="flex items-center gap-2">📁 ${k}</span>
-                        <span class="text-xs bg-slate-600 px-2 py-1 rounded-full text-white">${g[k].length} Jobs</span>
-                    </div>
-                    <div class="${(q||i==0)?'':'hidden'} bg-slate-900/90 overflow-x-auto">
-                        <table class="w-full text-sm text-left">
-                            <thead class="bg-slate-950 text-slate-400 uppercase text-xs">
-                                <tr><th class="p-3">Status</th><th class="p-3">ID</th><th class="p-3">Date</th><th class="p-3">Equip</th><th class="p-3">Remark / Detail</th><th class="p-3 text-center">Img</th></tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-800">${rows}</tbody>
-                        </table>
-                    </div>
-                </div>`;
+                c.innerHTML+=`<div class="bg-slate-800 rounded-xl mb-4 border border-slate-700 overflow-hidden shadow-lg"><div onclick="this.nextElementSibling.classList.toggle('hidden')" class="p-3 font-bold cursor-pointer hover:bg-slate-700 flex justify-between items-center bg-gradient-to-r from-slate-800 to-slate-900 border-b border-slate-700"><span class="flex items-center gap-2 text-white">📁 ${k}</span><span class="text-xs bg-slate-600 px-2 py-1 rounded-full text-white">${g[k].length} งาน</span></div><div class="${(q||i==0)?'':'hidden'} bg-transparent">${rows}</div></div>`;
             });
         }
 
         function renderAdmin() {
             document.getElementById('adminTableBody').innerHTML = appData.reqs.map(r => {
                 let s='text-slate-400'; 
-                if(r.status=='Done') s='text-green-400 font-bold'; 
-                else if(r.status=='Closed') s='text-green-500 font-bold underline';
-                else if(r.status=='Waiting') s='status-waiting';
-                else if(r.status=='Processing') s='text-blue-400 font-bold';
+                if(r.status=='Done') s='text-green-400 font-bold'; else if(r.status=='Closed') s='text-green-500 font-bold underline';
+                else if(r.status=='Waiting') s='status-waiting'; else if(r.status=='Processing') s='text-blue-400 font-bold';
                 return `<tr class="border-b border-slate-700 hover:bg-slate-800"><td class="p-3"><button onclick="openModal('${r.jobID}')" class="bg-blue-600 px-2 py-1 rounded text-xs hover:bg-blue-500 transition">Edit</button></td><td class="p-3 font-mono text-xs">${r.jobID}</td><td class="p-3 text-sm">${r.requesterName}</td><td class="p-3 text-sm">${r.equipmentLocation}</td><td class="p-3 text-xs ${s}">${r.status}</td></tr>`
             }).join('');
         }
@@ -648,6 +507,50 @@
             document.getElementById('kpi-done').innerText = r.filter(x => x.status === 'Done' || x.status === 'Closed').length;
         }
 
+        // --- DETAIL MODAL LOGIC ---
+        function openDetailModal(jobId) {
+            const r = appData.reqs.find(x => x.jobID === jobId);
+            if(!r) return;
+            const setTxt = (id, val) => document.getElementById(id).innerText = val || '-';
+            
+            setTxt('d-jobId', r.jobID); setTxt('d-date', new Date(r.requestDate).toLocaleString('th-TH'));
+            setTxt('d-req', r.requesterName); setTxt('d-dept', r.positionDept); setTxt('d-phone', r.phoneNumber);
+            setTxt('d-equip', r.equipmentLocation); setTxt('d-equipId', r.equipId); setTxt('d-prob', r.problemDetails);
+
+            const sEl = document.getElementById('d-status'); sEl.innerText = r.status; sEl.className = 'font-bold text-lg ';
+            if(r.status === 'Waiting') sEl.classList.add('text-yellow-400', 'status-waiting');
+            else if(r.status === 'Processing') sEl.classList.add('text-blue-400');
+            else if(r.status === 'Done') sEl.classList.add('text-green-400');
+            else if(r.status === 'Closed') { sEl.classList.add('text-green-500'); sEl.innerText = '✅ Closed (Completed)'; }
+
+            const admSec = document.getElementById('d-admin-sec');
+            if(r.status !== 'Waiting') {
+                admSec.classList.remove('hidden');
+                setTxt('d-tech', r.technician); setTxt('d-remark', r.adminRemarks || 'กำลังดำเนินการ...');
+                if(r.cost && r.cost > 0) {
+                    document.getElementById('d-cost-box').classList.remove('hidden'); document.getElementById('d-cost').innerText = parseFloat(r.cost).toLocaleString() + ' ฿';
+                } else { document.getElementById('d-cost-box').classList.add('hidden'); }
+            } else { admSec.classList.add('hidden'); }
+
+            const getDirectUrl = (url) => {
+               if(!url) return null;
+               try { let id = ""; let match = url.match(/\/d\/([-\w]+)/); if (match) id = match[1]; else { match = url.match(/id=([-\w]+)/); if (match) id = match[1]; } if (id) return "https://lh3.googleusercontent.com/d/" + id + "=s4000"; } catch(e) {} return null;
+            }
+            const setImg = (id, url, label) => {
+                const div = document.getElementById(id);
+                if(url) div.innerHTML = `<img src="${url}" class="h-full w-full object-cover rounded cursor-pointer hover:scale-105 transition" onclick="openImageViewer('${url}')">`;
+                else div.innerHTML = `<span class="text-slate-600 text-xs">${label}</span>`;
+            };
+            setImg('d-img-before', getDirectUrl(r.imageBefore), 'ไม่มีรูป'); setImg('d-img-after', getDirectUrl(r.imageAfter), 'ไม่มีรูป');
+
+            const vDiv = document.getElementById('d-verify-area'); vDiv.innerHTML = '';
+            if(r.status === 'Done') {
+                vDiv.innerHTML = `<button onclick="closeDetailModal(); verifyUserJob('${r.jobID}', '${r.userPin || ''}')" class="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 text-white font-bold py-3 rounded shadow-lg border border-green-400 mt-2 animate-pulse">🔒 ยืนยันจบงาน (Verify & Close)</button>`;
+            }
+            document.getElementById('detailModal').style.display = 'flex';
+        }
+        function closeDetailModal() { document.getElementById('detailModal').style.display = 'none'; }
+
         // --- SYSTEM ---
         function loadSettings() {
             const c = JSON.parse(localStorage.getItem('maint_cfg_v15')||'{}');
@@ -655,49 +558,32 @@
             if(!appData.cfg.folderBefore) appData.cfg.folderBefore = '1W30HTKv8BDYJTQPYVNTsqeRLZo7pruRB';
             if(!appData.cfg.folderAfter) appData.cfg.folderAfter = '1sMkTHkkX7S6ngFPacQRhNMA7j2ESP1S5';
             if(!appData.cfg.jobId) appData.cfg.jobId = { prefix: 'MTN', startNum: 1 };
-            
             document.getElementById('setting-api-url').value = appData.cfg.apiUrl;
             document.getElementById('setting-folder-before').value = appData.cfg.folderBefore;
             document.getElementById('setting-folder-after').value = appData.cfg.folderAfter;
-            
             document.getElementById('setting-id-prefix').value = appData.cfg.jobId.prefix || 'MTN';
             document.getElementById('setting-id-start').value = appData.cfg.jobId.startNum || 1;
             updateIdPreview();
-            
             document.getElementById('setting-id-prefix').addEventListener('input', updateIdPreview);
             document.getElementById('setting-id-start').addEventListener('input', updateIdPreview);
         }
-        
         function updateIdPreview() {
-            const p = document.getElementById('setting-id-prefix').value || 'XXX';
-            const s = document.getElementById('setting-id-start').value || '1';
-            const y = new Date().getFullYear();
-            const padded = s.toString().padStart(4, '0');
+            const p = document.getElementById('setting-id-prefix').value || 'XXX'; const s = document.getElementById('setting-id-start').value || '1';
+            const y = new Date().getFullYear(); const padded = s.toString().padStart(4, '0');
             document.getElementById('id-preview').innerText = `${p}-${y}-${padded}`;
         }
-
         function saveSystemSettings() {
             appData.cfg.apiUrl = document.getElementById('setting-api-url').value.trim();
             appData.cfg.folderBefore = document.getElementById('setting-folder-before').value.trim();
             appData.cfg.folderAfter = document.getElementById('setting-folder-after').value.trim();
-            
-            appData.cfg.jobId = {
-                prefix: document.getElementById('setting-id-prefix').value.trim() || 'MTN',
-                startNum: parseInt(document.getElementById('setting-id-start').value.trim()) || 1
-            };
-
-            localStorage.setItem('maint_cfg_v15', JSON.stringify(appData.cfg));
-            location.reload();
+            appData.cfg.jobId = { prefix: document.getElementById('setting-id-prefix').value.trim() || 'MTN', startNum: parseInt(document.getElementById('setting-id-start').value.trim()) || 1 };
+            localStorage.setItem('maint_cfg_v15', JSON.stringify(appData.cfg)); location.reload();
         }
         function resetConfig() { localStorage.removeItem('maint_cfg_v15'); location.reload(); }
-
         function showLoginModal() {
             Swal.fire({title:'Admin', input:'password', background:'#1e293b', color:'#fff'}).then((r) => {
-                if(r.value===appData.cfg.adminPass) { 
-                    appData.isAdmin=true; document.querySelectorAll('.admin-only').forEach(e=>e.classList.remove('hidden')); 
-                    document.getElementById('btnLogin').classList.add('hidden'); document.getElementById('btnLogout').classList.remove('hidden'); 
-                    switchTab('settings');
-                } else if(r.value) Swal.fire('Error','รหัสผิด','error');
+                if(r.value===appData.cfg.adminPass) { appData.isAdmin=true; document.querySelectorAll('.admin-only').forEach(e=>e.classList.remove('hidden')); document.getElementById('btnLogin').classList.add('hidden'); document.getElementById('btnLogout').classList.remove('hidden'); switchTab('settings'); } 
+                else if(r.value) Swal.fire('Error','รหัสผิด','error');
             });
         }
         function switchTab(id) {
@@ -708,35 +594,20 @@
         function logout() { location.reload(); }
         
         function openModal(id) {
-            const r = appData.reqs.find(x=>x.jobID===id); 
-            if(!r) return Swal.fire('Error', 'ไม่พบข้อมูลงาน', 'error');
-            
-            document.getElementById('modalJobId').value = id;
-            document.getElementById('modalStatus').value = r.status;
-            document.getElementById('modalTech').value = r.technician;
-            document.getElementById('modalRemark').value = r.adminRemarks;
-            document.getElementById('modalNotes').value = r.additionalNotes;
-            document.getElementById('adminImg').value = '';
-            document.getElementById('adminPreview').style.display = 'none';
-
+            const r = appData.reqs.find(x=>x.jobID===id); if(!r) return Swal.fire('Error', 'ไม่พบข้อมูลงาน', 'error');
+            document.getElementById('modalJobId').value = id; document.getElementById('modalStatus').value = r.status; document.getElementById('modalTech').value = r.technician;
+            document.getElementById('modalRemark').value = r.adminRemarks; document.getElementById('modalNotes').value = r.additionalNotes;
+            document.getElementById('adminImg').value = ''; document.getElementById('adminPreview').style.display = 'none';
             document.getElementById('itemsContainer').innerHTML='';
-            try { 
-                const items = JSON.parse(r.itemsData); 
-                if(items && items.length > 0) items.forEach(i=>addItemRow(i.name,i.quantity,i.unitPrice));
-                else addItemRow();
-            } catch(e) { addItemRow(); }
-            
-            toggleAdminFields(); 
-            document.getElementById('adminModal').classList.remove('hidden');
+            try { const items = JSON.parse(r.itemsData); if(items && items.length > 0) items.forEach(i=>addItemRow(i.name,i.quantity,i.unitPrice)); else addItemRow(); } catch(e) { addItemRow(); }
+            toggleAdminFields(); document.getElementById('adminModal').classList.remove('hidden');
         }
         function closeModal() { document.getElementById('adminModal').classList.add('hidden'); }
         function toggleAdminFields() { 
             const st = document.getElementById('modalStatus').value;
-            // Show fields if done, processing, or closed
             document.getElementById('costSection').style.display= (st==='Done' || st==='Closed')?'block':'none'; 
             document.getElementById('adminImageSection').style.display= (st==='Done' || st==='Processing' || st==='Closed')?'block':'none';
         }
-        
         function addItemRow(n='',q=1,p=0) {
             const d=document.createElement('div'); d.className='grid grid-cols-6 gap-2 item-row';
             d.innerHTML=`<input class="col-span-3 bg-slate-900 border border-slate-600 rounded px-1 i-n" value="${n}"><input type="number" class="col-span-1 bg-slate-900 border border-slate-600 rounded px-1 i-q" value="${q}" onchange="calcTotal()"><input type="number" class="col-span-1 bg-slate-900 border border-slate-600 rounded px-1 i-p" value="${p}" onchange="calcTotal()"><button onclick="this.parentElement.remove();calcTotal()" class="text-red-400">×</button>`;
@@ -747,90 +618,6 @@
             document.getElementById('grandTotal').innerText = t.toFixed(2) + ' ฿';
         }
         function filterTable(id, q) { document.querySelectorAll(`#${id} tbody tr`).forEach(r => r.style.display = r.innerText.toLowerCase().includes(q.toLowerCase()) ? '' : 'none'); }
-
-        // --- DETAIL MODAL FUNCTIONS (NEW) ---
-        function openDetailModal(jobId) {
-            const r = appData.reqs.find(x => x.jobID === jobId);
-            if(!r) return;
-
-            // Helper to set text
-            const setTxt = (id, val) => document.getElementById(id).innerText = val || '-';
-            
-            // 1. Set Basic Info
-            setTxt('d-jobId', r.jobID);
-            setTxt('d-date', new Date(r.requestDate).toLocaleString('th-TH'));
-            setTxt('d-req', r.requesterName);
-            setTxt('d-dept', r.positionDept);
-            setTxt('d-phone', r.phoneNumber);
-            setTxt('d-equip', r.equipmentLocation);
-            setTxt('d-equipId', r.equipId);
-            setTxt('d-prob', r.problemDetails);
-
-            // 2. Status Styling
-            const sEl = document.getElementById('d-status');
-            sEl.innerText = r.status;
-            sEl.className = 'font-bold text-lg ';
-            if(r.status === 'Waiting') sEl.classList.add('text-yellow-400', 'status-waiting');
-            else if(r.status === 'Processing') sEl.classList.add('text-blue-400');
-            else if(r.status === 'Done') sEl.classList.add('text-green-400');
-            else if(r.status === 'Closed') { sEl.classList.add('text-green-500'); sEl.innerText = '✅ Closed (Completed)'; }
-
-            // 3. Admin Section (Show only if processed)
-            const admSec = document.getElementById('d-admin-sec');
-            if(r.status !== 'Waiting') {
-                admSec.classList.remove('hidden');
-                setTxt('d-tech', r.technician);
-                setTxt('d-remark', r.adminRemarks || 'กำลังดำเนินการ...');
-                
-                if(r.cost && r.cost > 0) {
-                    document.getElementById('d-cost-box').classList.remove('hidden');
-                    document.getElementById('d-cost').innerText = parseFloat(r.cost).toLocaleString() + ' ฿';
-                } else {
-                    document.getElementById('d-cost-box').classList.add('hidden');
-                }
-            } else {
-                admSec.classList.add('hidden');
-            }
-
-            // 4. Images
-            const setImg = (id, url, label) => {
-                const div = document.getElementById(id);
-                if(url) {
-                    div.innerHTML = `<img src="${url}" class="h-full w-full object-cover rounded cursor-pointer hover:scale-105 transition" onclick="openImageViewer('${url}')">`;
-                } else {
-                    div.innerHTML = `<span class="text-slate-600 text-xs">${label}</span>`;
-                }
-            };
-            
-            // Image handling (using existing logic to construct URL if needed, or simple placeholder)
-            const getDirectUrl = (url) => {
-               if(!url) return null;
-               try {
-                   let id = "";
-                   let match = url.match(/\/d\/([-\w]+)/); 
-                   if (match) id = match[1]; 
-                   else { match = url.match(/id=([-\w]+)/); if (match) id = match[1]; }
-                   if (id) return "https://lh3.googleusercontent.com/d/" + id + "=s4000";
-               } catch(e) {}
-               return null;
-            }
-
-            setImg('d-img-before', getDirectUrl(r.imageBefore), 'ไม่มีรูป');
-            setImg('d-img-after', getDirectUrl(r.imageAfter), 'ไม่มีรูป');
-
-            // 5. Verify Button inside Modal
-            const vDiv = document.getElementById('d-verify-area');
-            vDiv.innerHTML = '';
-            if(r.status === 'Done') {
-                vDiv.innerHTML = `<button onclick="closeDetailModal(); verifyUserJob('${r.jobID}', '${r.userPin || ''}')" class="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 text-white font-bold py-3 rounded shadow-lg border border-green-400 mt-2 animate-pulse">🔒 ยืนยันจบงาน (Verify & Close)</button>`;
-            }
-
-            document.getElementById('detailModal').style.display = 'flex';
-        }
-
-        function closeDetailModal() {
-            document.getElementById('detailModal').style.display = 'none';
-        }
     </script>
 </body>
 </html>
