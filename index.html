@@ -62,8 +62,13 @@
                     <form id="requestForm" onsubmit="submitRequest(event)" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div><label class="block text-sm text-slate-400 mb-1">ชื่อผู้แจ้ง</label><input type="text" id="reqName" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"></div>
-                            <div><label class="block text-sm text-slate-400 mb-1">สถานที่</label><select id="reqDept" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"><option value="">-- กำลังโหลด... --</option></select></div>
+                            <div><label class="block text-sm text-slate-400 mb-1">สถานที่/แผนก</label><select id="reqDept" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"><option value="">-- กำลังโหลด... --</option></select></div>
                             <div><label class="block text-sm text-slate-400 mb-1">ข้อมูลติดต่อกลับ</label><input type="tel" id="reqPhone" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"></div>
+                            <div class="bg-slate-800/50 p-2 rounded border border-yellow-500/30">
+                                <label class="block text-sm text-yellow-400 font-bold mb-1">🔑 รหัสยืนยัน (PIN)</label>
+                                <input type="tel" id="reqPin" required maxlength="6" class="w-full bg-slate-900 border border-yellow-500/50 rounded px-4 py-2 text-center tracking-widest text-lg font-bold text-yellow-400" placeholder="ตั้งรหัสยืนยันปิดงาน">
+                                <p class="text-[10px] text-slate-500 mt-1">* ใช้รหัสนี้เพื่อยืนยันเมื่อช่างซ่อมเสร็จแล้ว</p>
+                            </div>
                             <div><label class="block text-sm text-slate-400 mb-1">รหัสอุปกรณ์</label><input type="text" id="reqEquipId" class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2" placeholder="ถ้ามี"></div>
                             <div class="md:col-span-2"><label class="block text-sm text-slate-400 mb-1">ชื่ออุปกรณ์</label><input type="text" id="reqEquip" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"></div>
                         </div>
@@ -175,7 +180,7 @@
             <h3 class="text-xl font-bold text-corp-gold mb-4">Manage Job</h3>
             <input type="hidden" id="modalJobId">
             <div class="grid grid-cols-2 gap-4 mb-4">
-                <div><label class="text-xs text-slate-400">Status</label><select id="modalStatus" onchange="toggleAdminFields()" class="w-full bg-slate-900 border border-slate-600 rounded p-2"><option>Waiting</option><option>Processing</option><option>Done</option></select></div>
+                <div><label class="text-xs text-slate-400">Status</label><select id="modalStatus" onchange="toggleAdminFields()" class="w-full bg-slate-900 border border-slate-600 rounded p-2"><option>Waiting</option><option>Processing</option><option>Done</option><option>Closed</option></select></div>
                 <div><label class="text-xs text-slate-400">Tech</label><select id="modalTech" class="w-full bg-slate-900 border border-slate-600 rounded p-2"></select></div>
             </div>
             
@@ -230,7 +235,7 @@
             return await response.json();
         }
 
-        // --- IMAGES & POPUP (FIXED) ---
+        // --- IMAGES & POPUP ---
         function fileToBase64(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -258,33 +263,17 @@
 
         function openImageViewer(url) {
             if(!url) return;
-            
             let directUrl = url;
             try {
-                // Regex ที่แม่นยำขึ้นสำหรับ Google Drive
                 let id = "";
-                // 1. ลองหาแบบ /d/XXXX/
                 let match = url.match(/\/d\/([-\w]+)/); 
-                if (match) {
-                    id = match[1];
-                } else {
-                    // 2. ลองหาแบบ id=XXXX
-                    match = url.match(/id=([-\w]+)/); 
-                    if (match) id = match[1];
-                }
-
-                if (id) {
-                    // ใช้ lh3.googleusercontent.com เพื่อโหลดรูปโดยตรง (แก้ปัญหา CORS และ Permission)
-                    directUrl = "https://lh3.googleusercontent.com/d/" + id + "=s4000"; // s4000 = ขอรูปใหญ่สุด
-                }
+                if (match) { id = match[1]; } 
+                else { match = url.match(/id=([-\w]+)/); if (match) id = match[1]; }
+                if (id) { directUrl = "https://lh3.googleusercontent.com/d/" + id + "=s4000"; }
             } catch(e) { console.error("URL Parse Error:", e); }
-
             const modal = document.getElementById('imageViewerModal');
             const img = document.getElementById('imageViewerSrc');
-            
-            img.src = ""; // Clear old image
-            img.src = directUrl; // Set new image
-            
+            img.src = ""; img.src = directUrl; 
             modal.style.display = 'flex';
         }
 
@@ -320,15 +309,19 @@
         async function submitRequest(e) {
             e.preventDefault();
             const urg = document.querySelector('input[name="urgency"]:checked').value;
+            const userPin = document.getElementById('reqPin').value; // Get PIN
+            
+            // Basic PIN validation
+            if(!userPin || userPin.length < 4) {
+                 return Swal.fire('ข้อผิดพลาด', 'กรุณาตั้งรหัสยืนยันอย่างน้อย 4 หลัก', 'warning');
+            }
+
             const fileInput = document.getElementById('reqImg');
             
             let imgData = "";
             if(fileInput.files.length > 0) {
-                try {
-                    imgData = await fileToBase64(fileInput.files[0]);
-                } catch(err) {
-                    return Swal.fire('Image Error', 'Failed to process image', 'error');
-                }
+                try { imgData = await fileToBase64(fileInput.files[0]); } 
+                catch(err) { return Swal.fire('Image Error', 'Failed to process image', 'error'); }
             }
 
             const p = {
@@ -341,7 +334,8 @@
                 urgency: urg, status: 'Waiting', 
                 jobIdConfig: JSON.stringify(appData.cfg.jobId), 
                 imageFile: imgData,
-                folderId: appData.cfg.folderBefore
+                folderId: appData.cfg.folderBefore,
+                userPin: userPin // Send PIN to Backend
             };
             
             Swal.fire({ title: 'Sending...', text: 'กำลังอัปโหลดรูปภาพและบันทึกข้อมูล', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
@@ -351,13 +345,51 @@
                 if(r.status==='success') {
                     document.getElementById('requestForm').reset();
                     document.getElementById('reqPreview').style.display = 'none';
-                    let h = `Job: ${r.jobId}`, ti='Saved', ic='success';
+                    let h = `Job: ${r.jobId}<br><span class="text-yellow-400">PIN: ${userPin}</span>`, ti='Saved', ic='success';
                     if(urg==='Medium') { ti='⚠️ แจ้งเตือนด่วน'; ic='warning'; h+=`<br><div class="alert-text-medium">โทร: 0982799918</div>`; }
                     if(urg==='High') { ti='🚨 แจ้งเตือนด่วนมาก'; ic='warning'; h+=`<br><div class="alert-text-high">โทรทันที: 0982799918</div>`; }
                     Swal.fire({icon:ic, title:ti, html:h, background:'#1e293b', color:'#fff', confirmButtonColor:'#f59e0b'});
                     refreshData(true); switchTab('status');
                 } else throw new Error(r.message);
             } catch(e) { Swal.fire('Error', e.toString(), 'error'); }
+        }
+
+        async function verifyUserJob(jobId, correctPin) {
+            const { value: enteredPin } = await Swal.fire({
+                title: 'ยืนยันการจบงาน',
+                text: "กรุณาใส่รหัส PIN ที่คุณตั้งไว้ตอนแจ้งซ่อม",
+                input: 'password',
+                inputPlaceholder: 'Enter PIN',
+                background: '#1e293b',
+                color: '#fff',
+                confirmButtonColor: '#22c55e',
+                showCancelButton: true
+            });
+
+            if (enteredPin) {
+                if(enteredPin == correctPin) {
+                     // PIN Match -> Call API to close job
+                     Swal.fire({title:'Verifying...', didOpen:()=>Swal.showLoading()});
+                     try {
+                         // Send update to close job
+                         const p = { 
+                             jobId: jobId, 
+                             status: 'Closed', // เปลี่ยนสถานะเป็น Closed (จบงานสมบูรณ์)
+                             technician: '', // keep same logic as update
+                             adminRemarks: 'User Verified Completion',
+                             folderId: appData.cfg.folderAfter // just to pass check
+                         };
+                         // Re-use update endpoint but mainly to change status
+                         const r = await callApi('update', p);
+                         if(r.status==='success') {
+                             refreshData(true);
+                             Swal.fire('สำเร็จ', 'ยืนยันจบงานเรียบร้อยแล้ว', 'success');
+                         }
+                     } catch(e) { Swal.fire('Error', e.message, 'error'); }
+                } else {
+                    Swal.fire('รหัสไม่ถูกต้อง', 'กรุณาลองใหม่อีกครั้ง', 'error');
+                }
+            }
         }
 
         async function refreshData(s) {
@@ -377,7 +409,7 @@
         async function saveJob() {
             const st = document.getElementById('modalStatus').value;
             let it=[], cost=0;
-            if(st==='Done') document.querySelectorAll('.item-row').forEach(r=>{
+            if(st==='Done' || st==='Closed') document.querySelectorAll('.item-row').forEach(r=>{
                 const n=r.querySelector('.i-n').value, q=r.querySelector('.i-q').value, p=r.querySelector('.i-p').value;
                 if(n) { const t=q*p; it.push({name:n, quantity:q, unitPrice:p, total:t}); cost+=t; }
             });
@@ -425,7 +457,8 @@
                 const rows = g[k].map(r=>{
                     // Status Badge (Col 1)
                     let sHtml = `<span class="px-2 py-1 rounded text-xs font-bold bg-slate-700 text-slate-400">${r.status}</span>`;
-                    if(r.status=='Done') sHtml = `<span class="px-2 py-1 rounded text-xs font-bold bg-green-900 text-green-400">Done</span>`;
+                    if(r.status=='Done') sHtml = `<span class="px-2 py-1 rounded text-xs font-bold bg-green-900 text-green-400">Wait Verify</span>`;
+                    else if(r.status=='Closed') sHtml = `<span class="px-2 py-1 rounded text-xs font-bold bg-green-500 text-slate-900">✅ Completed</span>`;
                     else if(r.status=='Waiting') sHtml = `<span class="px-2 py-1 rounded text-xs font-bold bg-yellow-900 text-yellow-400 status-waiting">Waiting</span>`;
                     else if(r.status=='Processing') sHtml = `<span class="px-2 py-1 rounded text-xs font-bold bg-blue-900 text-blue-400">Processing</span>`;
 
@@ -435,13 +468,30 @@
                     if(r.imageAfter) imgHtml += `<span class="cursor-pointer text-xl ml-2 hover:scale-125 transition inline-block" onclick="openImageViewer('${r.imageAfter}')" title="After">✅</span>`;
                     if(!imgHtml) imgHtml = '<span class="text-slate-600">-</span>';
 
+                    // === LOGIC UPDATE FOR REQUIREMENT 2 (Remark Display) ===
+                    let displayDetail = r.problemDetails;
+                    // ถ้ามี Admin Remark และไม่ได้ว่าง ให้แสดงอันนั้นแทนและเปลี่ยนสี
+                    if(r.adminRemarks && r.adminRemarks.trim() !== "") {
+                        displayDetail = `<div class="flex flex-col"><span class="text-[10px] text-slate-500">Note:</span><span class="text-corp-gold font-bold italic">"${r.adminRemarks}"</span></div>`;
+                    }
+
+                    // === LOGIC UPDATE FOR REQUIREMENT 1 (User Verify Button) ===
+                    let verifyBtn = '';
+                    if(r.status === 'Done') {
+                        // ส่ง PIN ไปกับฟังก์ชัน (ในระบบจริงควรทำที่ Server แต่แบบนี้ง่ายสุดสำหรับ Google Sheets)
+                        verifyBtn = `<div class="mt-1"><button onclick="verifyUserJob('${r.jobID}', '${r.userPin || ''}')" class="text-xs bg-green-600 hover:bg-green-500 text-white px-2 py-1 rounded shadow-md border border-green-400">🔒 ยืนยันจบงาน</button></div>`;
+                    }
+
                     return `
                     <tr class="hover:bg-slate-800/50 border-b border-slate-800 text-slate-300">
-                        <td class="p-3 whitespace-nowrap">${sHtml}</td>
+                        <td class="p-3 whitespace-nowrap">
+                            ${sHtml}
+                            ${verifyBtn}
+                        </td>
                         <td class="p-3 text-corp-gold font-mono whitespace-nowrap">${r.jobID}</td>
                         <td class="p-3 text-xs text-slate-400 whitespace-nowrap">${new Date(r.requestDate).toLocaleDateString('th-TH')}</td>
                         <td class="p-3">${r.equipmentLocation}</td>
-                        <td class="p-3 truncate max-w-xs text-sm">${r.problemDetails}</td>
+                        <td class="p-3 truncate max-w-xs text-sm">${displayDetail}</td>
                         <td class="p-3 text-center whitespace-nowrap">${imgHtml}</td>
                     </tr>`;
                 }).join('');
@@ -455,7 +505,7 @@
                     <div class="${(q||i==0)?'':'hidden'} bg-slate-900/90 overflow-x-auto">
                         <table class="w-full text-sm text-left">
                             <thead class="bg-slate-950 text-slate-400 uppercase text-xs">
-                                <tr><th class="p-3">Status</th><th class="p-3">ID</th><th class="p-3">Date</th><th class="p-3">Equip</th><th class="p-3">Detail</th><th class="p-3 text-center">Img</th></tr>
+                                <tr><th class="p-3">Status</th><th class="p-3">ID</th><th class="p-3">Date</th><th class="p-3">Equip</th><th class="p-3">Remark / Detail</th><th class="p-3 text-center">Img</th></tr>
                             </thead>
                             <tbody class="divide-y divide-slate-800">${rows}</tbody>
                         </table>
@@ -468,6 +518,7 @@
             document.getElementById('adminTableBody').innerHTML = appData.reqs.map(r => {
                 let s='text-slate-400'; 
                 if(r.status=='Done') s='text-green-400 font-bold'; 
+                else if(r.status=='Closed') s='text-green-500 font-bold underline';
                 else if(r.status=='Waiting') s='status-waiting';
                 else if(r.status=='Processing') s='text-blue-400 font-bold';
                 return `<tr class="border-b border-slate-700 hover:bg-slate-800"><td class="p-3"><button onclick="openModal('${r.jobID}')" class="bg-blue-600 px-2 py-1 rounded text-xs hover:bg-blue-500 transition">Edit</button></td><td class="p-3 font-mono text-xs">${r.jobID}</td><td class="p-3 text-sm">${r.requesterName}</td><td class="p-3 text-sm">${r.equipmentLocation}</td><td class="p-3 text-xs ${s}">${r.status}</td></tr>`
@@ -478,7 +529,7 @@
             document.getElementById('kpi-total').innerText = r.length;
             document.getElementById('kpi-waiting').innerText = r.filter(x => x.status === 'Waiting').length;
             document.getElementById('kpi-processing').innerText = r.filter(x => x.status === 'Processing').length;
-            document.getElementById('kpi-done').innerText = r.filter(x => x.status === 'Done').length;
+            document.getElementById('kpi-done').innerText = r.filter(x => x.status === 'Done' || x.status === 'Closed').length;
         }
 
         // --- SYSTEM ---
@@ -565,8 +616,9 @@
         function closeModal() { document.getElementById('adminModal').classList.add('hidden'); }
         function toggleAdminFields() { 
             const st = document.getElementById('modalStatus').value;
-            document.getElementById('costSection').style.display= st==='Done'?'block':'none'; 
-            document.getElementById('adminImageSection').style.display= (st==='Done' || st==='Processing')?'block':'none';
+            // Show fields if done, processing, or closed
+            document.getElementById('costSection').style.display= (st==='Done' || st==='Closed')?'block':'none'; 
+            document.getElementById('adminImageSection').style.display= (st==='Done' || st==='Processing' || st==='Closed')?'block':'none';
         }
         
         function addItemRow(n='',q=1,p=0) {
@@ -582,4 +634,3 @@
     </script>
 </body>
 </html>
-
