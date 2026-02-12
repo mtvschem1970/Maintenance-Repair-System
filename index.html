@@ -412,8 +412,15 @@
                 if(enteredPin == correctPin) {
                      Swal.fire({title:'Verifying...', didOpen:()=>Swal.showLoading()});
                      try {
-                         const p = { jobId: jobId, status: 'Closed', technician: '', adminRemarks: 'User Verified Completion', folderId: appData.cfg.folderAfter };
-                         const r = await callApi('update', p);
+                         const currentJob = appData.reqs.find(x => x.jobID === jobId);
+const p = { 
+    jobId: jobId, 
+    status: 'Closed', 
+    technician: currentJob.technician || '', 
+    adminRemarks: currentJob.adminRemarks || '', 
+    folderId: appData.cfg.folderAfter 
+};
+const r = await callApi('update', p);
                          if(r.status==='success') { refreshData(true); Swal.fire('สำเร็จ', 'ยืนยันจบงานเรียบร้อยแล้ว', 'success'); }
                      } catch(e) { Swal.fire('Error', e.message, 'error'); }
                 } else { Swal.fire('รหัสไม่ถูกต้อง', 'กรุณาลองใหม่อีกครั้ง', 'error'); }
@@ -621,4 +628,5 @@
     </script>
 </body>
 </html>
+
 
