@@ -166,37 +166,67 @@
         </div>
     </main>
 
-    <div id="adminModal" class="fixed inset-0 bg-black/80 hidden z-50 flex items-center justify-center backdrop-blur-sm">
+   <div id="adminModal" class="fixed inset-0 bg-black/80 hidden z-50 flex items-center justify-center backdrop-blur-sm">
         <div class="bg-corp-lightBlue w-full max-w-2xl rounded-xl border border-slate-600 shadow-2xl p-6 m-4 max-h-[90vh] overflow-y-auto">
-            <h3 class="text-xl font-bold text-corp-gold mb-4">Manage Job</h3>
+            <h3 class="text-xl font-bold text-corp-gold mb-4 flex justify-between items-center">
+                <span>🔧 Manage Job (แก้ไขงาน)</span>
+                <span id="modalJobDisplay" class="text-sm font-mono text-slate-400"></span>
+            </h3>
             <input type="hidden" id="modalJobId">
-            <div class="grid grid-cols-2 gap-4 mb-4">
-                <div><label class="text-xs text-slate-400">Status</label><select id="modalStatus" onchange="toggleAdminFields()" class="w-full bg-slate-900 border border-slate-600 rounded p-2"><option>Waiting</option><option>Processing</option><option>Done</option><option>Closed</option></select></div>
-                <div><label class="text-xs text-slate-400">Tech</label><select id="modalTech" class="w-full bg-slate-900 border border-slate-600 rounded p-2"></select></div>
+
+            <div class="bg-slate-900/50 border border-slate-700 rounded-lg p-4 mb-4">
+                <div class="flex justify-between items-center mb-2 cursor-pointer" onclick="document.getElementById('editUserSection').classList.toggle('hidden')">
+                    <h4 class="text-sm font-bold text-blue-400">✏️ แก้ไขข้อมูลผู้แจ้ง / รูปก่อนซ่อม</h4>
+                    <span class="text-xs text-slate-500">▼ Show/Hide</span>
+                </div>
+                
+                <div id="editUserSection" class="hidden space-y-3 mt-3 border-t border-slate-700 pt-3">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label class="text-xs text-slate-400">ผู้แจ้ง</label><input id="edit-reqName" class="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200"></div>
+                        <div><label class="text-xs text-slate-400">แผนก</label><input id="edit-reqDept" class="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200"></div>
+                    </div>
+                    <div><label class="text-xs text-slate-400">ชื่ออุปกรณ์</label><input id="edit-equip" class="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200"></div>
+                    <div><label class="text-xs text-slate-400">อาการเสีย</label><textarea id="edit-problem" rows="2" class="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200"></textarea></div>
+                    
+                    <div class="border border-dashed border-slate-600 rounded p-2 bg-slate-800/30">
+                         <label class="text-xs text-yellow-500 font-bold mb-1 block">📷 รูปก่อนซ่อม (Before Image)</label>
+                         <div class="flex items-center gap-3">
+                            <input type="file" id="edit-img-before" accept="image/*" class="text-xs text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-slate-700 file:text-white hover:file:bg-slate-600">
+                         </div>
+                    </div>
+                </div>
             </div>
-            <div class="mb-4"><label class="text-xs text-slate-400">Remarks</label><textarea id="modalRemark" class="w-full bg-slate-900 border border-slate-600 rounded p-2" rows="2"></textarea></div>
+
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div><label class="text-xs text-slate-400">Status</label><select id="modalStatus" onchange="toggleAdminFields()" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white"><option>Waiting</option><option>Processing</option><option>Done</option><option>Closed</option></select></div>
+                <div><label class="text-xs text-slate-400">Technician</label><select id="modalTech" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white"></select></div>
+            </div>
+            
+            <div class="mb-4"><label class="text-xs text-slate-400">Admin Remarks (บันทึกช่าง)</label><textarea id="modalRemark" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white" rows="2"></textarea></div>
+            
             <div id="adminImageSection" class="hidden mb-4 border border-slate-600 rounded p-3 bg-slate-800/30">
                 <label class="text-xs text-green-400 font-bold mb-2 block">📷 Evidence (After Repair)</label>
                 <div class="flex items-center gap-3">
-                    <button onclick="document.getElementById('adminImg').click()" class="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded">Choose Image</button>
+                    <button onclick="document.getElementById('adminImg').click()" class="text-xs bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded">Choose Image</button>
                     <input type="file" id="adminImg" accept="image/*" class="hidden" onchange="previewImage(this, 'adminPreview')">
                     <div class="text-xs text-slate-500">Upload to Drive (After)</div>
                 </div>
-                <img id="adminPreview" class="img-preview mt-2 max-h-24">
+                <img id="adminPreview" class="img-preview mt-2 max-h-24 border-slate-600">
             </div>
+
             <div id="costSection" class="hidden border-t border-slate-600 pt-4 bg-slate-800/50 p-4 rounded-lg mb-4">
                 <h4 class="text-green-400 font-bold mb-2 flex justify-between"><span>💰 Cost</span><span id="grandTotal">0.00 ฿</span></h4>
                 <div id="itemsContainer" class="space-y-2 mb-2"></div>
                 <button onclick="addItemRow()" class="text-xs bg-slate-700 hover:bg-slate-600 text-white px-2 py-1 rounded">+ Item</button>
-                <div class="mt-2"><label class="text-xs text-slate-400">Notes</label><textarea id="modalNotes" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-xs"></textarea></div>
+                <div class="mt-2"><label class="text-xs text-slate-400">Notes (รายละเอียดอะไหล่)</label><textarea id="modalNotes" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-xs text-white"></textarea></div>
             </div>
-            <div class="flex justify-end gap-2">
+
+            <div class="flex justify-end gap-2 pt-4 border-t border-slate-700">
                 <button onclick="closeModal()" class="px-4 py-2 rounded text-slate-300 hover:bg-slate-700">Cancel</button>
-                <button onclick="saveJob()" class="bg-corp-gold text-corp-blue font-bold px-6 py-2 rounded">Save</button>
+                <button onclick="saveJob()" class="bg-gradient-to-r from-corp-gold to-yellow-600 hover:from-yellow-500 text-corp-blue font-bold px-6 py-2 rounded shadow-lg">บันทึก (Save)</button>
             </div>
         </div>
     </div>
-
     <div id="detailModal" class="modal-overlay" onclick="closeDetailModal()">
         <div class="bg-corp-lightBlue w-full max-w-md rounded-xl border border-slate-600 shadow-2xl overflow-hidden m-4 flex flex-col max-h-[90vh] animate-zoomIn" onclick="event.stopPropagation()">
             <div class="bg-slate-800 p-4 border-b border-slate-600 flex justify-between items-center sticky top-0 z-10">
@@ -670,6 +700,7 @@ const r = await callApi('update', p);
     </script>
 </body>
 </html>
+
 
 
 
