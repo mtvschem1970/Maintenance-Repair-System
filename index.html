@@ -73,7 +73,6 @@
                                 <label class="block text-sm text-yellow-400 font-bold mb-1">🔑 รหัสยืนยัน (PIN)</label>
                                 <input type="tel" id="reqPin" required maxlength="6" class="w-full bg-slate-900 border border-yellow-500/50 rounded px-4 py-2 text-center tracking-widest text-lg font-bold text-yellow-400" placeholder="ตั้งรหัสยืนยันปิดงาน">
                                 <p class="text-[15px] text-slate-500 mt-1">* ใช้รหัสนี้เพื่อยืนยันจบงาน (ห้ามลืม)</p>
-                                <p class="text-[15px] text-slate-500 mt-1">* ห้ามใช้รหัสที่มีเลข 0 นำหน้า</p>
                             </div>
 
                             <div><label class="block text-sm text-slate-400 mb-1">รหัสอุปกรณ์</label><input type="text" id="reqEquipId" class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2" placeholder="ถ้ามี"></div>
@@ -442,19 +441,17 @@
             });
             if (enteredPin) {
                 if(enteredPin == correctPin) {
-                     Swal.fire({title:'Verifying...', didOpen:()=>Swal.showLoading()});
-                     try {
-                         const currentJob = appData.reqs.find(x => x.jobID === jobId);
-                         const p = { 
-                             jobId: jobId, 
-                             status: 'Closed', 
-                             technician: currentJob.technician || '', 
-                             adminRemarks: currentJob.adminRemarks || '', 
-                             folderId: appData.cfg.folderAfter 
-                         };
-                         const r = await callApi('update', p);
-                         if(r.status==='success') { refreshData(true); Swal.fire('สำเร็จ', 'ยืนยันจบงานเรียบร้อยแล้ว', 'success'); }
-                     } catch(e) { Swal.fire('Error', e.message, 'error'); }
+                      Swal.fire({title:'Verifying...', didOpen:()=>Swal.showLoading()});
+                      try {
+                          const p = { 
+                              jobId: jobId, 
+                              status: 'Closed', 
+                              // ไม่ส่ง technician และ adminRemarks เพื่อไม่ให้ทับข้อมูลเก่า
+                              folderId: appData.cfg.folderAfter 
+                          };
+                          const r = await callApi('update', p);
+                          if(r.status==='success') { refreshData(true); Swal.fire('สำเร็จ', 'ยืนยันจบงานเรียบร้อยแล้ว', 'success'); }
+                      } catch(e) { Swal.fire('Error', e.message, 'error'); }
                 } else { Swal.fire('รหัสไม่ถูกต้อง', 'กรุณาลองใหม่อีกครั้ง', 'error'); }
             }
         }
@@ -759,4 +756,3 @@
     </script>
 </body>
 </html>
-
