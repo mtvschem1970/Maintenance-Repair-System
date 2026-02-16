@@ -433,31 +433,32 @@
             } catch(e) { Swal.fire('Error', e.toString(), 'error'); }
         }
 
-        async function verifyUserJob(jobId, correctPin) {
-            const { value: enteredPin } = await Swal.fire({
-                title: 'ยืนยันการจบงาน',
-                text: "กรุณาใส่รหัส PIN ที่คุณตั้งไว้ตอนแจ้งซ่อม",
-                input: 'password', inputPlaceholder: 'Enter PIN',
-                background: '#1e293b', color: '#fff', confirmButtonColor: '#22c55e', showCancelButton: true
-            });
-            if (enteredPin) {
-                if(enteredPin == correctPin) {
-                     Swal.fire({title:'Verifying...', didOpen:()=>Swal.showLoading()});
-                     try {
-                         const currentJob = appData.reqs.find(x => x.jobID === jobId);
-                         const p = { 
-                             jobId: jobId, 
-                             status: 'Closed', 
-                             technician: currentJob.technician || '', 
-                             adminRemarks: currentJob.adminRemarks || '', 
-                             folderId: appData.cfg.folderAfter 
-                         };
-                         const r = await callApi('update', p);
-                         if(r.status==='success') { refreshData(true); Swal.fire('สำเร็จ', 'ยืนยันจบงานเรียบร้อยแล้ว', 'success'); }
-                     } catch(e) { Swal.fire('Error', e.message, 'error'); }
-                } else { Swal.fire('รหัสไม่ถูกต้อง', 'กรุณาลองใหม่อีกครั้ง', 'error'); }
-            }
-        }
+        // ค้นหาฟังก์ชันนี้ในไฟล์ index.html
+async function verifyUserJob(jobId, correctPin) {
+    // ... (ส่วนรับค่า PIN เหมือนเดิม) ...
+    if (enteredPin) {
+        if(enteredPin == correctPin) {
+              Swal.fire({title:'Verifying...', didOpen:()=>Swal.showLoading()});
+              try {
+                  // --- จุดที่ต้องแก้ (ลบบรรทัด technician และ adminRemarks ออก) ---
+                  const p = { 
+                      jobId: jobId, 
+                      status: 'Closed', 
+                      // technician: ... (ลบทิ้ง ไม่ต้องส่ง)
+                      // adminRemarks: ... (ลบทิ้ง เพื่อป้องกันการทับข้อมูล)
+                      folderId: appData.cfg.folderAfter 
+                  };
+                  // -------------------------------------------------------
+
+                  const r = await callApi('update', p);
+                  if(r.status==='success') { 
+                      refreshData(true); 
+                      Swal.fire('สำเร็จ', 'ยืนยันจบงานเรียบร้อยแล้ว', 'success'); 
+                  }
+              } catch(e) { Swal.fire('Error', e.message, 'error'); }
+        } else { Swal.fire('รหัสไม่ถูกต้อง', 'กรุณาลองใหม่อีกครั้ง', 'error'); }
+    }
+}
 
         async function refreshData(s) {
             if(!s) Swal.showLoading();
@@ -759,6 +760,7 @@
     </script>
 </body>
 </html>
+
 
 
 
