@@ -155,7 +155,20 @@
                 <div class="bg-corp-lightBlue p-4 rounded-xl border-l-4 border-green-500 shadow-lg"> <div class="text-slate-400 text-xs font-bold">DONE</div> <div class="text-3xl font-bold text-green-400 mt-1" id="kpi-done">0</div> </div>
             </div>
             <div class="bg-corp-lightBlue rounded-xl shadow-2xl border border-slate-700 overflow-hidden">
-                <div class="p-4 border-b border-slate-700 bg-slate-800 flex justify-between"><h2 class="text-xl font-bold text-corp-gold">📋 จัดการงานซ่อม</h2><input onkeyup="filterTable('adminTable', this.value)" placeholder="🔍 ค้นหางาน..." class="bg-slate-900 border border-slate-600 rounded-lg px-3 py-1 text-sm focus:outline-none focus:border-corp-gold"></div>
+                <div class="p-4 border-b border-slate-700 bg-slate-800 flex flex-col md:flex-row justify-between items-center gap-3">
+                    <h2 class="text-xl font-bold text-corp-gold">📋 จัดการงานซ่อม</h2>
+                    <div class="flex gap-2 w-full md:w-auto">
+                        <select id="adminStatusFilter" onchange="applyAdminFilters()" class="bg-slate-900 border border-slate-600 rounded-lg px-3 py-1 text-sm focus:outline-none focus:border-corp-gold text-slate-300">
+                            <option value="All">แสดงทั้งหมด</option>
+                            <option value="Active">🚧 ยังไม่ปิดจบงาน (Active)</option>
+                            <option value="Waiting">- รอรับงาน (Waiting)</option>
+                            <option value="Processing">- กำลังดำเนินการ (Processing)</option>
+                            <option value="Done">- รอตรวจสอบ/รอปิด (Done)</option>
+                            <option value="Closed">✅ ปิดงานแล้ว (Closed)</option>
+                        </select>
+                        <input id="adminSearchInput" onkeyup="applyAdminFilters()" placeholder="🔍 ค้นหางาน..." class="bg-slate-900 border border-slate-600 rounded-lg px-3 py-1 text-sm focus:outline-none focus:border-corp-gold w-full md:w-48">
+                    </div>
+                </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse" id="adminTable">
                         <thead class="bg-slate-900 text-slate-400 uppercase text-xs"><tr><th class="p-4">Action</th><th class="p-4">ID</th><th class="p-4">User</th><th class="p-4">Equipment</th><th class="p-4">Status</th></tr></thead>
@@ -640,8 +653,10 @@
                 let s='text-slate-400'; 
                 if(r.status=='Done') s='text-green-400 font-bold'; else if(r.status=='Closed') s='text-green-500 font-bold underline';
                 else if(r.status=='Waiting') s='status-waiting'; else if(r.status=='Processing') s='text-blue-400 font-bold';
-                return `<tr class="border-b border-slate-700 hover:bg-slate-800"><td class="p-3"><button onclick="openModal('${r.jobID}')" class="bg-blue-600 px-2 py-1 rounded text-xs hover:bg-blue-500 transition">Edit</button></td><td class="p-3 font-mono text-xs">${r.jobID}</td><td class="p-3 text-sm">${r.requesterName}</td><td class="p-3 text-sm">${r.equipmentLocation}</td><td class="p-3 text-xs ${s}">${r.status}</td></tr>`
+                return `<tr class="border-b border-slate-700 hover:bg-slate-800" data-status="${r.status}"><td class="p-3"><button onclick="openModal('${r.jobID}')" class="bg-blue-600 px-2 py-1 rounded text-xs hover:bg-blue-500 transition">Edit</button></td><td class="p-3 font-mono text-xs">${r.jobID}</td><td class="p-3 text-sm">${r.requesterName}</td><td class="p-3 text-sm">${r.equipmentLocation}</td><td class="p-3 text-xs ${s}">${r.status}</td></tr>`
             }).join('');
+            
+            if (typeof applyAdminFilters === 'function') applyAdminFilters();
         }
         function updateDashboard() {
             const r = appData.reqs;
@@ -649,6 +664,31 @@
             document.getElementById('kpi-waiting').innerText = r.filter(x => x.status === 'Waiting').length;
             document.getElementById('kpi-processing').innerText = r.filter(x => x.status === 'Processing').length;
             document.getElementById('kpi-done').innerText = r.filter(x => x.status === 'Done' || x.status === 'Closed').length;
+        }
+
+        // --- FILTER FUNCTION ---
+        function applyAdminFilters() {
+            const statusFilter = document.getElementById('adminStatusFilter').value;
+            const textFilter = document.getElementById('adminSearchInput').value.toLowerCase();
+            const rows = document.querySelectorAll('#adminTableBody tr');
+
+            rows.forEach(r => {
+                const rowStatus = r.getAttribute('data-status');
+                const rowText = r.innerText.toLowerCase();
+                
+                let statusMatch = false;
+                if (statusFilter === 'All') {
+                    statusMatch = true;
+                } else if (statusFilter === 'Active') {
+                    statusMatch = (rowStatus !== 'Closed');
+                } else {
+                    statusMatch = (rowStatus === statusFilter);
+                }
+
+                const textMatch = rowText.includes(textFilter);
+
+                r.style.display = (statusMatch && textMatch) ? '' : 'none';
+            });
         }
 
         // --- DETAIL MODAL LOGIC ---
@@ -752,7 +792,6 @@
             let t=0; document.querySelectorAll('.item-row').forEach(r => t += r.querySelector('.i-q').value * r.querySelector('.i-p').value);
             document.getElementById('grandTotal').innerText = t.toFixed(2) + ' ฿';
         }
-        function filterTable(id, q) { document.querySelectorAll(`#${id} tbody tr`).forEach(r => r.style.display = r.innerText.toLowerCase().includes(q.toLowerCase()) ? '' : 'none'); }
     </script>
 </body>
 </html>
