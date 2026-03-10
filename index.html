@@ -13,6 +13,19 @@
         ::-webkit-scrollbar { width: 8px; height: 8px; } ::-webkit-scrollbar-track { background: #1e293b; } ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
         .status-waiting { animation: blink-yellow 2s infinite ease-in-out; font-weight: bold; color: #facc15; }
         @keyframes blink-yellow { 0%, 100% { opacity: 1; color: #facc15; text-shadow: 0 0 5px rgba(250, 204, 21, 0.3); } 50% { opacity: 0.6; color: #fde047; text-shadow: none; } }
+        
+        /* Urgency Blinking Animations */
+        @keyframes blink-bg-yellow {
+            0%, 100% { background-color: rgba(15, 23, 42, 0.4); box-shadow: inset 0 0 0 transparent; }
+            50% { background-color: rgba(234, 179, 8, 0.15); box-shadow: inset 4px 0 0 #eab308; }
+        }
+        @keyframes blink-bg-red {
+            0%, 100% { background-color: rgba(15, 23, 42, 0.4); box-shadow: inset 0 0 0 transparent; }
+            50% { background-color: rgba(239, 68, 68, 0.2); box-shadow: inset 4px 0 0 #ef4444; }
+        }
+        .urgency-medium-blink { animation: blink-bg-yellow 2.5s infinite ease-in-out; }
+        .urgency-high-blink { animation: blink-bg-red 2.5s infinite ease-in-out; }
+
         .img-preview { max-height: 150px; border-radius: 8px; margin-top: 10px; display: none; border: 2px solid #475569; }
         
         /* Popup Animation & Style */
@@ -232,6 +245,13 @@
                 <div id="itemsContainer" class="space-y-2 mb-2"></div>
                 <button onclick="addItemRow()" class="text-xs bg-slate-700 hover:bg-slate-600 text-white px-2 py-1 rounded">+ Item</button>
                 <div class="mt-2"><label class="text-xs text-slate-400">Notes (รายละเอียดอะไหล่)</label><textarea id="modalNotes" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-xs text-white"></textarea></div>
+            </div>
+
+            <div id="dateUpdateSection" class="hidden border-t border-slate-600 pt-3 mb-4">
+                <label class="flex items-center gap-2 cursor-pointer bg-slate-800/50 p-3 rounded-lg border border-slate-600 hover:bg-slate-700 transition">
+                    <input type="checkbox" id="modalUpdateDate" value="true" class="w-5 h-5 accent-corp-gold">
+                    <span class="text-sm text-slate-300 font-medium">🕒 อัพเดทวันที่/เวลา ปิดจบงานเป็นปัจจุบัน <span class="text-slate-500 text-xs">(เว้นว่างไว้เพื่อใช้วันที่เดิม)</span></span>
+                </label>
             </div>
 
             <div class="flex justify-end gap-2 pt-4 border-t border-slate-700">
@@ -459,7 +479,6 @@
                           const p = { 
                               jobId: jobId, 
                               status: 'Closed', 
-                              // ไม่ส่ง technician และ adminRemarks เพื่อไม่ให้ทับข้อมูลเก่า
                               folderId: appData.cfg.folderAfter 
                           };
                           const r = await callApi('update', p);
@@ -508,6 +527,14 @@
                 else addItemRow(); 
             } catch (e) { addItemRow(); }
 
+            // เพิ่มส่วนซ่อน/แสดง Checkbox วันที่
+            if (r.status === 'Done' || r.status === 'Closed') {
+                document.getElementById('dateUpdateSection').classList.remove('hidden');
+                document.getElementById('modalUpdateDate').checked = false; // ค่าเริ่มต้นคือไม่อัพเดท
+            } else {
+                document.getElementById('dateUpdateSection').classList.add('hidden');
+            }
+
             toggleAdminFields(); 
             document.getElementById('adminModal').classList.remove('hidden');
         }
@@ -537,6 +564,9 @@
             const p = {
                 jobId: document.getElementById('modalJobId').value,
                 
+                // ส่งค่าว่าต้องการอัพเดทวันที่จบงานหรือไม่
+                updateDateFlag: document.getElementById('modalUpdateDate') ? document.getElementById('modalUpdateDate').checked : false,
+
                 // --- ส่งข้อมูล User ที่แก้ไข ---
                 requesterName: document.getElementById('edit-reqName').value,
                 positionDept: document.getElementById('edit-reqDept').value,
@@ -616,8 +646,15 @@
                         });
                     } catch(e){}
 
+                    // เพิ่มเงื่อนไขสีพื้นหลัง
+                    let urgClass = "bg-slate-900/40 border-b border-slate-800";
+                    if (r.status !== 'Closed') {
+                        if (r.urgency === 'Medium') urgClass = "urgency-medium-blink border-b border-slate-700";
+                        if (r.urgency === 'High') urgClass = "urgency-high-blink border-b border-slate-700";
+                    }
+
                     return `
-                    <div onclick="openDetailModal('${r.jobID}')" class="p-4 border-b border-slate-800 hover:bg-slate-800/80 cursor-pointer transition active:bg-slate-700 group bg-slate-900/40">
+                    <div onclick="openDetailModal('${r.jobID}')" class="p-4 hover:bg-slate-800/80 cursor-pointer transition active:bg-slate-700 group ${urgClass}">
                         <div class="flex justify-between items-center mb-2">
                             <span class="text-corp-gold font-mono text-xs tracking-wider opacity-80">${r.jobID}</span>
                             <div>${sHtml}</div>
@@ -653,11 +690,20 @@
                 let s='text-slate-400'; 
                 if(r.status=='Done') s='text-green-400 font-bold'; else if(r.status=='Closed') s='text-green-500 font-bold underline';
                 else if(r.status=='Waiting') s='status-waiting'; else if(r.status=='Processing') s='text-blue-400 font-bold';
-                return `<tr class="border-b border-slate-700 hover:bg-slate-800" data-status="${r.status}"><td class="p-3"><button onclick="openModal('${r.jobID}')" class="bg-blue-600 px-2 py-1 rounded text-xs hover:bg-blue-500 transition">Edit</button></td><td class="p-3 font-mono text-xs">${r.jobID}</td><td class="p-3 text-sm">${r.requesterName}</td><td class="p-3 text-sm">${r.equipmentLocation}</td><td class="p-3 text-xs ${s}">${r.status}</td></tr>`
+                
+                // แทรกแอนิเมชันสำหรับตาราง
+                let trClass = "border-b border-slate-700 hover:bg-slate-800";
+                if (r.status !== 'Closed') {
+                    if (r.urgency === 'Medium') trClass += " urgency-medium-blink";
+                    if (r.urgency === 'High') trClass += " urgency-high-blink";
+                }
+
+                return `<tr class="${trClass}" data-status="${r.status}"><td class="p-3"><button onclick="openModal('${r.jobID}')" class="bg-blue-600 px-2 py-1 rounded text-xs hover:bg-blue-500 transition">Edit</button></td><td class="p-3 font-mono text-xs">${r.jobID}</td><td class="p-3 text-sm">${r.requesterName}</td><td class="p-3 text-sm">${r.equipmentLocation}</td><td class="p-3 text-xs ${s}">${r.status}</td></tr>`
             }).join('');
             
             if (typeof applyAdminFilters === 'function') applyAdminFilters();
         }
+
         function updateDashboard() {
             const r = appData.reqs;
             document.getElementById('kpi-total').innerText = r.length;
