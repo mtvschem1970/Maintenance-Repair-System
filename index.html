@@ -646,12 +646,19 @@
                         });
                     } catch(e){}
 
-                    // เพิ่มเงื่อนไขสีพื้นหลัง
+                    // --------------------------------------------------------
+                    // ส่วนที่แก้ไข: ปรับเงื่อนไขสีพื้นหลัง
                     let urgClass = "bg-slate-900/40 border-b border-slate-800";
-                    if (r.status !== 'Closed') {
+                    
+                    if (r.status === 'Done' || r.status === 'Closed') {
+                        // งานเสร็จแล้ว ให้เป็นสีเขียวทึบๆ หยุดกระพริบ
+                        urgClass = "bg-green-900/20 border-b border-green-800/50"; 
+                    } else {
+                        // งานที่ยังไม่เสร็จ ให้กระพริบตามระดับความด่วน
                         if (r.urgency === 'Medium') urgClass = "urgency-medium-blink border-b border-slate-700";
                         if (r.urgency === 'High') urgClass = "urgency-high-blink border-b border-slate-700";
                     }
+                    // --------------------------------------------------------
 
                     return `
                     <div onclick="openDetailModal('${r.jobID}')" class="p-4 hover:bg-slate-800/80 cursor-pointer transition active:bg-slate-700 group ${urgClass}">
@@ -684,19 +691,25 @@
                 c.innerHTML += `<div class="bg-slate-800 rounded-xl mb-4 border border-slate-700 overflow-hidden shadow-lg"><div onclick="this.nextElementSibling.classList.toggle('hidden')" class="p-3 font-bold cursor-pointer hover:bg-slate-700 flex justify-between items-center bg-gradient-to-r from-slate-800 to-slate-900 border-b border-slate-700"><span class="flex items-center gap-2 text-white">📁 ${k}</span><span class="text-xs bg-slate-600 px-2 py-1 rounded-full text-white">${g[k].length} งาน</span></div><div class="${(q || i == 0) ? '' : 'hidden'} bg-transparent">${rows}</div></div>`;
             });
         }
-
         function renderAdmin() {
             document.getElementById('adminTableBody').innerHTML = appData.reqs.map(r => {
                 let s='text-slate-400'; 
                 if(r.status=='Done') s='text-green-400 font-bold'; else if(r.status=='Closed') s='text-green-500 font-bold underline';
                 else if(r.status=='Waiting') s='status-waiting'; else if(r.status=='Processing') s='text-blue-400 font-bold';
                 
-                // แทรกแอนิเมชันสำหรับตาราง
+                // --------------------------------------------------------
+                // ส่วนที่แก้ไข: ปรับแอนิเมชันสำหรับตาราง Admin
                 let trClass = "border-b border-slate-700 hover:bg-slate-800";
-                if (r.status !== 'Closed') {
+                
+                if (r.status === 'Done' || r.status === 'Closed') {
+                    // งานเสร็จแล้ว ให้ไฮไลต์เป็นแถบสีเขียว (ไม่กระพริบ)
+                    trClass = "border-b border-green-900 bg-green-900/10 hover:bg-green-900/20";
+                } else {
+                    // งานที่ยังไม่เสร็จ ให้กระพริบ
                     if (r.urgency === 'Medium') trClass += " urgency-medium-blink";
                     if (r.urgency === 'High') trClass += " urgency-high-blink";
                 }
+                // --------------------------------------------------------
 
                 return `<tr class="${trClass}" data-status="${r.status}"><td class="p-3"><button onclick="openModal('${r.jobID}')" class="bg-blue-600 px-2 py-1 rounded text-xs hover:bg-blue-500 transition">Edit</button></td><td class="p-3 font-mono text-xs">${r.jobID}</td><td class="p-3 text-sm">${r.requesterName}</td><td class="p-3 text-sm">${r.equipmentLocation}</td><td class="p-3 text-xs ${s}">${r.status}</td></tr>`
             }).join('');
@@ -841,3 +854,4 @@
     </script>
 </body>
 </html>
+
