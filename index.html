@@ -6,6 +6,7 @@
     <title>Maintenance System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script> tailwind.config = { theme: { extend: { colors: { corp: { blue: '#0f172a', lightBlue: '#1e293b', accent: '#3b82f6', gold: '#f59e0b' } }, fontFamily: { sans: ['Sarabun', 'sans-serif'] } } } } </script>
     <style>
@@ -65,6 +66,7 @@
         <div class="container mx-auto px-4"><div class="flex space-x-1 overflow-x-auto">
             <button onclick="switchTab('request')" id="tab-request" class="tab-btn px-6 py-3 text-sm font-medium border-b-2 border-transparent hover:text-corp-gold transition text-corp-gold border-corp-gold">📝 แจ้งซ่อม</button>
             <button onclick="switchTab('status')" id="tab-status" class="tab-btn px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition">📊 ติดตามงาน</button>
+            <button onclick="switchTab('statistics')" id="tab-statistics" class="tab-btn hidden admin-only px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition">📊 สถิติ</button>
             <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn hidden admin-only px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition">📈 แดชบอร์ด</button>
             <button onclick="switchTab('settings')" id="tab-settings" class="tab-btn hidden admin-only px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition">⚙️ ตั้งค่า</button>
         </div></div>
@@ -187,6 +189,41 @@
                         <thead class="bg-slate-900 text-slate-400 uppercase text-xs"><tr><th class="p-4">Action</th><th class="p-4">ID</th><th class="p-4">User</th><th class="p-4">Equipment</th><th class="p-4">Status</th></tr></thead>
                         <tbody id="adminTableBody" class="text-sm divide-y divide-slate-700"></tbody>
                     </table>
+                </div>
+            </div>
+        </div>
+        <div id="view-statistics" class="view-section hidden container mx-auto fade-in pb-10">
+            <div class="bg-corp-lightBlue p-4 rounded-xl border border-slate-700 shadow-lg mb-6 flex flex-wrap gap-4 items-center justify-between">
+                <h2 class="text-xl font-bold text-corp-gold">📊 สถิติงานซ่อมบำรุง</h2>
+                <div class="flex gap-2">
+                    <select id="statYear" onchange="renderStatistics()" class="bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-corp-gold">
+                        </select>
+                    <select id="statMonth" onchange="renderStatistics()" class="bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-corp-gold">
+                        <option value="all">ตลอดทั้งปี (ทั้งหมด)</option>
+                        <option value="01">มกราคม</option>
+                        <option value="02">กุมภาพันธ์</option>
+                        <option value="03">มีนาคม</option>
+                        <option value="04">เมษายน</option>
+                        <option value="05">พฤษภาคม</option>
+                        <option value="06">มิถุนายน</option>
+                        <option value="07">กรกฎาคม</option>
+                        <option value="08">สิงหาคม</option>
+                        <option value="09">กันยายน</option>
+                        <option value="10">ตุลาคม</option>
+                        <option value="11">พฤศจิกายน</option>
+                        <option value="12">ธันวาคม</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-corp-lightBlue p-5 rounded-xl border border-slate-700 shadow-lg">
+                    <h3 class="text-center font-bold text-white mb-4">จำนวนงานซ่อมแยกตามแผนก (งาน)</h3>
+                    <canvas id="chartCount"></canvas>
+                </div>
+                <div class="bg-corp-lightBlue p-5 rounded-xl border border-slate-700 shadow-lg">
+                    <h3 class="text-center font-bold text-white mb-4">ค่าใช้จ่ายรวมแยกตามแผนก (บาท)</h3>
+                    <canvas id="chartCost"></canvas>
                 </div>
             </div>
         </div>
@@ -833,6 +870,7 @@
             document.querySelectorAll('.view-section').forEach(e=>e.classList.add('hidden')); document.querySelectorAll('.tab-btn').forEach(e=>e.classList.replace('text-corp-gold','text-slate-400'));
             document.getElementById('view-'+id).classList.remove('hidden'); document.getElementById('tab-'+id).classList.replace('text-slate-400','text-corp-gold');
             if(id==='dashboard') { refreshData(true); }
+            if(id==='statistics') { renderStatistics(); }
         }
         function logout() { location.reload(); }
         
@@ -851,7 +889,117 @@
             let t=0; document.querySelectorAll('.item-row').forEach(r => t += r.querySelector('.i-q').value * r.querySelector('.i-p').value);
             document.getElementById('grandTotal').innerText = t.toFixed(2) + ' ฿';
         }
+        // --- STATISTICS CHART LOGIC ---
+        let chartCountInstance = null;
+        let chartCostInstance = null;
+
+        function initStatFilters() {
+            const years = new Set();
+            appData.reqs.forEach(r => {
+                if (r.requestDate) {
+                    const y = new Date(r.requestDate).getFullYear();
+                    if(!isNaN(y)) years.add(y);
+                }
+            });
+            const yearSelect = document.getElementById('statYear');
+            yearSelect.innerHTML = '<option value="all">รวมทุกปี</option>';
+            
+            const currentYear = new Date().getFullYear();
+            if(years.size === 0) years.add(currentYear); // เผื่อกรณีไม่มีข้อมูลเลย
+            
+            Array.from(years).sort().reverse().forEach(y => {
+                yearSelect.innerHTML += `<option value="${y}" ${y === currentYear ? 'selected' : ''}>ปี ${y}</option>`;
+            });
+        }
+
+        function renderStatistics() {
+            // เติมตัวเลือกปีอัตโนมัติหากยังไม่มี
+            if (document.getElementById('statYear').options.length <= 1) initStatFilters();
+
+            const yearFilter = document.getElementById('statYear').value;
+            const monthFilter = document.getElementById('statMonth').value;
+
+            const deptStats = {};
+
+            // 1. คัดกรองและประมวลผลข้อมูล
+            appData.reqs.forEach(r => {
+                if(!r.requestDate) return;
+                const d = new Date(r.requestDate);
+                const y = d.getFullYear().toString();
+                const m = (d.getMonth() + 1).toString().padStart(2, '0');
+
+                // กรองตาม ปี และ เดือน
+                if (yearFilter !== 'all' && y !== yearFilter) return;
+                if (monthFilter !== 'all' && m !== monthFilter) return;
+
+                const dept = r.positionDept || 'ไม่ระบุแผนก';
+                if (!deptStats[dept]) deptStats[dept] = { count: 0, cost: 0 };
+                
+                deptStats[dept].count += 1;
+                deptStats[dept].cost += parseFloat(r.cost) || 0;
+            });
+
+            // 2. จัดเรียงข้อมูลจากมากไปน้อยเพื่อนำไปแสดงกราฟ
+            // - กราฟจำนวนงาน (เรียงตามจำนวนงาน)
+            const sortedByCount = Object.keys(deptStats).sort((a,b) => deptStats[b].count - deptStats[a].count);
+            const labelsCount = sortedByCount;
+            const dataCount = sortedByCount.map(l => deptStats[l].count);
+
+            // - กราฟค่าใช้จ่าย (เรียงตามค่าใช้จ่ายรวม)
+            const sortedByCost = Object.keys(deptStats).sort((a,b) => deptStats[b].cost - deptStats[a].cost);
+            const labelsCost = sortedByCost;
+            const dataCost = sortedByCost.map(l => deptStats[l].cost);
+
+            // Setting สีสำหรับกราฟ (Dark Mode Compatible)
+            const chartOptions = {
+                responsive: true,
+                plugins: { legend: { display: false } }, // ซ่อน Label ป้ายกำกับใหญ่
+                scales: {
+                    y: { beginAtZero: true, ticks: { color: '#94a3b8' }, grid: { color: '#334155' } },
+                    x: { ticks: { color: '#e2e8f0', font: { family: 'Sarabun' } }, grid: { display: false } }
+                }
+            };
+
+            // 3. วาดกราฟ: จำนวนงานซ่อม
+            const ctxCount = document.getElementById('chartCount').getContext('2d');
+            if(chartCountInstance) chartCountInstance.destroy();
+            chartCountInstance = new Chart(ctxCount, {
+                type: 'bar',
+                data: {
+                    labels: labelsCount,
+                    datasets: [{
+                        label: 'จำนวนงาน (งาน)',
+                        data: dataCount,
+                        backgroundColor: 'rgba(59, 130, 246, 0.8)', // Blue-500
+                        borderColor: 'rgb(37, 99, 235)',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: chartOptions
+            });
+
+            // 4. วาดกราฟ: ค่าใช้จ่าย
+            const ctxCost = document.getElementById('chartCost').getContext('2d');
+            if(chartCostInstance) chartCostInstance.destroy();
+            chartCostInstance = new Chart(ctxCost, {
+                type: 'bar',
+                data: {
+                    labels: labelsCost,
+                    datasets: [{
+                        label: 'ค่าใช้จ่าย (บาท)',
+                        data: dataCost,
+                        backgroundColor: 'rgba(245, 158, 11, 0.8)', // Gold/Amber-500
+                        borderColor: 'rgb(217, 119, 6)',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: chartOptions
+            });
+        }
     </script>
 </body>
 </html>
+
 
