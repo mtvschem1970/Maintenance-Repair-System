@@ -461,16 +461,53 @@
             } catch(e) { Swal.fire('Error', e.toString(), 'error'); }
         }
 
+        // ==========================================
+        // ส่วนที่ได้รับการแก้ไข: ฟังก์ชัน Submit Request
+        // ==========================================
         async function submitRequest(e) {
             e.preventDefault();
+            
+            // 1. ตรวจสอบว่ามีการแนบรูปภาพหรือไม่
+            const fileInput = document.getElementById('reqImg');
+            if(fileInput.files.length === 0) {
+                return Swal.fire({
+                    icon: 'warning',
+                    title: 'ข้อมูลไม่ครบถ้วน',
+                    text: 'กรุณาแนบรูปภาพของอุปกรณ์หรือบริเวณที่ต้องการซ่อมแซม เพื่อเป็นข้อมูลประกอบการพิจารณาและดำเนินงาน',
+                    background: '#1e293b', color: '#fff', confirmButtonColor: '#f59e0b'
+                });
+            }
+
             const urg = document.querySelector('input[name="urgency"]:checked').value;
+            
+            // 2. ดักจับและยืนยันเมื่อเลือกความเร่งด่วนระดับ "ด่วนมาก"
+            if(urg === 'High') {
+                const confirmHigh = await Swal.fire({
+                    title: 'ยืนยันระดับความเร่งด่วนสูงสุด',
+                    text: 'โปรดยืนยันว่าปัญหาดังกล่าวส่งผลกระทบโดยตรงต่อสายการผลิต หรือกระบวนการทำงานหลัก ซึ่งอาจก่อให้เกิดความสูญเสียหรือเสียผลประโยชน์ต่อบริษัทฯ ใช่หรือไม่?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#475569',
+                    confirmButtonText: 'ใช่, ขอยืนยันส่งข้อมูล',
+                    cancelButtonText: 'ยกเลิก',
+                    background: '#1e293b', color: '#fff'
+                });
+                
+                // หากผู้ใช้งานกดยกเลิก ให้หยุดการทำงานของฟังก์ชันทันที
+                if(!confirmHigh.isConfirmed) {
+                    return; 
+                }
+            }
+
             const userPin = document.getElementById('reqPin').value;
             if(!userPin || userPin.length < 4) return Swal.fire('ข้อผิดพลาด', 'กรุณาตั้งรหัสยืนยันอย่างน้อย 4 หลัก', 'warning');
 
-            const fileInput = document.getElementById('reqImg');
             let imgData = "";
-            if(fileInput.files.length > 0) {
-                try { imgData = await fileToBase64(fileInput.files[0]); } catch(err) { return Swal.fire('Image Error', 'Failed to process image', 'error'); }
+            try { 
+                imgData = await fileToBase64(fileInput.files[0]); 
+            } catch(err) { 
+                return Swal.fire('ข้อผิดพลาดเกี่ยวกับรูปภาพ', 'ไม่สามารถประมวลผลรูปภาพได้', 'error'); 
             }
 
             const p = {
@@ -487,19 +524,40 @@
                 userPin: userPin 
             };
             
-            Swal.fire({ title: 'Sending...', text: 'กำลังส่งข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            Swal.fire({ title: 'กำลังประมวลผล...', text: 'ระบบกำลังจัดส่งข้อมูล กรุณารอสักครู่', allowOutsideClick: false, didOpen: () => Swal.showLoading(), background: '#1e293b', color: '#fff' });
+            
             try {
                 const r = await callApi('submit', p);
                 if(r.status==='success') {
                     document.getElementById('requestForm').reset();
                     document.getElementById('reqPreview').style.display = 'none';
-                    let h = `Job: ${r.jobId}<br><span class="text-yellow-400">PIN: ${userPin}</span>`, ti='Saved', ic='success';
-                    if(urg==='Medium') { ti='⚠️ แจ้งเตือนด่วน'; ic='warning'; h+=`<br>โทร: 0982799918`; }
-                    if(urg==='High') { ti='🚨 แจ้งเตือนด่วนมาก'; ic='warning'; h+=`<br>โทรทันที: 0982799918`; }
+                    
+                    // 3. ปรับปรุงข้อความ Pop-up แจ้งเตือนเมื่อสำเร็จแบบเป็นทางการ
+                    let h = `<div class="text-left mt-2">
+                                <p class="text-sm text-green-400 mb-2">ข้อมูลของท่านได้รับการจัดส่งเข้าสู่ระบบเรียบร้อยแล้ว</p>
+                                <p class="mb-1">หมายเลขงาน (Job ID): <b class="text-corp-gold font-mono">${r.jobId}</b></p>
+                                <p class="mb-3">รหัสยืนยันปิดงาน (PIN): <b class="text-yellow-400 font-mono tracking-widest">${userPin}</b></p>
+                                <div class="bg-slate-800 p-3 rounded border border-slate-600">
+                                    <p class="text-xs text-slate-300 leading-relaxed"><b>⚠️ ข้อกำหนดสำคัญ:</b><br>เมื่อเจ้าหน้าที่ดำเนินการซ่อมแซมเสร็จสิ้น โปรดเข้ามาตรวจสอบและใช้รหัส PIN เพื่อกดยืนยันการจบงานในเมนู <b class="text-corp-gold">"ติดตามงาน"</b></p>
+                                </div>
+                             </div>`;
+                    
+                    let ti = 'จัดส่งข้อมูลสำเร็จ', ic = 'success';
+                    if(urg==='Medium') { 
+                        ti='⚠️ จัดส่งข้อมูลสำเร็จ (ระดับด่วน)'; 
+                        ic='warning'; 
+                        h+=`<div class="mt-4 text-sm bg-yellow-900/30 p-2 rounded border border-yellow-700">กรุณาติดต่อประสานงาน: <b class="text-yellow-400">098-279-9918</b></div>`; 
+                    }
+                    if(urg==='High') { 
+                        ti='🚨 จัดส่งข้อมูลสำเร็จ (ระดับด่วนมาก)'; 
+                        ic='warning'; 
+                        h+=`<div class="mt-4 text-sm bg-red-900/30 p-2 rounded border border-red-700 text-red-300">กรุณาติดต่อเจ้าหน้าที่ทันที: <b class="text-white">098-279-9918</b></div>`; 
+                    }
+                    
                     Swal.fire({icon:ic, title:ti, html:h, background:'#1e293b', color:'#fff', confirmButtonColor:'#f59e0b'});
                     refreshData(true); switchTab('status');
                 } else throw new Error(r.message);
-            } catch(e) { Swal.fire('Error', e.toString(), 'error'); }
+            } catch(e) { Swal.fire('ข้อผิดพลาด', 'ไม่สามารถจัดส่งข้อมูลได้: ' + e.toString(), 'error'); }
         }
 
         async function verifyUserJob(jobId, correctPin) {
@@ -683,19 +741,14 @@
                         });
                     } catch(e){}
 
-                    // --------------------------------------------------------
-                    // ส่วนที่แก้ไข: ปรับเงื่อนไขสีพื้นหลัง
                     let urgClass = "bg-slate-900/40 border-b border-slate-800";
                     
                     if (r.status === 'Done' || r.status === 'Closed') {
-                        // งานเสร็จแล้ว ให้เป็นสีเขียวทึบๆ หยุดกระพริบ
                         urgClass = "bg-green-900/20 border-b border-green-800/50"; 
                     } else {
-                        // งานที่ยังไม่เสร็จ ให้กระพริบตามระดับความด่วน
                         if (r.urgency === 'Medium') urgClass = "urgency-medium-blink border-b border-slate-700";
                         if (r.urgency === 'High') urgClass = "urgency-high-blink border-b border-slate-700";
                     }
-                    // --------------------------------------------------------
 
                     return `
                     <div onclick="openDetailModal('${r.jobID}')" class="p-4 hover:bg-slate-800/80 cursor-pointer transition active:bg-slate-700 group ${urgClass}">
@@ -734,19 +787,14 @@
                 if(r.status=='Done') s='text-green-400 font-bold'; else if(r.status=='Closed') s='text-green-500 font-bold underline';
                 else if(r.status=='Waiting') s='status-waiting'; else if(r.status=='Processing') s='text-blue-400 font-bold';
                 
-                // --------------------------------------------------------
-                // ส่วนที่แก้ไข: ปรับแอนิเมชันสำหรับตาราง Admin
                 let trClass = "border-b border-slate-700 hover:bg-slate-800";
                 
                 if (r.status === 'Done' || r.status === 'Closed') {
-                    // งานเสร็จแล้ว ให้ไฮไลต์เป็นแถบสีเขียว (ไม่กระพริบ)
                     trClass = "border-b border-green-900 bg-green-900/10 hover:bg-green-900/20";
                 } else {
-                    // งานที่ยังไม่เสร็จ ให้กระพริบ
                     if (r.urgency === 'Medium') trClass += " urgency-medium-blink";
                     if (r.urgency === 'High') trClass += " urgency-high-blink";
                 }
-                // --------------------------------------------------------
 
                 return `<tr class="${trClass}" data-status="${r.status}"><td class="p-3"><button onclick="openModal('${r.jobID}')" class="bg-blue-600 px-2 py-1 rounded text-xs hover:bg-blue-500 transition">Edit</button></td><td class="p-3 font-mono text-xs">${r.jobID}</td><td class="p-3 text-sm">${r.requesterName}</td><td class="p-3 text-sm">${r.equipmentLocation}</td><td class="p-3 text-xs ${s}">${r.status}</td></tr>`
             }).join('');
@@ -1001,6 +1049,3 @@
     </script>
 </body>
 </html>
-
-
-
