@@ -8,119 +8,149 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <script> tailwind.config = { theme: { extend: { colors: { corp: { blue: '#0f172a', lightBlue: '#1e293b', accent: '#3b82f6', gold: '#f59e0b' } }, fontFamily: { sans: ['Sarabun', 'sans-serif'] } } } } </script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { corp: { blue: '#0f172a', lightBlue: '#1e293b', accent: '#3b82f6', gold: '#f59e0b' } },
+                    fontFamily: { sans: ['Sarabun', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
     <style>
-        body { background-image: linear-gradient(rgba(15,23,42,0.95), rgba(15,23,42,0.95)), url('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=2070&q=80'); background-size: cover; background-attachment: fixed; font-family: 'Sarabun', sans-serif; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
-        ::-webkit-scrollbar { width: 8px; height: 8px; } ::-webkit-scrollbar-track { background: #1e293b; } ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        body {
+            background-image: linear-gradient(rgba(15,23,42,0.95), rgba(15,23,42,0.95)),
+                url('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=2070&q=80');
+            background-size: cover; background-attachment: fixed;
+            font-family: 'Sarabun', sans-serif;
+            -webkit-user-select: none; -moz-user-select: none; user-select: none;
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+
         .status-waiting { animation: blink-yellow 2s infinite ease-in-out; font-weight: bold; color: #facc15; }
-        @keyframes blink-yellow { 0%, 100% { opacity: 1; color: #facc15; text-shadow: 0 0 5px rgba(250, 204, 21, 0.3); } 50% { opacity: 0.6; color: #fde047; text-shadow: none; } }
-        
-        /* Urgency Blinking Animations */
+        @keyframes blink-yellow {
+            0%, 100% { opacity: 1; color: #facc15; text-shadow: 0 0 5px rgba(250,204,21,0.3); }
+            50% { opacity: 0.6; color: #fde047; text-shadow: none; }
+        }
         @keyframes blink-bg-yellow {
-            0%, 100% { background-color: rgba(15, 23, 42, 0.4); box-shadow: inset 0 0 0 transparent; }
-            50% { background-color: rgba(234, 179, 8, 0.15); box-shadow: inset 4px 0 0 #eab308; }
+            0%, 100% { background-color: rgba(15,23,42,0.4); box-shadow: inset 0 0 0 transparent; }
+            50% { background-color: rgba(234,179,8,0.15); box-shadow: inset 4px 0 0 #eab308; }
         }
         @keyframes blink-bg-red {
-            0%, 100% { background-color: rgba(15, 23, 42, 0.4); box-shadow: inset 0 0 0 transparent; }
-            50% { background-color: rgba(239, 68, 68, 0.2); box-shadow: inset 4px 0 0 #ef4444; }
+            0%, 100% { background-color: rgba(15,23,42,0.4); box-shadow: inset 0 0 0 transparent; }
+            50% { background-color: rgba(239,68,68,0.2); box-shadow: inset 4px 0 0 #ef4444; }
         }
         .urgency-medium-blink { animation: blink-bg-yellow 2.5s infinite ease-in-out; }
-        .urgency-high-blink { animation: blink-bg-red 2.5s infinite ease-in-out; }
+        .urgency-high-blink   { animation: blink-bg-red   2.5s infinite ease-in-out; }
 
         .img-preview { max-height: 150px; border-radius: 8px; margin-top: 10px; display: none; border: 2px solid #475569; }
-        
-        /* Popup Animation & Style */
+
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 60; display: none; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
         .animate-zoomIn { animation: zoomIn 0.2s ease-out; }
-        @keyframes zoomIn { from {transform: scale(0.9); opacity: 0;} to {transform: scale(1); opacity: 1;} }
-        
-        /* Image Viewer */
+        @keyframes zoomIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
         .modal-content-img { max-width: 95%; max-height: 95%; position: relative; animation: zoomIn 0.3s ease; text-align: center; }
         .modal-close-img { position: absolute; top: -40px; right: 0; color: white; font-size: 30px; cursor: pointer; font-weight: bold; text-shadow: 0 0 5px black; }
+
+        /* Fade-in for views */
+        .fade-in { animation: fadeIn 0.18s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
     </style>
 </head>
 <body class="text-slate-200 h-screen flex flex-col overflow-hidden">
 
-    <div id="imageViewerModal" class="modal-overlay" onclick="closeImageViewer()" style="z-index: 70;">
+    <!-- Image Viewer -->
+    <div id="imageViewerModal" class="modal-overlay" onclick="closeImageViewer()" style="z-index:70;">
         <div class="modal-content-img" onclick="event.stopPropagation()">
             <span class="modal-close-img" onclick="closeImageViewer()">× ปิด</span>
-            <img id="imageViewerSrc" src="" class="rounded-lg shadow-2xl border-2 border-slate-700" style="max-height: 85vh; max-width: 100%;">
+            <img id="imageViewerSrc" src="" class="rounded-lg shadow-2xl border-2 border-slate-700" style="max-height:85vh;max-width:100%;">
         </div>
     </div>
 
+    <!-- Header -->
     <header class="bg-corp-blue border-b border-slate-700 shadow-lg z-20">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-3">
                 <div class="bg-white rounded p-1 shadow-md h-12 w-12 flex items-center justify-center overflow-hidden"><span class="text-2xl">🛠️</span></div>
-                <div><h1 class="text-xl font-bold text-white">MAINTENANCE SYSTEM</h1><p class="text-xs text-corp-gold font-medium tracking-wider uppercase">Vschem1970 (Phra samut chedi)</p></div>
+                <div>
+                    <h1 class="text-xl font-bold text-white">MAINTENANCE SYSTEM</h1>
+                    <p class="text-xs text-corp-gold font-medium tracking-wider uppercase">Vschem1970 (Phra samut chedi)</p>
+                </div>
             </div>
             <div class="flex items-center space-x-3">
                 <button onclick="refreshData()" class="p-2 rounded-full hover:bg-slate-700 transition text-slate-400 hover:text-white" title="Refresh">🔄</button>
-                <button id="btnLogin" onclick="showLoginModal()" class="bg-corp-gold text-corp-blue font-bold py-2 px-4 rounded-md shadow-md flex items-center gap-2">🔐 Admin</button>
-                <button id="btnLogout" onclick="logout()" class="hidden bg-red-600 text-white font-bold py-2 px-4 rounded-md shadow-md flex items-center gap-2">🚪 Logout</button>
+                <button id="btnLogin"  onclick="showLoginModal()" class="bg-corp-gold text-corp-blue font-bold py-2 px-4 rounded-md shadow-md flex items-center gap-2">🔐 Admin</button>
+                <button id="btnLogout" onclick="logout()"          class="hidden bg-red-600 text-white font-bold py-2 px-4 rounded-md shadow-md flex items-center gap-2">🚪 Logout</button>
             </div>
         </div>
     </header>
 
+    <!-- Nav -->
     <nav class="bg-corp-lightBlue border-b border-slate-700 shadow-md z-10">
-        <div class="container mx-auto px-4"><div class="flex space-x-1 overflow-x-auto">
-            <button onclick="switchTab('request')" id="tab-request" class="tab-btn px-6 py-3 text-sm font-medium border-b-2 border-transparent hover:text-corp-gold transition text-corp-gold border-corp-gold">📝 แจ้งซ่อม</button>
-            <button onclick="switchTab('status')" id="tab-status" class="tab-btn px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition">📊 ติดตามงาน</button>
-            <button onclick="switchTab('statistics')" id="tab-statistics" class="tab-btn hidden admin-only px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition">📊 สถิติ</button>
-            <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn hidden admin-only px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition">📈 Admin</button>
-            <button onclick="switchTab('settings')" id="tab-settings" class="tab-btn hidden admin-only px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition">⚙️ ตั้งค่า</button>
-        </div></div>
+        <div class="container mx-auto px-4">
+            <div class="flex space-x-1 overflow-x-auto">
+                <button onclick="switchTab('request')"    id="tab-request"    class="tab-btn px-6 py-3 text-sm font-medium border-b-2 border-transparent hover:text-corp-gold transition text-corp-gold border-corp-gold">📝 แจ้งซ่อม</button>
+                <button onclick="switchTab('status')"     id="tab-status"     class="tab-btn px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition">📊 ติดตามงาน</button>
+                <button onclick="switchTab('statistics')" id="tab-statistics" class="tab-btn hidden admin-only px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition">📊 สถิติ</button>
+                <button onclick="switchTab('dashboard')"  id="tab-dashboard"  class="tab-btn hidden admin-only px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition">📈 Admin</button>
+                <button onclick="switchTab('settings')"   id="tab-settings"   class="tab-btn hidden admin-only px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition">⚙️ ตั้งค่า</button>
+            </div>
+        </div>
     </nav>
 
+    <!-- Main -->
     <main class="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-900/50 relative">
-        
+
+        <!-- Request Form -->
         <div id="view-request" class="view-section max-w-3xl mx-auto fade-in">
             <div class="bg-corp-lightBlue rounded-xl shadow-2xl border border-slate-700 overflow-hidden">
-                <div class="bg-gradient-to-r from-corp-blue to-corp-lightBlue p-4 border-b border-slate-700"><h2 class="text-xl font-bold text-white">📝 แบบฟอร์มแจ้งซ่อม</h2></div>
+                <div class="bg-gradient-to-r from-corp-blue to-corp-lightBlue p-4 border-b border-slate-700">
+                    <h2 class="text-xl font-bold text-white">📝 แบบฟอร์มแจ้งซ่อม</h2>
+                </div>
                 <div class="p-6">
                     <form id="requestForm" onsubmit="submitRequest(event)" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div><label class="block text-sm text-slate-400 mb-1">ชื่อผู้แจ้ง</label><input type="text" id="reqName" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"></div>
                             <div><label class="block text-sm text-slate-400 mb-1">สถานที่/แผนก</label><select id="reqDept" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"><option value="">-- กำลังโหลด... --</option></select></div>
                             <div><label class="block text-sm text-slate-400 mb-1">ข้อมูลติดต่อกลับ</label><input type="tel" id="reqPhone" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"></div>
-                            
                             <div class="bg-slate-800/50 p-2 rounded border border-yellow-500/30">
                                 <label class="block text-sm text-yellow-400 font-bold mb-1">🔑 รหัสยืนยัน (PIN)</label>
                                 <input type="tel" id="reqPin" required maxlength="6" class="w-full bg-slate-900 border border-yellow-500/50 rounded px-4 py-2 text-center tracking-widest text-lg font-bold text-yellow-400" placeholder="ตั้งรหัสยืนยันปิดงาน">
                                 <p class="text-[15px] text-slate-500 mt-1">* ใช้รหัสนี้เพื่อยืนยันจบงาน (ห้ามลืม)</p>
                             </div>
-
                             <div><label class="block text-sm text-slate-400 mb-1">รหัสอุปกรณ์</label><input type="text" id="reqEquipId" class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2" placeholder="ถ้ามี"></div>
                             <div class="md:col-span-2"><label class="block text-sm text-slate-400 mb-1">ชื่ออุปกรณ์</label><input type="text" id="reqEquip" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"></div>
                         </div>
-                        
                         <div class="border border-dashed border-slate-600 rounded-lg p-4 text-center hover:bg-slate-800 transition cursor-pointer relative" onclick="document.getElementById('reqImg').click()">
-                            <input type="file" id="reqImg" accept="image/*" class="hidden" onchange="previewImage(this, 'reqPreview')">
+                            <input type="file" id="reqImg" accept="image/*" class="hidden" onchange="previewImage(this,'reqPreview')">
                             <span class="text-corp-gold font-bold">📷 แตะเพื่อแนบรูปภาพ (ก่อนซ่อม)</span>
                             <p class="text-xs text-slate-500 mt-1">อัปโหลดไปยัง Google Drive</p>
                             <img id="reqPreview" class="img-preview mx-auto">
                         </div>
-
                         <div><label class="block text-sm text-slate-400 mb-1">รายละเอียดปัญหา</label><textarea id="reqDetail" rows="4" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"></textarea></div>
-                        <div><label class="block text-sm text-slate-400 mb-3">ระดับความเร่งด่วน</label><div class="flex gap-4">
-                            <label class="flex items-center gap-2 p-3 rounded border border-slate-600 w-full justify-center has-[:checked]:bg-green-500/10 has-[:checked]:border-green-500"><input type="radio" name="urgency" value="Low" class="accent-green-500" checked><span class="text-green-400">ปกติ</span></label>
-                            <label class="flex items-center gap-2 p-3 rounded border border-slate-600 w-full justify-center has-[:checked]:bg-yellow-500/10 has-[:checked]:border-yellow-500"><input type="radio" name="urgency" value="Medium" class="accent-yellow-500"><span class="text-yellow-400">ด่วน</span></label>
-                            <label class="flex items-center gap-2 p-3 rounded border border-slate-600 w-full justify-center has-[:checked]:bg-red-500/10 has-[:checked]:border-red-500"><input type="radio" name="urgency" value="High" class="accent-red-500"><span class="text-red-400">ด่วนมาก</span></label>
-                        </div></div>
+                        <div>
+                            <label class="block text-sm text-slate-400 mb-3">ระดับความเร่งด่วน</label>
+                            <div class="flex gap-4">
+                                <label class="flex items-center gap-2 p-3 rounded border border-slate-600 w-full justify-center has-[:checked]:bg-green-500/10 has-[:checked]:border-green-500"><input type="radio" name="urgency" value="Low"    class="accent-green-500" checked><span class="text-green-400">ปกติ</span></label>
+                                <label class="flex items-center gap-2 p-3 rounded border border-slate-600 w-full justify-center has-[:checked]:bg-yellow-500/10 has-[:checked]:border-yellow-500"><input type="radio" name="urgency" value="Medium" class="accent-yellow-500"><span class="text-yellow-400">ด่วน</span></label>
+                                <label class="flex items-center gap-2 p-3 rounded border border-slate-600 w-full justify-center has-[:checked]:bg-red-500/10 has-[:checked]:border-red-500"><input type="radio" name="urgency" value="High"   class="accent-red-500"><span class="text-red-400">ด่วนมาก</span></label>
+                            </div>
+                        </div>
                         <button type="submit" class="w-full bg-gradient-to-r from-corp-gold to-yellow-600 hover:from-yellow-500 text-corp-blue font-bold py-3 rounded shadow-lg">ส่งข้อมูล</button>
                     </form>
                 </div>
             </div>
         </div>
 
+        <!-- Settings -->
         <div id="view-settings" class="view-section hidden max-w-5xl mx-auto fade-in">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div class="bg-corp-lightBlue rounded-xl border border-slate-700 p-6 shadow-lg">
                     <h3 class="text-lg font-bold text-corp-gold mb-4 border-b border-slate-700 pb-2">🔗 System Config</h3>
-                    <div class="mb-4">
-                        <label class="block text-xs text-slate-400 mb-1">API URL (Google Apps Script)</label>
-                        <input id="setting-api-url" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-slate-300" placeholder="วางลิงก์ GAS ตรงนี้">
-                    </div>
+                    <div class="mb-4"><label class="block text-xs text-slate-400 mb-1">API URL (Google Apps Script)</label><input id="setting-api-url" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-slate-300" placeholder="วางลิงก์ GAS ตรงนี้"></div>
                     <div class="grid grid-cols-1 gap-4 mb-4">
                         <div><label class="block text-xs text-slate-400 mb-1">Folder ID (Before Repair)</label><input id="setting-folder-before" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-slate-300"></div>
                         <div><label class="block text-xs text-slate-400 mb-1">Folder ID (After Repair)</label><input id="setting-folder-after" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-slate-300"></div>
@@ -134,40 +164,42 @@
                         <p class="text-xs text-slate-500 mt-2">รูปแบบตัวอย่าง: <span id="id-preview" class="text-corp-gold font-mono">MTN-2026-0001</span></p>
                     </div>
                     <div class="flex gap-2 mt-4">
-                         <button onclick="saveSystemSettings()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded text-sm font-bold">บันทึก & รีโหลด</button>
-                         <button onclick="resetConfig()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">Reset</button>
+                        <button onclick="saveSystemSettings()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded text-sm font-bold">บันทึก & รีโหลด</button>
+                        <button onclick="resetConfig()"        class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">Reset</button>
                     </div>
                 </div>
                 <div class="bg-corp-lightBlue rounded-xl border border-slate-700 p-6 shadow-lg">
                     <h3 class="text-lg font-bold text-corp-gold mb-4 border-b border-slate-700 pb-2">📋 List Management</h3>
                     <div class="mb-4">
                         <label class="text-xs text-slate-400 block mb-1">Departments</label>
-                        <div class="flex gap-2 mb-2"><input id="new-dept" class="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs" placeholder="เพิ่มแผนก..."><button onclick="modifyList('depts','add', 'new-dept')" class="bg-green-600 px-3 rounded text-xs font-bold">Add</button></div>
+                        <div class="flex gap-2 mb-2"><input id="new-dept" class="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs" placeholder="เพิ่มแผนก..."><button onclick="modifyList('depts','add','new-dept')" class="bg-green-600 px-3 rounded text-xs font-bold">Add</button></div>
                         <ul id="list-depts" class="h-24 overflow-y-auto bg-slate-900 border border-slate-700 p-1 text-xs text-slate-300 rounded"><li class="text-center pt-8 text-slate-500">กำลังโหลด...</li></ul>
                     </div>
                     <div>
                         <label class="text-xs text-slate-400 block mb-1">Technicians</label>
-                        <div class="flex gap-2 mb-2"><input id="new-tech" class="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs" placeholder="เพิ่มช่าง..."><button onclick="modifyList('techs','add', 'new-tech')" class="bg-green-600 px-3 rounded text-xs font-bold">Add</button></div>
+                        <div class="flex gap-2 mb-2"><input id="new-tech" class="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs" placeholder="เพิ่มช่าง..."><button onclick="modifyList('techs','add','new-tech')" class="bg-green-600 px-3 rounded text-xs font-bold">Add</button></div>
                         <ul id="list-techs" class="h-24 overflow-y-auto bg-slate-900 border border-slate-700 p-1 text-xs text-slate-300 rounded"><li class="text-center pt-8 text-slate-500">กำลังโหลด...</li></ul>
                     </div>
                 </div>
             </div>
         </div>
-        
+
+        <!-- Status -->
         <div id="view-status" class="view-section hidden container mx-auto fade-in">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold text-white">📂 แฟ้มงานซ่อม</h2>
-                <input onkeyup="renderStatus(this.value)" placeholder="🔍 ค้นหา..." class="bg-slate-900 border border-slate-600 rounded-full px-4 py-2 text-sm w-64 focus:outline-none focus:border-corp-gold">
+                <input id="statusSearch" onkeyup="debouncedSearch(this.value)" placeholder="🔍 ค้นหา..." class="bg-slate-900 border border-slate-600 rounded-full px-4 py-2 text-sm w-64 focus:outline-none focus:border-corp-gold">
             </div>
             <div id="statusFolders" class="space-y-4 pb-10"></div>
         </div>
-        
+
+        <!-- Dashboard -->
         <div id="view-dashboard" class="view-section hidden container mx-auto fade-in">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div class="bg-corp-lightBlue p-4 rounded-xl border border-slate-700 shadow-lg"> <div class="text-slate-400 text-xs font-bold">TOTAL JOBS</div> <div class="text-3xl font-bold text-white mt-1" id="kpi-total">0</div> </div>
-                <div class="bg-corp-lightBlue p-4 rounded-xl border-l-4 border-yellow-500 shadow-lg"> <div class="text-slate-400 text-xs font-bold">WAITING</div> <div class="text-3xl font-bold text-yellow-400 mt-1" id="kpi-waiting">0</div> </div>
-                <div class="bg-corp-lightBlue p-4 rounded-xl border-l-4 border-blue-500 shadow-lg"> <div class="text-slate-400 text-xs font-bold">PROCESSING</div> <div class="text-3xl font-bold text-blue-400 mt-1" id="kpi-processing">0</div> </div>
-                <div class="bg-corp-lightBlue p-4 rounded-xl border-l-4 border-green-500 shadow-lg"> <div class="text-slate-400 text-xs font-bold">DONE</div> <div class="text-3xl font-bold text-green-400 mt-1" id="kpi-done">0</div> </div>
+                <div class="bg-corp-lightBlue p-4 rounded-xl border border-slate-700 shadow-lg"><div class="text-slate-400 text-xs font-bold">TOTAL JOBS</div><div class="text-3xl font-bold text-white mt-1"    id="kpi-total">0</div></div>
+                <div class="bg-corp-lightBlue p-4 rounded-xl border-l-4 border-yellow-500 shadow-lg"><div class="text-slate-400 text-xs font-bold">WAITING</div><div class="text-3xl font-bold text-yellow-400 mt-1" id="kpi-waiting">0</div></div>
+                <div class="bg-corp-lightBlue p-4 rounded-xl border-l-4 border-blue-500 shadow-lg"><div class="text-slate-400 text-xs font-bold">PROCESSING</div><div class="text-3xl font-bold text-blue-400 mt-1"  id="kpi-processing">0</div></div>
+                <div class="bg-corp-lightBlue p-4 rounded-xl border-l-4 border-green-500 shadow-lg"><div class="text-slate-400 text-xs font-bold">DONE</div><div class="text-3xl font-bold text-green-400 mt-1"     id="kpi-done">0</div></div>
             </div>
             <div class="bg-corp-lightBlue rounded-xl shadow-2xl border border-slate-700 overflow-hidden">
                 <div class="p-4 border-b border-slate-700 bg-slate-800 flex flex-col md:flex-row justify-between items-center gap-3">
@@ -181,7 +213,7 @@
                             <option value="Done">- รอตรวจสอบ/รอปิด (Done)</option>
                             <option value="Closed">✅ ปิดงานแล้ว (Closed)</option>
                         </select>
-                        <input id="adminSearchInput" onkeyup="applyAdminFilters()" placeholder="🔍 ค้นหางาน..." class="bg-slate-900 border border-slate-600 rounded-lg px-3 py-1 text-sm focus:outline-none focus:border-corp-gold w-full md:w-48">
+                        <input id="adminSearchInput" onkeyup="debouncedAdminSearch()" placeholder="🔍 ค้นหางาน..." class="bg-slate-900 border border-slate-600 rounded-lg px-3 py-1 text-sm focus:outline-none focus:border-corp-gold w-full md:w-48">
                     </div>
                 </div>
                 <div class="overflow-x-auto">
@@ -192,112 +224,90 @@
                 </div>
             </div>
         </div>
+
+        <!-- Statistics -->
         <div id="view-statistics" class="view-section hidden container mx-auto fade-in pb-10">
             <div class="bg-corp-lightBlue p-4 rounded-xl border border-slate-700 shadow-lg mb-6 flex flex-wrap gap-4 items-center justify-between">
                 <h2 class="text-xl font-bold text-corp-gold">📊 สถิติงานซ่อมบำรุง</h2>
                 <div class="flex gap-2">
-                    <select id="statYear" onchange="renderStatistics()" class="bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-corp-gold">
-                        </select>
+                    <select id="statYear"  onchange="renderStatistics()" class="bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-corp-gold"></select>
                     <select id="statMonth" onchange="renderStatistics()" class="bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-corp-gold">
                         <option value="all">ตลอดทั้งปี (ทั้งหมด)</option>
-                        <option value="01">มกราคม</option>
-                        <option value="02">กุมภาพันธ์</option>
-                        <option value="03">มีนาคม</option>
-                        <option value="04">เมษายน</option>
-                        <option value="05">พฤษภาคม</option>
-                        <option value="06">มิถุนายน</option>
-                        <option value="07">กรกฎาคม</option>
-                        <option value="08">สิงหาคม</option>
-                        <option value="09">กันยายน</option>
-                        <option value="10">ตุลาคม</option>
-                        <option value="11">พฤศจิกายน</option>
-                        <option value="12">ธันวาคม</option>
+                        <option value="01">มกราคม</option><option value="02">กุมภาพันธ์</option><option value="03">มีนาคม</option>
+                        <option value="04">เมษายน</option><option value="05">พฤษภาคม</option><option value="06">มิถุนายน</option>
+                        <option value="07">กรกฎาคม</option><option value="08">สิงหาคม</option><option value="09">กันยายน</option>
+                        <option value="10">ตุลาคม</option><option value="11">พฤศจิกายน</option><option value="12">ธันวาคม</option>
                     </select>
                 </div>
             </div>
-
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-corp-lightBlue p-5 rounded-xl border border-slate-700 shadow-lg">
-                    <h3 class="text-center font-bold text-white mb-4">จำนวนงานซ่อมแยกตามแผนก (งาน)</h3>
-                    <canvas id="chartCount"></canvas>
-                </div>
-                <div class="bg-corp-lightBlue p-5 rounded-xl border border-slate-700 shadow-lg">
-                    <h3 class="text-center font-bold text-white mb-4">ค่าใช้จ่ายรวมแยกตามแผนก (บาท)</h3>
-                    <canvas id="chartCost"></canvas>
-                </div>
+                <div class="bg-corp-lightBlue p-5 rounded-xl border border-slate-700 shadow-lg"><h3 class="text-center font-bold text-white mb-4">จำนวนงานซ่อมแยกตามแผนก (งาน)</h3><canvas id="chartCount"></canvas></div>
+                <div class="bg-corp-lightBlue p-5 rounded-xl border border-slate-700 shadow-lg"><h3 class="text-center font-bold text-white mb-4">ค่าใช้จ่ายรวมแยกตามแผนก (บาท)</h3><canvas id="chartCost"></canvas></div>
             </div>
         </div>
+
     </main>
 
-   <div id="adminModal" class="fixed inset-0 bg-black/80 hidden z-50 flex items-center justify-center backdrop-blur-sm">
+    <!-- Admin Edit Modal -->
+    <div id="adminModal" class="fixed inset-0 bg-black/80 hidden z-50 flex items-center justify-center backdrop-blur-sm">
         <div class="bg-corp-lightBlue w-full max-w-2xl rounded-xl border border-slate-600 shadow-2xl p-6 m-4 max-h-[90vh] overflow-y-auto">
             <h3 class="text-xl font-bold text-corp-gold mb-4 flex justify-between items-center">
                 <span>🔧 Manage Job (แก้ไขงาน)</span>
                 <span id="modalJobDisplay" class="text-sm font-mono text-slate-400"></span>
             </h3>
             <input type="hidden" id="modalJobId">
-
             <div class="bg-slate-900/50 border border-slate-700 rounded-lg p-4 mb-4">
                 <div class="flex justify-between items-center mb-2 cursor-pointer" onclick="document.getElementById('editUserSection').classList.toggle('hidden')">
                     <h4 class="text-sm font-bold text-blue-400">✏️ แก้ไขข้อมูลผู้แจ้ง / รูปก่อนซ่อม</h4>
                     <span class="text-xs text-slate-500">▼ Show/Hide</span>
                 </div>
-                
                 <div id="editUserSection" class="hidden space-y-3 mt-3 border-t border-slate-700 pt-3">
                     <div class="grid grid-cols-2 gap-3">
                         <div><label class="text-xs text-slate-400">ผู้แจ้ง</label><input id="edit-reqName" class="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200"></div>
-                        <div><label class="text-xs text-slate-400">แผนก</label><input id="edit-reqDept" class="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200"></div>
+                        <div><label class="text-xs text-slate-400">แผนก</label><input id="edit-reqDept"  class="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200"></div>
                     </div>
-                    <div><label class="text-xs text-slate-400">ชื่ออุปกรณ์</label><input id="edit-equip" class="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200"></div>
-                    <div><label class="text-xs text-slate-400">อาการเสีย</label><textarea id="edit-problem" rows="2" class="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200"></textarea></div>
-                    
+                    <div><label class="text-xs text-slate-400">ชื่ออุปกรณ์</label><textarea id="edit-equip"   class="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200"></textarea></div>
+                    <div><label class="text-xs text-slate-400">อาการเสีย</label><textarea  id="edit-problem" rows="2" class="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200"></textarea></div>
                     <div class="border border-dashed border-slate-600 rounded p-2 bg-slate-800/30">
-                         <label class="text-xs text-yellow-500 font-bold mb-1 block">📷 รูปก่อนซ่อม (Before Image)</label>
-                         <div class="flex items-center gap-3">
-                            <input type="file" id="edit-img-before" accept="image/*" class="text-xs text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-slate-700 file:text-white hover:file:bg-slate-600">
-                         </div>
+                        <label class="text-xs text-yellow-500 font-bold mb-1 block">📷 รูปก่อนซ่อม (Before Image)</label>
+                        <input type="file" id="edit-img-before" accept="image/*" class="text-xs text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-slate-700 file:text-white hover:file:bg-slate-600">
                     </div>
                 </div>
             </div>
-
             <div class="grid grid-cols-2 gap-4 mb-4">
                 <div><label class="text-xs text-slate-400">Status</label><select id="modalStatus" onchange="toggleAdminFields()" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white"><option>Waiting</option><option>Processing</option><option>Done</option><option>Closed</option></select></div>
                 <div><label class="text-xs text-slate-400">Technician</label><select id="modalTech" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white"></select></div>
             </div>
-            
             <div class="mb-4"><label class="text-xs text-slate-400">Admin Remarks (บันทึกช่าง)</label><textarea id="modalRemark" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white" rows="2"></textarea></div>
-            
             <div id="adminImageSection" class="hidden mb-4 border border-slate-600 rounded p-3 bg-slate-800/30">
                 <label class="text-xs text-green-400 font-bold mb-2 block">📷 Evidence (After Repair)</label>
                 <div class="flex items-center gap-3">
                     <button onclick="document.getElementById('adminImg').click()" class="text-xs bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded">Choose Image</button>
-                    <input type="file" id="adminImg" accept="image/*" class="hidden" onchange="previewImage(this, 'adminPreview')">
+                    <input type="file" id="adminImg" accept="image/*" class="hidden" onchange="previewImage(this,'adminPreview')">
                     <div class="text-xs text-slate-500">Upload to Drive (After)</div>
                 </div>
                 <img id="adminPreview" class="img-preview mt-2 max-h-24 border-slate-600">
             </div>
-
             <div id="costSection" class="hidden border-t border-slate-600 pt-4 bg-slate-800/50 p-4 rounded-lg mb-4">
                 <h4 class="text-green-400 font-bold mb-2 flex justify-between"><span>💰 Cost</span><span id="grandTotal">0.00 ฿</span></h4>
                 <div id="itemsContainer" class="space-y-2 mb-2"></div>
                 <button onclick="addItemRow()" class="text-xs bg-slate-700 hover:bg-slate-600 text-white px-2 py-1 rounded">+ Item</button>
                 <div class="mt-2"><label class="text-xs text-slate-400">Notes (รายละเอียดอะไหล่)</label><textarea id="modalNotes" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-xs text-white"></textarea></div>
             </div>
-
             <div id="dateUpdateSection" class="hidden border-t border-slate-600 pt-3 mb-4">
                 <label class="flex items-center gap-2 cursor-pointer bg-slate-800/50 p-3 rounded-lg border border-slate-600 hover:bg-slate-700 transition">
                     <input type="checkbox" id="modalUpdateDate" value="true" class="w-5 h-5 accent-corp-gold">
                     <span class="text-sm text-slate-300 font-medium">🕒 อัพเดทวันที่/เวลา ปิดจบงานเป็นปัจจุบัน <span class="text-slate-500 text-xs">(เว้นว่างไว้เพื่อใช้วันที่เดิม)</span></span>
                 </label>
             </div>
-
             <div class="flex justify-end gap-2 pt-4 border-t border-slate-700">
-                <button onclick="closeModal()" class="px-4 py-2 rounded text-slate-300 hover:bg-slate-700">Cancel</button>
-                <button onclick="saveJob()" class="bg-gradient-to-r from-corp-gold to-yellow-600 hover:from-yellow-500 text-corp-blue font-bold px-6 py-2 rounded shadow-lg">บันทึก (Save)</button>
+                <button onclick="closeModal()"  class="px-4 py-2 rounded text-slate-300 hover:bg-slate-700">Cancel</button>
+                <button onclick="saveJob()"     class="bg-gradient-to-r from-corp-gold to-yellow-600 hover:from-yellow-500 text-corp-blue font-bold px-6 py-2 rounded shadow-lg">บันทึก (Save)</button>
             </div>
         </div>
     </div>
-    
+
+    <!-- Detail Modal -->
     <div id="detailModal" class="modal-overlay" onclick="closeDetailModal()">
         <div class="bg-corp-lightBlue w-full max-w-md rounded-xl border border-slate-600 shadow-2xl overflow-hidden m-4 flex flex-col max-h-[90vh] animate-zoomIn" onclick="event.stopPropagation()">
             <div class="bg-slate-800 p-4 border-b border-slate-600 flex justify-between items-center sticky top-0 z-10">
@@ -309,19 +319,13 @@
             </div>
             <div class="p-5 overflow-y-auto space-y-4 text-sm">
                 <div class="flex justify-between items-center bg-slate-900/50 p-3 rounded-lg border border-slate-700">
-                    <div class="flex flex-col">
-                        <span class="text-xs text-slate-500">สถานะ (Status)</span>
-                        <span id="d-status" class="font-bold text-lg"></span>
-                    </div>
-                    <div class="text-right">
-                        <span class="text-xs text-slate-500 block">วันที่แจ้ง</span>
-                        <span id="d-date" class="text-white font-medium"></span>
-                    </div>
+                    <div class="flex flex-col"><span class="text-xs text-slate-500">สถานะ (Status)</span><span id="d-status" class="font-bold text-lg"></span></div>
+                    <div class="text-right"><span class="text-xs text-slate-500 block">วันที่แจ้ง</span><span id="d-date" class="text-white font-medium"></span></div>
                 </div>
                 <div>
                     <h4 class="text-corp-gold text-xs uppercase font-bold border-b border-slate-700 pb-1 mb-2">👤 ผู้แจ้งซ่อม</h4>
                     <div class="grid grid-cols-2 gap-y-2">
-                        <div><span class="text-slate-500 text-xs block">ชื่อ</span><span id="d-req" class="text-slate-200"></span></div>
+                        <div><span class="text-slate-500 text-xs block">ชื่อ</span><span id="d-req"   class="text-slate-200"></span></div>
                         <div><span class="text-slate-500 text-xs block">แผนก</span><span id="d-dept" class="text-slate-200"></span></div>
                         <div class="col-span-2"><span class="text-slate-500 text-xs block">ข้อมูลติดต่อกลับ</span><span id="d-phone" class="text-slate-200"></span></div>
                     </div>
@@ -331,31 +335,22 @@
                     <div class="space-y-2">
                         <div><span class="text-slate-500 text-xs block">ชื่ออุปกรณ์</span><span id="d-equip" class="text-white font-medium"></span></div>
                         <div><span class="text-slate-500 text-xs block">รหัส</span><span id="d-equipId" class="text-slate-200"></span></div>
-                        <div class="bg-slate-800 p-3 rounded border border-slate-700 mt-2">
-                            <span class="text-slate-500 text-xs block mb-1">อาการเสีย</span>
-                            <p id="d-prob" class="text-slate-200"></p>
-                        </div>
+                        <div class="bg-slate-800 p-3 rounded border border-slate-700 mt-2"><span class="text-slate-500 text-xs block mb-1">อาการเสีย</span><p id="d-prob" class="text-slate-200"></p></div>
                     </div>
                 </div>
                 <div id="d-admin-sec" class="hidden">
                     <h4 class="text-blue-400 text-xs uppercase font-bold border-b border-blue-900/50 pb-1 mb-2">🛠️ การดำเนินการ</h4>
                     <div class="space-y-2">
                         <div><span class="text-slate-500 text-xs block">ช่าง</span><span id="d-tech" class="text-slate-200"></span></div>
-                        <div class="bg-blue-900/20 p-3 rounded border border-blue-900/50">
-                            <span class="text-slate-500 text-xs block mb-1">หมายเหตุช่าง (Admin Remark)</span>
-                            <p id="d-remark" class="text-blue-200 italic"></p>
-                        </div>
-                        <div id="d-cost-box" class="flex justify-between items-center mt-2 border-t border-slate-700 pt-2">
-                            <span class="text-slate-400">ค่าใช้จ่าย:</span>
-                            <span id="d-cost" class="text-green-400 font-bold text-lg"></span>
-                        </div>
+                        <div class="bg-blue-900/20 p-3 rounded border border-blue-900/50"><span class="text-slate-500 text-xs block mb-1">หมายเหตุช่าง (Admin Remark)</span><p id="d-remark" class="text-blue-200 italic"></p></div>
+                        <div id="d-cost-box" class="flex justify-between items-center mt-2 border-t border-slate-700 pt-2"><span class="text-slate-400">ค่าใช้จ่าย:</span><span id="d-cost" class="text-green-400 font-bold text-lg"></span></div>
                     </div>
                 </div>
                 <div>
                     <h4 class="text-corp-gold text-xs uppercase font-bold border-b border-slate-700 pb-1 mb-2">📷 รูปภาพ</h4>
                     <div class="grid grid-cols-2 gap-3">
                         <div class="text-center"><span class="text-[10px] text-slate-500 block mb-1">ก่อนซ่อม</span><div id="d-img-before" class="h-24 bg-slate-800 rounded flex items-center justify-center border border-slate-700 text-slate-600 text-xs">ไม่มีรูป</div></div>
-                        <div class="text-center"><span class="text-[10px] text-slate-500 block mb-1">หลังซ่อม</span><div id="d-img-after" class="h-24 bg-slate-800 rounded flex items-center justify-center border border-slate-700 text-slate-600 text-xs">ยังไม่ดำเนินการ</div></div>
+                        <div class="text-center"><span class="text-[10px] text-slate-500 block mb-1">หลังซ่อม</span><div id="d-img-after"  class="h-24 bg-slate-800 rounded flex items-center justify-center border border-slate-700 text-slate-600 text-xs">ยังไม่ดำเนินการ</div></div>
                     </div>
                 </div>
                 <div id="d-verify-area" class="pt-2"></div>
@@ -366,686 +361,776 @@
         </div>
     </div>
 
+    <!-- ============================================================
+         JAVASCRIPT — optimised version
+         ============================================================ -->
     <script>
-        // --- CONFIG & STATE ---
-        let appData = {
-            reqs: [], 
-            lists: { depts: [], techs: [] },
-            isAdmin: false,
-            cfg: {
-                apiUrl: 'https://script.google.com/macros/s/AKfycbyO_WujuPwMEiUXYUeGHfVccP6exfzIOC2cgkJ_lPcWEfF9LdW_oD4597ofe9m8m2Fleg/exec',
-                folderBefore: '1W30HTKv8BDYJTQPYVNTsqeRLZo7pruRB',
-                folderAfter: '1sMkTHkkX7S6ngFPacQRhNMA7j2ESP1S5',
-                adminPass: '888',
-                jobId: { prefix: 'MTN', startNum: 1 } 
+    // ----------------------------------------------------------------
+    // CONFIG & STATE
+    // ----------------------------------------------------------------
+    const DEFAULT_CFG = {
+        apiUrl:       'https://script.google.com/macros/s/AKfycbyO_WujuPwMEiUXYUeGHfVccP6exfzIOC2cgkJ_lPcWEfF9LdW_oD4597ofe9m8m2Fleg/exec',
+        folderBefore: '1W30HTKv8BDYJTQPYVNTsqeRLZo7pruRB',
+        folderAfter:  '1sMkTHkkX7S6ngFPacQRhNMA7j2ESP1S5',
+        adminPass:    '888',
+        jobId:        { prefix: 'MTN', startNum: 1 }
+    };
+
+    const appData = {
+        reqs:    [],
+        lists:   { depts: [], techs: [] },
+        isAdmin: false,
+        cfg:     { ...DEFAULT_CFG }
+    };
+
+    // ----------------------------------------------------------------
+    // UTILITY — small helpers
+    // ----------------------------------------------------------------
+    const $ = id => document.getElementById(id);
+    const setText  = (id, val) => { const el = $(id); if (el) el.innerText = val ?? '-'; };
+    const setVal   = (id, val) => { const el = $(id); if (el) el.value   = val ?? ''; };
+
+    /** Debounce factory */
+    function debounce(fn, ms = 300) {
+        let t;
+        return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+    }
+
+    const debouncedSearch      = debounce(q => renderStatus(q));
+    const debouncedAdminSearch = debounce(() => applyAdminFilters());
+
+    // ----------------------------------------------------------------
+    // API — single caller with AbortController timeout
+    // ----------------------------------------------------------------
+    async function callApi(act, params = {}) {
+        if (!appData.cfg.apiUrl) throw new Error('ไม่พบ URL API');
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 120000); // s timeout
+        try {
+            const res = await fetch(appData.cfg.apiUrl, {
+                method: 'POST',
+                body:   JSON.stringify({ action: act, ...params }),
+                signal: ctrl.signal
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return await res.json();
+        } finally {
+            clearTimeout(timer);
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // IMAGE UTILS
+    // ----------------------------------------------------------------
+    /** Compress & base64 — max 800px, 0.6 quality */
+    function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            if (!file.type.startsWith('image/')) return reject('Not an image');
+            const reader = new FileReader();
+            reader.onerror = reject;
+            reader.onload = e => {
+                const img = new Image();
+                img.onerror = reject;
+                img.onload = () => {
+                    const MAX = 800;
+                    let { width: w, height: h } = img;
+                    if (w > h ? w > MAX : h > MAX) {
+                        if (w > h) { h = h * MAX / w; w = MAX; }
+                        else       { w = w * MAX / h; h = MAX; }
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w; canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    resolve(canvas.toDataURL('image/jpeg', 0.6));
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function previewImage(input, previewId) {
+        const file = input.files[0];
+        const el   = $(previewId);
+        if (!file) { el.src = ''; el.style.display = 'none'; return; }
+        const reader = new FileReader();
+        reader.onload = e => { el.src = e.target.result; el.style.display = 'block'; };
+        reader.readAsDataURL(file);
+    }
+
+    /** Convert any Google Drive share URL → direct lh3 URL */
+    function driveDirectUrl(url) {
+        if (!url) return null;
+        try {
+            let m = url.match(/\/d\/([-\w]+)/);
+            if (!m) m = url.match(/id=([-\w]+)/);
+            if (m) return `https://lh3.googleusercontent.com/d/${m[1]}=s4000`;
+        } catch (_) {}
+        return null;
+    }
+
+    function openImageViewer(url) {
+        if (!url) return;
+        $('imageViewerSrc').src = driveDirectUrl(url) || url;
+        $('imageViewerModal').style.display = 'flex';
+    }
+    function closeImageViewer() {
+        $('imageViewerModal').style.display = 'none';
+        $('imageViewerSrc').src = '';
+    }
+
+    // ----------------------------------------------------------------
+    // BOOTSTRAP
+    // ----------------------------------------------------------------
+    document.addEventListener('DOMContentLoaded', () => {
+        loadSettings();
+        // Parallel: fetch data + fetch lists at the same time
+        Promise.all([refreshData(true), loadLists()]);
+    });
+
+    // ----------------------------------------------------------------
+    // LIST MANAGEMENT
+    // ----------------------------------------------------------------
+    async function loadLists(manual = false) {
+        try {
+            const r = await callApi('getLists');
+            if (r.status === 'success') {
+                appData.lists = r.data;
+                renderLists();
+                renderDrops();
             }
+        } catch (e) {
+            console.warn('loadLists failed', e);
+        }
+        if (manual) Swal.close();
+    }
+
+    async function modifyList(type, act, id) {
+        const val = act === 'add' ? $(id).value.trim() : id;
+        if (!val) return;
+        Swal.showLoading();
+        try {
+            const r = await callApi('manageList', { type, act, value: val });
+            if (r.status !== 'success') throw new Error(r.message);
+            if (act === 'add') $(id).value = '';
+            await loadLists();
+            Swal.close();
+        } catch (e) {
+            Swal.fire('Error', String(e), 'error');
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // SUBMIT REQUEST
+    // ----------------------------------------------------------------
+    async function submitRequest(e) {
+        e.preventDefault();
+
+        const fileInput = $('reqImg');
+        if (!fileInput.files.length) {
+            return Swal.fire({
+                icon: 'warning', title: 'ข้อมูลไม่ครบถ้วน',
+                text: 'กรุณาแนบรูปภาพของอุปกรณ์หรือบริเวณที่ต้องการซ่อมแซม เพื่อเป็นข้อมูลประกอบการพิจารณาและดำเนินงาน',
+                background: '#1e293b', color: '#fff', confirmButtonColor: '#f59e0b'
+            });
+        }
+
+        const urg = document.querySelector('input[name="urgency"]:checked').value;
+
+        if (urg === 'High') {
+            const { isConfirmed } = await Swal.fire({
+                title: 'ยืนยันระดับความเร่งด่วนสูงสุด',
+                text: 'โปรดยืนยันว่าปัญหาดังกล่าวส่งผลกระทบโดยตรงต่อสายการผลิต หรือกระบวนการทำงานหลัก ซึ่งอาจก่อให้เกิดความสูญเสียหรือเสียผลประโยชน์ต่อบริษัทฯ ใช่หรือไม่?',
+                icon: 'warning', showCancelButton: true,
+                confirmButtonColor: '#ef4444', cancelButtonColor: '#475569',
+                confirmButtonText: 'ใช่, ขอยืนยันส่งข้อมูล', cancelButtonText: 'ยกเลิก',
+                background: '#1e293b', color: '#fff'
+            });
+            if (!isConfirmed) return;
+        }
+
+        const userPin = $('reqPin').value;
+        if (!userPin || userPin.length < 4) {
+            return Swal.fire('ข้อผิดพลาด', 'กรุณาตั้งรหัสยืนยันอย่างน้อย 4 หลัก', 'warning');
+        }
+
+        let imgData = '';
+        try { imgData = await fileToBase64(fileInput.files[0]); }
+        catch { return Swal.fire('ข้อผิดพลาดเกี่ยวกับรูปภาพ', 'ไม่สามารถประมวลผลรูปภาพได้', 'error'); }
+
+        const payload = {
+            requesterName:     $('reqName').value,
+            positionDept:      $('reqDept').value,
+            phoneNumber:       $('reqPhone').value,
+            equipId:           $('reqEquipId').value,
+            equipmentLocation: $('reqEquip').value,
+            problemDetails:    $('reqDetail').value,
+            urgency: urg, status: 'Waiting',
+            jobIdConfig: JSON.stringify(appData.cfg.jobId),
+            imageFile:   imgData,
+            folderId:    appData.cfg.folderBefore,
+            userPin
         };
 
-        // --- API CALLER ---
-        async function callApi(act, p={}) {
-            if(!appData.cfg.apiUrl) throw "ไม่พบ URL API";
-            const payload = { action: act, ...p };
-            const response = await fetch(appData.cfg.apiUrl, { method: 'POST', body: JSON.stringify(payload) });
-            return await response.json();
-        }
+        Swal.fire({ title: 'กำลังประมวลผล...', text: 'ระบบกำลังจัดส่งข้อมูล กรุณารอสักครู่', allowOutsideClick: false, didOpen: () => Swal.showLoading(), background: '#1e293b', color: '#fff' });
 
-        // --- IMAGE UTILS ---
-        function fileToBase64(file) {
-            return new Promise((resolve, reject) => {
-                if (!file.type.match('image.*')) { reject("File is not an image"); return; }
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = (event) => {
-                    const img = new Image();
-                    img.src = event.target.result;
-                    img.onload = () => {
-                        const maxWidth = 800; const maxHeight = 800;
-                        let width = img.width; let height = img.height;
-                        if (width > height) { if (width > maxWidth) { height *= maxWidth / width; width = maxWidth; } } 
-                        else { if (height > maxHeight) { width *= maxHeight / height; height = maxHeight; } }
-                        const canvas = document.createElement('canvas');
-                        canvas.width = width; canvas.height = height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
-                        resolve(canvas.toDataURL('image/jpeg', 0.6)); 
-                    };
-                    img.onerror = (error) => reject(error);
-                };
-                reader.onerror = (error) => reject(error);
+        try {
+            const r = await callApi('submit', payload);
+            if (r.status !== 'success') throw new Error(r.message);
+
+            $('requestForm').reset();
+            $('reqPreview').style.display = 'none';
+
+            let html = `<div class="text-left mt-2">
+                <p class="text-sm text-green-400 mb-2">ข้อมูลของท่านได้รับการจัดส่งเข้าสู่ระบบเรียบร้อยแล้ว</p>
+                <p class="mb-1">หมายเลขงาน (Job ID): <b class="text-corp-gold font-mono">${r.jobId}</b></p>
+                <p class="mb-3">รหัสยืนยันปิดงาน (PIN): <b class="text-yellow-400 font-mono tracking-widest">${userPin}</b></p>
+                <div class="bg-slate-800 p-3 rounded border border-slate-600">
+                    <p class="text-xs text-slate-300 leading-relaxed"><b>⚠️ ข้อกำหนดสำคัญ:</b><br>
+                    เมื่อเจ้าหน้าที่ดำเนินการซ่อมแซมเสร็จสิ้น โปรดเข้ามาตรวจสอบและใช้รหัส PIN เพื่อกดยืนยันการจบงานในเมนู <b class="text-corp-gold">"ติดตามงาน"</b></p>
+                </div></div>`;
+
+            let title = 'จัดส่งข้อมูลสำเร็จ', icon = 'success';
+            if (urg === 'Medium') {
+                title = '⚠️ จัดส่งข้อมูลสำเร็จ (ระดับด่วน)'; icon = 'warning';
+                html += `<div class="mt-4 text-sm bg-yellow-900/30 p-2 rounded border border-yellow-700">กรุณาติดต่อประสานงาน: <b class="text-yellow-400">098-279-9918</b></div>`;
+            }
+            if (urg === 'High') {
+                title = '🚨 จัดส่งข้อมูลสำเร็จ (ระดับด่วนมาก)'; icon = 'warning';
+                html += `<div class="mt-4 text-sm bg-red-900/30 p-2 rounded border border-red-700 text-red-300">กรุณาติดต่อเจ้าหน้าที่ทันที: <b class="text-white">098-279-9918</b></div>`;
+            }
+
+            await Swal.fire({ icon, title, html, background: '#1e293b', color: '#fff', confirmButtonColor: '#f59e0b' });
+            refreshData(true);
+            switchTab('status');
+        } catch (err) {
+            Swal.fire('ข้อผิดพลาด', 'ไม่สามารถจัดส่งข้อมูลได้: ' + String(err), 'error');
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // VERIFY / CLOSE JOB (User side)
+    // ----------------------------------------------------------------
+    async function verifyUserJob(jobId, correctPin) {
+        const { value: enteredPin } = await Swal.fire({
+            title: 'ยืนยันการจบงาน', text: 'กรุณาใส่รหัส PIN ที่คุณตั้งไว้ตอนแจ้งซ่อม',
+            input: 'password', inputPlaceholder: 'Enter PIN',
+            background: '#1e293b', color: '#fff', confirmButtonColor: '#22c55e', showCancelButton: true
+        });
+        if (!enteredPin) return;
+        if (String(enteredPin) !== String(correctPin)) return Swal.fire('รหัสไม่ถูกต้อง', 'กรุณาลองใหม่อีกครั้ง', 'error');
+
+        Swal.fire({ title: 'Verifying...', didOpen: () => Swal.showLoading() });
+        try {
+            const r = await callApi('update', { jobId, status: 'Closed', folderId: appData.cfg.folderAfter });
+            if (r.status === 'success') { refreshData(true); Swal.fire('สำเร็จ', 'ยืนยันจบงานเรียบร้อยแล้ว', 'success'); }
+        } catch (err) { Swal.fire('Error', String(err), 'error'); }
+    }
+
+    // ----------------------------------------------------------------
+    // FETCH DATA
+    // ----------------------------------------------------------------
+    async function refreshData(silent = false) {
+        if (!silent) Swal.showLoading();
+        try {
+            const r = await callApi('fetch');
+            if (r.status === 'success') {
+                appData.reqs = r.data;
+                renderStatus();
+                if (appData.isAdmin) renderAdmin();
+                updateDashboard();
+            }
+        } catch (e) { console.warn('refreshData failed', e); }
+        if (!silent) Swal.close();
+    }
+
+    // ----------------------------------------------------------------
+    // OPEN ADMIN MODAL
+    // ----------------------------------------------------------------
+    function openModal(id) {
+        const r = appData.reqs.find(x => x.jobID === id);
+        if (!r) return Swal.fire('Error', 'ไม่พบข้อมูลงาน', 'error');
+
+        $('modalJobId').value      = id;
+        $('modalJobDisplay').innerText = id;
+
+        setVal('edit-reqName',  r.requesterName);
+        setVal('edit-reqDept',  r.positionDept);
+        setVal('edit-equip',    r.equipmentLocation);
+        setVal('edit-problem',  r.problemDetails);
+        $('edit-img-before').value = '';
+
+        setVal('modalStatus', r.status);
+        setVal('modalTech',   r.technician);
+        setVal('modalRemark', r.adminRemarks);
+        setVal('modalNotes',  r.additionalNotes);
+
+        $('adminImg').value = '';
+        $('adminPreview').style.display = 'none';
+
+        // Render cost items
+        const container = $('itemsContainer');
+        container.innerHTML = '';
+        try {
+            const items = JSON.parse(r.itemsData);
+            if (items?.length) items.forEach(i => addItemRow(i.name, i.quantity, i.unitPrice));
+            else addItemRow();
+        } catch { addItemRow(); }
+
+        const isDoneOrClosed = r.status === 'Done' || r.status === 'Closed';
+        $('dateUpdateSection').classList.toggle('hidden', !isDoneOrClosed);
+        if (isDoneOrClosed) $('modalUpdateDate').checked = false;
+
+        toggleAdminFields();
+        $('adminModal').classList.remove('hidden');
+    }
+
+    // ----------------------------------------------------------------
+    // SAVE JOB
+    // ----------------------------------------------------------------
+    async function saveJob() {
+        const st = $('modalStatus').value;
+        let items = [], cost = 0;
+
+        if (st === 'Done' || st === 'Closed') {
+            document.querySelectorAll('.item-row').forEach(row => {
+                const n = row.querySelector('.i-n').value;
+                const q = +row.querySelector('.i-q').value;
+                const p = +row.querySelector('.i-p').value;
+                if (n) { const t = q * p; items.push({ name: n, quantity: q, unitPrice: p, total: t }); cost += t; }
             });
         }
 
-        function previewImage(input, previewId) {
-            const file = input.files[0];
-            const preview = document.getElementById(previewId);
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) { preview.src = e.target.result; preview.style.display = 'block'; }
-                reader.readAsDataURL(file);
-            } else { preview.src = ''; preview.style.display = 'none'; }
+        // Process images in parallel if both present
+        const [imgDataAfter, imgDataBefore] = await Promise.all([
+            $('adminImg').files[0]        ? fileToBase64($('adminImg').files[0]).catch(() => '')        : Promise.resolve(''),
+            $('edit-img-before').files[0] ? fileToBase64($('edit-img-before').files[0]).catch(() => '') : Promise.resolve('')
+        ]);
+
+        const payload = {
+            jobId:             $('modalJobId').value,
+            updateDateFlag:    $('modalUpdateDate')?.checked ?? false,
+            requesterName:     $('edit-reqName').value,
+            positionDept:      $('edit-reqDept').value,
+            equipmentLocation: $('edit-equip').value,
+            problemDetails:    $('edit-problem').value,
+            imageFileBefore:   imgDataBefore,
+            folderIdBefore:    appData.cfg.folderBefore,
+            status:            st,
+            technician:        $('modalTech').value,
+            adminRemarks:      $('modalRemark').value,
+            additionalNotes:   $('modalNotes').value,
+            cost, itemsData:   JSON.stringify(items),
+            imageFile:         imgDataAfter,
+            folderId:          appData.cfg.folderAfter
+        };
+
+        Swal.fire({ title: 'Saving...', text: 'Updating job info...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        try {
+            const r = await callApi('update', payload);
+            if (r.status !== 'success') throw new Error(r.message);
+            closeModal();
+            refreshData(true);
+            Swal.fire('Saved', 'บันทึกข้อมูลเรียบร้อยแล้ว', 'success');
+        } catch (e) { Swal.fire('Error', String(e), 'error'); }
+    }
+
+    // ----------------------------------------------------------------
+    // RENDERERS
+    // ----------------------------------------------------------------
+    function renderLists() {
+        ['depts', 'techs'].forEach(k => {
+            const list = appData.lists[k] || [];
+            const el   = $('list-' + k);
+            el.innerHTML = list.length
+                ? list.map(x => `<li class="flex justify-between border-b border-slate-700 p-1"><span>${x}</span><button onclick="modifyList('${k}','del','${x}')" class="text-red-400 font-bold px-2">×</button></li>`).join('')
+                : `<li class="text-center pt-8 text-slate-500">Empty</li>`;
+        });
+    }
+
+    function renderDrops() {
+        const opts = list => '<option value="">-- Select --</option>' + (list || []).map(x => `<option value="${x}">${x}</option>`).join('');
+        $('reqDept').innerHTML  = opts(appData.lists.depts);
+        $('modalTech').innerHTML = opts(appData.lists.techs);
+    }
+
+    // Pre-compute status badge HTML — avoids repeated inline ternary chains
+    const STATUS_BADGE = {
+        Waiting:    `<span class="inline-block px-2 py-1 rounded text-xs font-bold bg-yellow-900/30 text-yellow-400 border border-yellow-500/50 status-waiting">Waiting</span>`,
+        Processing: `<span class="inline-block px-2 py-1 rounded text-xs font-bold bg-blue-900/30 text-blue-400 border border-blue-500/50">Processing</span>`,
+        Done:       `<span class="inline-block px-2 py-1 rounded text-xs font-bold bg-green-900/30 text-green-400 border border-green-500/50 animate-pulse">Wait Verify</span>`,
+        Closed:     `<span class="inline-block px-2 py-1 rounded text-xs font-bold bg-green-500 text-slate-900">✅ Closed</span>`,
+        _default:   `<span class="inline-block px-2 py-1 rounded text-xs font-bold bg-slate-700 text-slate-400 border border-slate-600">`
+    };
+
+    function getBadge(status) {
+        return STATUS_BADGE[status] || (STATUS_BADGE._default + status + '</span>');
+    }
+
+    function getUrgClass(r) {
+        if (r.status === 'Done' || r.status === 'Closed') return 'bg-green-900/20 border-b border-green-800/50';
+        if (r.urgency === 'High')   return 'urgency-high-blink border-b border-slate-700';
+        if (r.urgency === 'Medium') return 'urgency-medium-blink border-b border-slate-700';
+        return 'bg-slate-900/40 border-b border-slate-800';
+    }
+
+    const thLocale = { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' };
+
+    function renderStatus(q = '') {
+        const container = $('statusFolders');
+        const q_lc = q.toLowerCase();
+        const filtered = q_lc
+            ? appData.reqs.filter(r => (r.jobID + r.requesterName + r.equipmentLocation).toLowerCase().includes(q_lc))
+            : appData.reqs;
+
+        if (!filtered.length) {
+            container.innerHTML = '<div class="text-center text-slate-500 py-10">ไม่พบข้อมูล (No Data)</div>';
+            return;
         }
 
-        function openImageViewer(url) {
-            if(!url) return;
-            let directUrl = url;
-            try {
-                let id = ""; let match = url.match(/\/d\/([-\w]+)/); 
-                if (match) id = match[1]; else { match = url.match(/id=([-\w]+)/); if (match) id = match[1]; }
-                if (id) directUrl = "https://lh3.googleusercontent.com/d/" + id + "=s4000";
-            } catch(e) {}
-            const modal = document.getElementById('imageViewerModal');
-            const img = document.getElementById('imageViewerSrc');
-            img.src = ""; img.src = directUrl; modal.style.display = 'flex';
-        }
-        function closeImageViewer() { document.getElementById('imageViewerModal').style.display = 'none'; document.getElementById('imageViewerSrc').src = ""; }
+        // Group by YYYY-MM using a Map for insertion-order preservation
+        const groups = new Map();
+        filtered.forEach(r => {
+            const key = (r.requestDate || '').substring(0, 7);
+            if (!groups.has(key)) groups.set(key, []);
+            groups.get(key).push(r);
+        });
 
-        // --- CORE FUNCTIONS ---
-        document.addEventListener('DOMContentLoaded', () => { loadSettings(); refreshData(true); loadLists(); });
+        // Sort months descending
+        const sorted = [...groups.entries()].sort((a, b) => b[0].localeCompare(a[0]));
 
-        async function loadLists(manual=false) {
-            if(manual) Swal.showLoading();
-            try {
-                const r = await callApi('getLists');
-                if(r.status==='success') { appData.lists = r.data; renderLists(); renderDrops(); if(manual) Swal.close(); }
-            } catch(e) {}
-        }
-
-        async function modifyList(type, act, id) {
-            const val = act==='add' ? document.getElementById(id).value.trim() : id;
-            if(!val) return;
-            Swal.showLoading();
-            try {
-                const r = await callApi('manageList', { type: type, act: act, value: val });
-                if(r.status==='success') { if(act==='add') document.getElementById(id).value=''; await loadLists(); Swal.close(); } 
-                else throw new Error(r.message);
-            } catch(e) { Swal.fire('Error', e.toString(), 'error'); }
-        }
-
-        // ==========================================
-        // ส่วนที่ได้รับการแก้ไข: ฟังก์ชัน Submit Request
-        // ==========================================
-        async function submitRequest(e) {
-            e.preventDefault();
-            
-            // 1. ตรวจสอบว่ามีการแนบรูปภาพหรือไม่
-            const fileInput = document.getElementById('reqImg');
-            if(fileInput.files.length === 0) {
-                return Swal.fire({
-                    icon: 'warning',
-                    title: 'ข้อมูลไม่ครบถ้วน',
-                    text: 'กรุณาแนบรูปภาพของอุปกรณ์หรือบริเวณที่ต้องการซ่อมแซม เพื่อเป็นข้อมูลประกอบการพิจารณาและดำเนินงาน',
-                    background: '#1e293b', color: '#fff', confirmButtonColor: '#f59e0b'
-                });
-            }
-
-            const urg = document.querySelector('input[name="urgency"]:checked').value;
-            
-            // 2. ดักจับและยืนยันเมื่อเลือกความเร่งด่วนระดับ "ด่วนมาก"
-            if(urg === 'High') {
-                const confirmHigh = await Swal.fire({
-                    title: 'ยืนยันระดับความเร่งด่วนสูงสุด',
-                    text: 'โปรดยืนยันว่าปัญหาดังกล่าวส่งผลกระทบโดยตรงต่อสายการผลิต หรือกระบวนการทำงานหลัก ซึ่งอาจก่อให้เกิดความสูญเสียหรือเสียผลประโยชน์ต่อบริษัทฯ ใช่หรือไม่?',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#ef4444',
-                    cancelButtonColor: '#475569',
-                    confirmButtonText: 'ใช่, ขอยืนยันส่งข้อมูล',
-                    cancelButtonText: 'ยกเลิก',
-                    background: '#1e293b', color: '#fff'
-                });
-                
-                // หากผู้ใช้งานกดยกเลิก ให้หยุดการทำงานของฟังก์ชันทันที
-                if(!confirmHigh.isConfirmed) {
-                    return; 
-                }
-            }
-
-            const userPin = document.getElementById('reqPin').value;
-            if(!userPin || userPin.length < 4) return Swal.fire('ข้อผิดพลาด', 'กรุณาตั้งรหัสยืนยันอย่างน้อย 4 หลัก', 'warning');
-
-            let imgData = "";
-            try { 
-                imgData = await fileToBase64(fileInput.files[0]); 
-            } catch(err) { 
-                return Swal.fire('ข้อผิดพลาดเกี่ยวกับรูปภาพ', 'ไม่สามารถประมวลผลรูปภาพได้', 'error'); 
-            }
-
-            const p = {
-                requesterName: document.getElementById('reqName').value,
-                positionDept: document.getElementById('reqDept').value,
-                phoneNumber: document.getElementById('reqPhone').value,
-                equipId: document.getElementById('reqEquipId').value,
-                equipmentLocation: document.getElementById('reqEquip').value,
-                problemDetails: document.getElementById('reqDetail').value,
-                urgency: urg, status: 'Waiting', 
-                jobIdConfig: JSON.stringify(appData.cfg.jobId), 
-                imageFile: imgData,
-                folderId: appData.cfg.folderBefore,
-                userPin: userPin 
-            };
-            
-            Swal.fire({ title: 'กำลังประมวลผล...', text: 'ระบบกำลังจัดส่งข้อมูล กรุณารอสักครู่', allowOutsideClick: false, didOpen: () => Swal.showLoading(), background: '#1e293b', color: '#fff' });
-            
-            try {
-                const r = await callApi('submit', p);
-                if(r.status==='success') {
-                    document.getElementById('requestForm').reset();
-                    document.getElementById('reqPreview').style.display = 'none';
-                    
-                    // 3. ปรับปรุงข้อความ Pop-up แจ้งเตือนเมื่อสำเร็จแบบเป็นทางการ
-                    let h = `<div class="text-left mt-2">
-                                <p class="text-sm text-green-400 mb-2">ข้อมูลของท่านได้รับการจัดส่งเข้าสู่ระบบเรียบร้อยแล้ว</p>
-                                <p class="mb-1">หมายเลขงาน (Job ID): <b class="text-corp-gold font-mono">${r.jobId}</b></p>
-                                <p class="mb-3">รหัสยืนยันปิดงาน (PIN): <b class="text-yellow-400 font-mono tracking-widest">${userPin}</b></p>
-                                <div class="bg-slate-800 p-3 rounded border border-slate-600">
-                                    <p class="text-xs text-slate-300 leading-relaxed"><b>⚠️ ข้อกำหนดสำคัญ:</b><br>เมื่อเจ้าหน้าที่ดำเนินการซ่อมแซมเสร็จสิ้น โปรดเข้ามาตรวจสอบและใช้รหัส PIN เพื่อกดยืนยันการจบงานในเมนู <b class="text-corp-gold">"ติดตามงาน"</b></p>
-                                </div>
-                             </div>`;
-                    
-                    let ti = 'จัดส่งข้อมูลสำเร็จ', ic = 'success';
-                    if(urg==='Medium') { 
-                        ti='⚠️ จัดส่งข้อมูลสำเร็จ (ระดับด่วน)'; 
-                        ic='warning'; 
-                        h+=`<div class="mt-4 text-sm bg-yellow-900/30 p-2 rounded border border-yellow-700">กรุณาติดต่อประสานงาน: <b class="text-yellow-400">098-279-9918</b></div>`; 
-                    }
-                    if(urg==='High') { 
-                        ti='🚨 จัดส่งข้อมูลสำเร็จ (ระดับด่วนมาก)'; 
-                        ic='warning'; 
-                        h+=`<div class="mt-4 text-sm bg-red-900/30 p-2 rounded border border-red-700 text-red-300">กรุณาติดต่อเจ้าหน้าที่ทันที: <b class="text-white">098-279-9918</b></div>`; 
-                    }
-                    
-                    Swal.fire({icon:ic, title:ti, html:h, background:'#1e293b', color:'#fff', confirmButtonColor:'#f59e0b'});
-                    refreshData(true); switchTab('status');
-                } else throw new Error(r.message);
-            } catch(e) { Swal.fire('ข้อผิดพลาด', 'ไม่สามารถจัดส่งข้อมูลได้: ' + e.toString(), 'error'); }
-        }
-
-        async function verifyUserJob(jobId, correctPin) {
-            const { value: enteredPin } = await Swal.fire({
-                title: 'ยืนยันการจบงาน',
-                text: "กรุณาใส่รหัส PIN ที่คุณตั้งไว้ตอนแจ้งซ่อม",
-                input: 'password', inputPlaceholder: 'Enter PIN',
-                background: '#1e293b', color: '#fff', confirmButtonColor: '#22c55e', showCancelButton: true
-            });
-            if (enteredPin) {
-                if(enteredPin == correctPin) {
-                      Swal.fire({title:'Verifying...', didOpen:()=>Swal.showLoading()});
-                      try {
-                          const p = { 
-                              jobId: jobId, 
-                              status: 'Closed', 
-                              folderId: appData.cfg.folderAfter 
-                          };
-                          const r = await callApi('update', p);
-                          if(r.status==='success') { refreshData(true); Swal.fire('สำเร็จ', 'ยืนยันจบงานเรียบร้อยแล้ว', 'success'); }
-                      } catch(e) { Swal.fire('Error', e.message, 'error'); }
-                } else { Swal.fire('รหัสไม่ถูกต้อง', 'กรุณาลองใหม่อีกครั้ง', 'error'); }
-            }
-        }
-
-        async function refreshData(s) {
-            if(!s) Swal.showLoading();
-            try {
-                const r = await callApi('fetch');
-                if(r.status==='success') { appData.reqs=r.data; renderStatus(); if(appData.isAdmin) renderAdmin(); updateDashboard(); if(!s) Swal.close(); }
-            } catch(e) {}
-        }
-
-        // --- OPEN MODAL (EDIT) ---
-        function openModal(id) {
-            const r = appData.reqs.find(x => x.jobID === id); 
-            if (!r) return Swal.fire('Error', 'ไม่พบข้อมูลงาน', 'error');
-
-            document.getElementById('modalJobId').value = id;
-            document.getElementById('modalJobDisplay').innerText = id;
-            
-            // --- ดึงข้อมูล User เดิมมาโชว์ ---
-            document.getElementById('edit-reqName').value = r.requesterName || '';
-            document.getElementById('edit-reqDept').value = r.positionDept || '';
-            document.getElementById('edit-equip').value = r.equipmentLocation || '';
-            document.getElementById('edit-problem').value = r.problemDetails || '';
-            document.getElementById('edit-img-before').value = ""; // Reset file input
-            // -----------------------------
-
-            document.getElementById('modalStatus').value = r.status;
-            document.getElementById('modalTech').value = r.technician;
-            document.getElementById('modalRemark').value = r.adminRemarks;
-            document.getElementById('modalNotes').value = r.additionalNotes;
-            
-            document.getElementById('adminImg').value = ''; 
-            document.getElementById('adminPreview').style.display = 'none';
-            document.getElementById('itemsContainer').innerHTML = '';
-
-            try { 
-                const items = JSON.parse(r.itemsData); 
-                if (items && items.length > 0) items.forEach(i => addItemRow(i.name, i.quantity, i.unitPrice)); 
-                else addItemRow(); 
-            } catch (e) { addItemRow(); }
-
-            // เพิ่มส่วนซ่อน/แสดง Checkbox วันที่
-            if (r.status === 'Done' || r.status === 'Closed') {
-                document.getElementById('dateUpdateSection').classList.remove('hidden');
-                document.getElementById('modalUpdateDate').checked = false; // ค่าเริ่มต้นคือไม่อัพเดท
-            } else {
-                document.getElementById('dateUpdateSection').classList.add('hidden');
-            }
-
-            toggleAdminFields(); 
-            document.getElementById('adminModal').classList.remove('hidden');
-        }
-
-        // --- SAVE JOB (UPDATE) ---
-        async function saveJob() {
-            const st = document.getElementById('modalStatus').value;
-            let it = [], cost = 0;
-            
-            if (st === 'Done' || st === 'Closed') {
-                document.querySelectorAll('.item-row').forEach(r => {
-                    const n = r.querySelector('.i-n').value, q = r.querySelector('.i-q').value, p = r.querySelector('.i-p').value;
-                    if (n) { const t = q * p; it.push({ name: n, quantity: q, unitPrice: p, total: t }); cost += t; }
-                });
-            }
-
-            const fileInputAfter = document.getElementById('adminImg');
-            let imgDataAfter = "";
-            if (fileInputAfter.files.length > 0) { try { imgDataAfter = await fileToBase64(fileInputAfter.files[0]); } catch (err) {} }
-
-            // --- จัดการรูปภาพ (Before) หากมีการอัปโหลดใหม่ ---
-            const fileInputBefore = document.getElementById('edit-img-before');
-            let imgDataBefore = "";
-            if (fileInputBefore.files.length > 0) { try { imgDataBefore = await fileToBase64(fileInputBefore.files[0]); } catch (err) {} }
-            // ---------------------------------------------
-
-            const p = {
-                jobId: document.getElementById('modalJobId').value,
-                
-                // ส่งค่าว่าต้องการอัพเดทวันที่จบงานหรือไม่
-                updateDateFlag: document.getElementById('modalUpdateDate') ? document.getElementById('modalUpdateDate').checked : false,
-
-                // --- ส่งข้อมูล User ที่แก้ไข ---
-                requesterName: document.getElementById('edit-reqName').value,
-                positionDept: document.getElementById('edit-reqDept').value,
-                equipmentLocation: document.getElementById('edit-equip').value,
-                problemDetails: document.getElementById('edit-problem').value,
-                imageFileBefore: imgDataBefore,
-                folderIdBefore: appData.cfg.folderBefore,
-                // ---------------------------
-
-                status: st,
-                technician: document.getElementById('modalTech').value,
-                adminRemarks: document.getElementById('modalRemark').value,
-                additionalNotes: document.getElementById('modalNotes').value,
-                cost: cost,
-                itemsData: JSON.stringify(it),
-                imageFile: imgDataAfter,
-                folderId: appData.cfg.folderAfter
-            };
-
-            Swal.fire({ title: 'Saving...', text: 'Updating job info...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-            
-            try { 
-                const r = await callApi('update', p); 
-                if (r.status === 'success') { 
-                    closeModal(); 
-                    refreshData(true); 
-                    Swal.fire('Saved', 'บันทึกข้อมูลเรียบร้อยแล้ว', 'success'); 
-                } else throw new Error(r.message); 
-            } catch (e) { 
-                Swal.fire('Error', e.toString(), 'error'); 
-            }
-        }
-
-        // --- RENDERERS ---
-        function renderLists() {
-            ['depts','techs'].forEach(k => {
-                const list = appData.lists[k] || [];
-                const el = document.getElementById('list-'+k);
-                el.innerHTML = list.length ? list.map(x => `<li class="flex justify-between border-b border-slate-700 p-1"><span>${x}</span><button onclick="modifyList('${k}','del','${x}')" class="text-red-400 font-bold px-2">×</button></li>`).join('') : `<li class="text-center pt-8 text-slate-500">Empty</li>`;
-            });
-        }
-        function renderDrops() {
-            const o = l => '<option value="">-- Select --</option>' + (l||[]).map(x=>`<option value="${x}">${x}</option>`).join('');
-            document.getElementById('reqDept').innerHTML=o(appData.lists.depts); document.getElementById('modalTech').innerHTML=o(appData.lists.techs);
-        }
-        
-       function renderStatus(q='') {
-            const c = document.getElementById('statusFolders'); 
-            c.innerHTML = '';
-            
-            const d = appData.reqs.filter(r => (r.jobID + r.requesterName + r.equipmentLocation).toLowerCase().includes(q.toLowerCase()));
-            
-            if (!d.length) return c.innerHTML = '<div class="text-center text-slate-500 py-10">ไม่พบข้อมูล (No Data)</div>';
-            
-            const g = d.reduce((a, r) => { 
-                const k = (r.requestDate || '').substring(0, 7); 
-                (a[k] = a[k] || []).push(r); 
-                return a; 
-            }, {});
-
-            Object.keys(g).sort().reverse().forEach((k, i) => {
-                const rows = g[k].map(r => {
-                    let sHtml = `<span class="inline-block px-2 py-1 rounded text-xs font-bold bg-slate-700 text-slate-400 border border-slate-600">${r.status}</span>`;
-                    if (r.status == 'Done') sHtml = `<span class="inline-block px-2 py-1 rounded text-xs font-bold bg-green-900/30 text-green-400 border border-green-500/50 animate-pulse">Wait Verify</span>`;
-                    else if (r.status == 'Closed') sHtml = `<span class="inline-block px-2 py-1 rounded text-xs font-bold bg-green-500 text-slate-900">✅ Closed</span>`;
-                    else if (r.status == 'Waiting') sHtml = `<span class="inline-block px-2 py-1 rounded text-xs font-bold bg-yellow-900/30 text-yellow-400 border border-yellow-500/50 status-waiting">Waiting</span>`;
-                    else if (r.status == 'Processing') sHtml = `<span class="inline-block px-2 py-1 rounded text-xs font-bold bg-blue-900/30 text-blue-400 border border-blue-500/50">Processing</span>`;
-
-                    let displayDetail = r.problemDetails;
-                    let isRemark = false;
-                    if (r.adminRemarks && r.adminRemarks.trim() !== "") { displayDetail = `💬 Note: ${r.adminRemarks}`; isRemark = true; }
-
-                    let dateStr = "-";
-                    try {
-                        dateStr = new Date(r.requestDate).toLocaleString('th-TH', { 
-                            day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit' 
-                        });
-                    } catch(e){}
-
-                    let urgClass = "bg-slate-900/40 border-b border-slate-800";
-                    
-                    if (r.status === 'Done' || r.status === 'Closed') {
-                        urgClass = "bg-green-900/20 border-b border-green-800/50"; 
-                    } else {
-                        if (r.urgency === 'Medium') urgClass = "urgency-medium-blink border-b border-slate-700";
-                        if (r.urgency === 'High') urgClass = "urgency-high-blink border-b border-slate-700";
-                    }
-
-                    return `
-                    <div onclick="openDetailModal('${r.jobID}')" class="p-4 hover:bg-slate-800/80 cursor-pointer transition active:bg-slate-700 group ${urgClass}">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-corp-gold font-mono text-xs tracking-wider opacity-80">${r.jobID}</span>
-                            <div>${sHtml}</div>
+        // Build HTML via array join (faster than repeated concatenation)
+        const html = sorted.map(([month, rows], idx) => {
+            const rowsHtml = rows.map(r => {
+                const hasRemark  = r.adminRemarks?.trim();
+                const detail     = hasRemark ? `💬 Note: ${r.adminRemarks}` : r.problemDetails;
+                const remarkCls  = hasRemark ? 'text-corp-gold italic border-corp-gold' : 'text-slate-400 border-slate-700';
+                let dateStr = '-';
+                try { dateStr = new Date(r.requestDate).toLocaleString('th-TH', thLocale); } catch (_) {}
+                return `<div onclick="openDetailModal('${r.jobID}')" class="p-4 hover:bg-slate-800/80 cursor-pointer transition active:bg-slate-700 group ${getUrgClass(r)}">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-corp-gold font-mono text-xs tracking-wider opacity-80">${r.jobID}</span>
+                        ${getBadge(r.status)}
+                    </div>
+                    <div class="mb-2"><span class="text-white font-bold text-sm block leading-relaxed break-words">${r.equipmentLocation}</span></div>
+                    <div class="text-xs ${remarkCls} break-words leading-relaxed border-l-2 pl-2 mb-3">${detail}</div>
+                    <div class="flex items-center gap-4 text-[11px] text-slate-500 border-t border-slate-800 pt-2 mt-2">
+                        <div class="flex items-center gap-1 overflow-hidden whitespace-nowrap text-ellipsis max-w-[50%]">
+                            <span class="opacity-70">👤</span>
+                            <span class="text-slate-300 font-medium truncate">${r.requesterName}</span>
                         </div>
-                        <div class="mb-2">
-                            <span class="text-white font-bold text-sm block leading-relaxed break-words">${r.equipmentLocation}</span>
-                        </div>
-                        <div class="text-xs ${isRemark ? 'text-corp-gold italic' : 'text-slate-400'} break-words leading-relaxed border-l-2 ${isRemark ? 'border-corp-gold' : 'border-slate-700'} pl-2 mb-3">
-                            ${displayDetail}
-                        </div>
-                        <div class="flex items-center gap-4 text-[11px] text-slate-500 border-t border-slate-800 pt-2 mt-2">
-                            <div class="flex items-center gap-1 overflow-hidden whitespace-nowrap text-ellipsis max-w-[50%]">
-                                <span class="opacity-70">👤</span> 
-                                <span class="text-slate-300 font-medium truncate">${r.requesterName}</span>
-                            </div>
-                            <div class="flex items-center gap-1 whitespace-nowrap">
-                                <span class="opacity-70">🕒</span> 
-                                <span class="text-slate-400">${dateStr}</span>
-                            </div>
-                        </div>
-                        <div class="mt-1 text-[10px] text-slate-600 flex justify-end items-center gap-1 group-hover:text-slate-400 transition">
-                            แตะเพื่อดูรายละเอียด <span class="text-lg">›</span>
-                        </div>
-                    </div>`;
-                }).join('');
-
-                c.innerHTML += `<div class="bg-slate-800 rounded-xl mb-4 border border-slate-700 overflow-hidden shadow-lg"><div onclick="this.nextElementSibling.classList.toggle('hidden')" class="p-3 font-bold cursor-pointer hover:bg-slate-700 flex justify-between items-center bg-gradient-to-r from-slate-800 to-slate-900 border-b border-slate-700"><span class="flex items-center gap-2 text-white">📁 ${k}</span><span class="text-xs bg-slate-600 px-2 py-1 rounded-full text-white">${g[k].length} งาน</span></div><div class="${(q || i == 0) ? '' : 'hidden'} bg-transparent">${rows}</div></div>`;
-            });
-        }
-        function renderAdmin() {
-            document.getElementById('adminTableBody').innerHTML = appData.reqs.map(r => {
-                let s='text-slate-400'; 
-                if(r.status=='Done') s='text-green-400 font-bold'; else if(r.status=='Closed') s='text-green-500 font-bold underline';
-                else if(r.status=='Waiting') s='status-waiting'; else if(r.status=='Processing') s='text-blue-400 font-bold';
-                
-                let trClass = "border-b border-slate-700 hover:bg-slate-800";
-                
-                if (r.status === 'Done' || r.status === 'Closed') {
-                    trClass = "border-b border-green-900 bg-green-900/10 hover:bg-green-900/20";
-                } else {
-                    if (r.urgency === 'Medium') trClass += " urgency-medium-blink";
-                    if (r.urgency === 'High') trClass += " urgency-high-blink";
-                }
-
-                return `<tr class="${trClass}" data-status="${r.status}"><td class="p-3"><button onclick="openModal('${r.jobID}')" class="bg-blue-600 px-2 py-1 rounded text-xs hover:bg-blue-500 transition">Edit</button></td><td class="p-3 font-mono text-xs">${r.jobID}</td><td class="p-3 text-sm">${r.requesterName}</td><td class="p-3 text-sm">${r.equipmentLocation}</td><td class="p-3 text-xs ${s}">${r.status}</td></tr>`
+                        <div class="flex items-center gap-1 whitespace-nowrap"><span class="opacity-70">🕒</span><span class="text-slate-400">${dateStr}</span></div>
+                    </div>
+                    <div class="mt-1 text-[10px] text-slate-600 flex justify-end items-center gap-1 group-hover:text-slate-400 transition">แตะเพื่อดูรายละเอียด <span class="text-lg">›</span></div>
+                </div>`;
             }).join('');
-            
-            if (typeof applyAdminFilters === 'function') applyAdminFilters();
-        }
 
-        function updateDashboard() {
-            const r = appData.reqs;
-            document.getElementById('kpi-total').innerText = r.length;
-            document.getElementById('kpi-waiting').innerText = r.filter(x => x.status === 'Waiting').length;
-            document.getElementById('kpi-processing').innerText = r.filter(x => x.status === 'Processing').length;
-            document.getElementById('kpi-done').innerText = r.filter(x => x.status === 'Done' || x.status === 'Closed').length;
-        }
+            const open = q || idx === 0 ? '' : 'hidden';
+            return `<div class="bg-slate-800 rounded-xl mb-4 border border-slate-700 overflow-hidden shadow-lg">
+                <div onclick="this.nextElementSibling.classList.toggle('hidden')" class="p-3 font-bold cursor-pointer hover:bg-slate-700 flex justify-between items-center bg-gradient-to-r from-slate-800 to-slate-900 border-b border-slate-700">
+                    <span class="flex items-center gap-2 text-white">📁 ${month}</span>
+                    <span class="text-xs bg-slate-600 px-2 py-1 rounded-full text-white">${rows.length} งาน</span>
+                </div>
+                <div class="${open} bg-transparent">${rowsHtml}</div>
+            </div>`;
+        }).join('');
 
-        // --- FILTER FUNCTION ---
-        function applyAdminFilters() {
-            const statusFilter = document.getElementById('adminStatusFilter').value;
-            const textFilter = document.getElementById('adminSearchInput').value.toLowerCase();
-            const rows = document.querySelectorAll('#adminTableBody tr');
+        container.innerHTML = html;
+    }
 
-            rows.forEach(r => {
-                const rowStatus = r.getAttribute('data-status');
-                const rowText = r.innerText.toLowerCase();
-                
-                let statusMatch = false;
-                if (statusFilter === 'All') {
-                    statusMatch = true;
-                } else if (statusFilter === 'Active') {
-                    statusMatch = (rowStatus !== 'Closed');
-                } else {
-                    statusMatch = (rowStatus === statusFilter);
-                }
+    function renderAdmin() {
+        const tbody = $('adminTableBody');
+        const rows  = appData.reqs.map(r => {
+            let sCls = 'text-slate-400';
+            if (r.status === 'Done')    sCls = 'text-green-400 font-bold';
+            if (r.status === 'Closed')  sCls = 'text-green-500 font-bold underline';
+            if (r.status === 'Waiting') sCls = 'status-waiting';
+            if (r.status === 'Processing') sCls = 'text-blue-400 font-bold';
 
-                const textMatch = rowText.includes(textFilter);
+            let trCls = 'border-b border-slate-700 hover:bg-slate-800';
+            if (r.status === 'Done' || r.status === 'Closed') trCls = 'border-b border-green-900 bg-green-900/10 hover:bg-green-900/20';
+            else if (r.urgency === 'High')   trCls += ' urgency-high-blink';
+            else if (r.urgency === 'Medium') trCls += ' urgency-medium-blink';
 
-                r.style.display = (statusMatch && textMatch) ? '' : 'none';
-            });
-        }
+            return `<tr class="${trCls}" data-status="${r.status}">
+                <td class="p-3"><button onclick="openModal('${r.jobID}')" class="bg-blue-600 px-2 py-1 rounded text-xs hover:bg-blue-500 transition">Edit</button></td>
+                <td class="p-3 font-mono text-xs">${r.jobID}</td>
+                <td class="p-3 text-sm">${r.requesterName}</td>
+                <td class="p-3 text-sm">${r.equipmentLocation}</td>
+                <td class="p-3 text-xs ${sCls}">${r.status}</td>
+            </tr>`;
+        });
+        tbody.innerHTML = rows.join('');
+        applyAdminFilters();
+    }
 
-        // --- DETAIL MODAL LOGIC ---
-        function openDetailModal(jobId) {
-            const r = appData.reqs.find(x => x.jobID === jobId);
-            if(!r) return;
-            const setTxt = (id, val) => document.getElementById(id).innerText = val || '-';
-            
-            setTxt('d-jobId', r.jobID); setTxt('d-date', new Date(r.requestDate).toLocaleString('th-TH'));
-            setTxt('d-req', r.requesterName); setTxt('d-dept', r.positionDept); setTxt('d-phone', r.phoneNumber);
-            setTxt('d-equip', r.equipmentLocation); setTxt('d-equipId', r.equipId); setTxt('d-prob', r.problemDetails);
+    function updateDashboard() {
+        const reqs = appData.reqs;
+        $('kpi-total').innerText      = reqs.length;
+        $('kpi-waiting').innerText    = reqs.filter(x => x.status === 'Waiting').length;
+        $('kpi-processing').innerText = reqs.filter(x => x.status === 'Processing').length;
+        $('kpi-done').innerText       = reqs.filter(x => x.status === 'Done' || x.status === 'Closed').length;
+    }
 
-            const sEl = document.getElementById('d-status'); sEl.innerText = r.status; sEl.className = 'font-bold text-lg ';
-            if(r.status === 'Waiting') sEl.classList.add('text-yellow-400', 'status-waiting');
-            else if(r.status === 'Processing') sEl.classList.add('text-blue-400');
-            else if(r.status === 'Done') sEl.classList.add('text-green-400');
-            else if(r.status === 'Closed') { sEl.classList.add('text-green-500'); sEl.innerText = '✅ Closed (Completed)'; }
+    // ----------------------------------------------------------------
+    // ADMIN FILTER
+    // ----------------------------------------------------------------
+    function applyAdminFilters() {
+        const sf  = $('adminStatusFilter').value;
+        const tf  = $('adminSearchInput').value.toLowerCase();
+        document.querySelectorAll('#adminTableBody tr').forEach(row => {
+            const s = row.dataset.status;
+            const statusOk =
+                sf === 'All'    ? true :
+                sf === 'Active' ? s !== 'Closed' :
+                s === sf;
+            const textOk = !tf || row.innerText.toLowerCase().includes(tf);
+            row.style.display = statusOk && textOk ? '' : 'none';
+        });
+    }
 
-            const admSec = document.getElementById('d-admin-sec');
-            if(r.status !== 'Waiting') {
-                admSec.classList.remove('hidden');
-                setTxt('d-tech', r.technician); setTxt('d-remark', r.adminRemarks || 'กำลังดำเนินการ...');
-                if(r.cost && r.cost > 0) {
-                    document.getElementById('d-cost-box').classList.remove('hidden'); document.getElementById('d-cost').innerText = parseFloat(r.cost).toLocaleString() + ' ฿';
-                } else { document.getElementById('d-cost-box').classList.add('hidden'); }
-            } else { admSec.classList.add('hidden'); }
+    // ----------------------------------------------------------------
+    // DETAIL MODAL
+    // ----------------------------------------------------------------
+    function openDetailModal(jobId) {
+        const r = appData.reqs.find(x => x.jobID === jobId);
+        if (!r) return;
 
-            const getDirectUrl = (url) => {
-               if(!url) return null;
-               try { let id = ""; let match = url.match(/\/d\/([-\w]+)/); if (match) id = match[1]; else { match = url.match(/id=([-\w]+)/); if (match) id = match[1]; } if (id) return "https://lh3.googleusercontent.com/d/" + id + "=s4000"; } catch(e) {} return null;
+        setText('d-jobId',  r.jobID);
+        setText('d-date',   new Date(r.requestDate).toLocaleString('th-TH'));
+        setText('d-req',    r.requesterName);
+        setText('d-dept',   r.positionDept);
+        setText('d-phone',  r.phoneNumber);
+        setText('d-equip',  r.equipmentLocation);
+        setText('d-equipId',r.equipId);
+        setText('d-prob',   r.problemDetails);
+
+        const sEl = $('d-status');
+        sEl.className = 'font-bold text-lg ';
+        sEl.innerText = r.status;
+        if (r.status === 'Waiting')    sEl.classList.add('text-yellow-400', 'status-waiting');
+        if (r.status === 'Processing') sEl.classList.add('text-blue-400');
+        if (r.status === 'Done')       sEl.classList.add('text-green-400');
+        if (r.status === 'Closed')     { sEl.classList.add('text-green-500'); sEl.innerText = '✅ Closed (Completed)'; }
+
+        const admSec = $('d-admin-sec');
+        if (r.status !== 'Waiting') {
+            admSec.classList.remove('hidden');
+            setText('d-tech',   r.technician);
+            setText('d-remark', r.adminRemarks || 'กำลังดำเนินการ...');
+            const costBox = $('d-cost-box');
+            if (r.cost && +r.cost > 0) {
+                costBox.classList.remove('hidden');
+                setText('d-cost', (+r.cost).toLocaleString() + ' ฿');
+            } else { costBox.classList.add('hidden'); }
+        } else { admSec.classList.add('hidden'); }
+
+        const setImg = (id, url, placeholder) => {
+            const div = $(id);
+            const direct = driveDirectUrl(url);
+            div.innerHTML = direct
+                ? `<img src="${direct}" class="h-full w-full object-cover rounded cursor-pointer hover:scale-105 transition" onclick="openImageViewer('${url}')">`
+                : `<span class="text-slate-600 text-xs">${placeholder}</span>`;
+        };
+        setImg('d-img-before', r.imageBefore, 'ไม่มีรูป');
+        setImg('d-img-after',  r.imageAfter,  'ไม่มีรูป');
+
+        const vDiv = $('d-verify-area');
+        vDiv.innerHTML = r.status === 'Done'
+            ? `<button onclick="closeDetailModal();verifyUserJob('${r.jobID}','${r.userPin||''}')" class="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 text-white font-bold py-3 rounded shadow-lg border border-green-400 mt-2 animate-pulse">🔒 ยืนยันจบงาน (Verify & Close)</button>`
+            : '';
+
+        $('detailModal').style.display = 'flex';
+    }
+    function closeDetailModal() { $('detailModal').style.display = 'none'; }
+
+    // ----------------------------------------------------------------
+    // SYSTEM SETTINGS
+    // ----------------------------------------------------------------
+    function loadSettings() {
+        const saved = JSON.parse(localStorage.getItem('maint_cfg_v15') || '{}');
+        appData.cfg = { ...DEFAULT_CFG, ...saved };
+        // Ensure nested objects are intact
+        if (!appData.cfg.folderBefore) appData.cfg.folderBefore = DEFAULT_CFG.folderBefore;
+        if (!appData.cfg.folderAfter)  appData.cfg.folderAfter  = DEFAULT_CFG.folderAfter;
+        if (!appData.cfg.jobId)        appData.cfg.jobId        = { ...DEFAULT_CFG.jobId };
+
+        setVal('setting-api-url',      appData.cfg.apiUrl);
+        setVal('setting-folder-before', appData.cfg.folderBefore);
+        setVal('setting-folder-after',  appData.cfg.folderAfter);
+        setVal('setting-id-prefix',     appData.cfg.jobId.prefix || 'MTN');
+        setVal('setting-id-start',      appData.cfg.jobId.startNum || 1);
+
+        updateIdPreview();
+        $('setting-id-prefix').addEventListener('input', updateIdPreview);
+        $('setting-id-start').addEventListener('input',  updateIdPreview);
+    }
+
+    function updateIdPreview() {
+        const p      = $('setting-id-prefix').value || 'XXX';
+        const s      = $('setting-id-start').value  || '1';
+        const padded = s.toString().padStart(4, '0');
+        $('id-preview').innerText = `${p}-${new Date().getFullYear()}-${padded}`;
+    }
+
+    function saveSystemSettings() {
+        appData.cfg.apiUrl       = $('setting-api-url').value.trim();
+        appData.cfg.folderBefore = $('setting-folder-before').value.trim();
+        appData.cfg.folderAfter  = $('setting-folder-after').value.trim();
+        appData.cfg.jobId = {
+            prefix:   $('setting-id-prefix').value.trim() || 'MTN',
+            startNum: parseInt($('setting-id-start').value.trim()) || 1
+        };
+        localStorage.setItem('maint_cfg_v15', JSON.stringify(appData.cfg));
+        location.reload();
+    }
+
+    function resetConfig() { localStorage.removeItem('maint_cfg_v15'); location.reload(); }
+
+    // ----------------------------------------------------------------
+    // AUTH
+    // ----------------------------------------------------------------
+    function showLoginModal() {
+        Swal.fire({ title: 'Admin', input: 'password', background: '#1e293b', color: '#fff' }).then(({ value }) => {
+            if (value === appData.cfg.adminPass) {
+                appData.isAdmin = true;
+                document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
+                $('btnLogin').classList.add('hidden');
+                $('btnLogout').classList.remove('hidden');
+                switchTab('settings');
+            } else if (value) {
+                Swal.fire('Error', 'รหัสผิด', 'error');
             }
-            const setImg = (id, url, label) => {
-                const div = document.getElementById(id);
-                if(url) div.innerHTML = `<img src="${url}" class="h-full w-full object-cover rounded cursor-pointer hover:scale-105 transition" onclick="openImageViewer('${url}')">`;
-                else div.innerHTML = `<span class="text-slate-600 text-xs">${label}</span>`;
-            };
-            setImg('d-img-before', getDirectUrl(r.imageBefore), 'ไม่มีรูป'); setImg('d-img-after', getDirectUrl(r.imageAfter), 'ไม่มีรูป');
+        });
+    }
 
-            const vDiv = document.getElementById('d-verify-area'); vDiv.innerHTML = '';
-            if(r.status === 'Done') {
-                vDiv.innerHTML = `<button onclick="closeDetailModal(); verifyUserJob('${r.jobID}', '${r.userPin || ''}')" class="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 text-white font-bold py-3 rounded shadow-lg border border-green-400 mt-2 animate-pulse">🔒 ยืนยันจบงาน (Verify & Close)</button>`;
-            }
-            document.getElementById('detailModal').style.display = 'flex';
+    function logout() { location.reload(); }
+
+    // ----------------------------------------------------------------
+    // TAB SWITCHING
+    // ----------------------------------------------------------------
+    function switchTab(id) {
+        document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.tab-btn').forEach(el => {
+            el.classList.remove('text-corp-gold', 'border-corp-gold');
+            el.classList.add('text-slate-400');
+            el.style.borderBottomColor = '';
+        });
+        $('view-' + id).classList.remove('hidden');
+        const btn = $('tab-' + id);
+        btn.classList.remove('text-slate-400');
+        btn.classList.add('text-corp-gold', 'border-corp-gold');
+        if (id === 'dashboard')  { refreshData(true); }
+        if (id === 'statistics') { renderStatistics(); }
+    }
+
+    // ----------------------------------------------------------------
+    // MODAL HELPERS
+    // ----------------------------------------------------------------
+    function closeModal() { $('adminModal').classList.add('hidden'); }
+
+    function toggleAdminFields() {
+        const st = $('modalStatus').value;
+        const isDone = st === 'Done' || st === 'Closed';
+        $('costSection').style.display        = isDone ? 'block' : 'none';
+        $('adminImageSection').style.display  = (isDone || st === 'Processing') ? 'block' : 'none';
+    }
+
+    function addItemRow(n = '', q = 1, p = 0) {
+        const div = document.createElement('div');
+        div.className = 'grid grid-cols-6 gap-2 item-row';
+        div.innerHTML = `<input class="col-span-3 bg-slate-900 border border-slate-600 rounded px-1 i-n" value="${n}">
+            <input type="number" class="col-span-1 bg-slate-900 border border-slate-600 rounded px-1 i-q" value="${q}" oninput="calcTotal()">
+            <input type="number" class="col-span-1 bg-slate-900 border border-slate-600 rounded px-1 i-p" value="${p}" oninput="calcTotal()">
+            <button onclick="this.parentElement.remove();calcTotal()" class="text-red-400">×</button>`;
+        $('itemsContainer').appendChild(div);
+        calcTotal();
+    }
+
+    function calcTotal() {
+        let total = 0;
+        document.querySelectorAll('.item-row').forEach(row => {
+            total += +row.querySelector('.i-q').value * +row.querySelector('.i-p').value;
+        });
+        $('grandTotal').innerText = total.toFixed(2) + ' ฿';
+    }
+
+    // ----------------------------------------------------------------
+    // STATISTICS
+    // ----------------------------------------------------------------
+    let chartCountInstance = null;
+    let chartCostInstance  = null;
+
+    function initStatFilters() {
+        const years = new Set(appData.reqs
+            .map(r => r.requestDate ? new Date(r.requestDate).getFullYear() : null)
+            .filter(Boolean));
+        if (!years.size) years.add(new Date().getFullYear());
+
+        const cur = new Date().getFullYear();
+        const sel = $('statYear');
+        sel.innerHTML = '<option value="all">รวมทุกปี</option>' +
+            [...years].sort().reverse().map(y => `<option value="${y}"${y === cur ? ' selected' : ''}>ปี ${y}</option>`).join('');
+    }
+
+    const CHART_OPTS = {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, ticks: { color: '#94a3b8' }, grid: { color: '#334155' } },
+            x: { ticks: { color: '#e2e8f0', font: { family: 'Sarabun' } }, grid: { display: false } }
         }
-        function closeDetailModal() { document.getElementById('detailModal').style.display = 'none'; }
+    };
 
-        // --- SYSTEM ---
-        function loadSettings() {
-            const c = JSON.parse(localStorage.getItem('maint_cfg_v15')||'{}');
-            appData.cfg = {...appData.cfg, ...c};
-            if(!appData.cfg.folderBefore) appData.cfg.folderBefore = '1W30HTKv8BDYJTQPYVNTsqeRLZo7pruRB';
-            if(!appData.cfg.folderAfter) appData.cfg.folderAfter = '1sMkTHkkX7S6ngFPacQRhNMA7j2ESP1S5';
-            if(!appData.cfg.jobId) appData.cfg.jobId = { prefix: 'MTN', startNum: 1 };
-            document.getElementById('setting-api-url').value = appData.cfg.apiUrl;
-            document.getElementById('setting-folder-before').value = appData.cfg.folderBefore;
-            document.getElementById('setting-folder-after').value = appData.cfg.folderAfter;
-            document.getElementById('setting-id-prefix').value = appData.cfg.jobId.prefix || 'MTN';
-            document.getElementById('setting-id-start').value = appData.cfg.jobId.startNum || 1;
-            updateIdPreview();
-            document.getElementById('setting-id-prefix').addEventListener('input', updateIdPreview);
-            document.getElementById('setting-id-start').addEventListener('input', updateIdPreview);
-        }
-        function updateIdPreview() {
-            const p = document.getElementById('setting-id-prefix').value || 'XXX'; const s = document.getElementById('setting-id-start').value || '1';
-            const y = new Date().getFullYear(); const padded = s.toString().padStart(4, '0');
-            document.getElementById('id-preview').innerText = `${p}-${y}-${padded}`;
-        }
-        function saveSystemSettings() {
-            appData.cfg.apiUrl = document.getElementById('setting-api-url').value.trim();
-            appData.cfg.folderBefore = document.getElementById('setting-folder-before').value.trim();
-            appData.cfg.folderAfter = document.getElementById('setting-folder-after').value.trim();
-            appData.cfg.jobId = { prefix: document.getElementById('setting-id-prefix').value.trim() || 'MTN', startNum: parseInt(document.getElementById('setting-id-start').value.trim()) || 1 };
-            localStorage.setItem('maint_cfg_v15', JSON.stringify(appData.cfg)); location.reload();
-        }
-        function resetConfig() { localStorage.removeItem('maint_cfg_v15'); location.reload(); }
-        function showLoginModal() {
-            Swal.fire({title:'Admin', input:'password', background:'#1e293b', color:'#fff'}).then((r) => {
-                if(r.value===appData.cfg.adminPass) { appData.isAdmin=true; document.querySelectorAll('.admin-only').forEach(e=>e.classList.remove('hidden')); document.getElementById('btnLogin').classList.add('hidden'); document.getElementById('btnLogout').classList.remove('hidden'); switchTab('settings'); } 
-                else if(r.value) Swal.fire('Error','รหัสผิด','error');
-            });
-        }
-        function switchTab(id) {
-            document.querySelectorAll('.view-section').forEach(e=>e.classList.add('hidden')); document.querySelectorAll('.tab-btn').forEach(e=>e.classList.replace('text-corp-gold','text-slate-400'));
-            document.getElementById('view-'+id).classList.remove('hidden'); document.getElementById('tab-'+id).classList.replace('text-slate-400','text-corp-gold');
-            if(id==='dashboard') { refreshData(true); }
-            if(id==='statistics') { renderStatistics(); }
-        }
-        function logout() { location.reload(); }
-        
-        function closeModal() { document.getElementById('adminModal').classList.add('hidden'); }
-        function toggleAdminFields() { 
-            const st = document.getElementById('modalStatus').value;
-            document.getElementById('costSection').style.display= (st==='Done' || st==='Closed')?'block':'none'; 
-            document.getElementById('adminImageSection').style.display= (st==='Done' || st==='Processing' || st==='Closed')?'block':'none';
-        }
-        function addItemRow(n='',q=1,p=0) {
-            const d=document.createElement('div'); d.className='grid grid-cols-6 gap-2 item-row';
-            d.innerHTML=`<input class="col-span-3 bg-slate-900 border border-slate-600 rounded px-1 i-n" value="${n}"><input type="number" class="col-span-1 bg-slate-900 border border-slate-600 rounded px-1 i-q" value="${q}" onchange="calcTotal()"><input type="number" class="col-span-1 bg-slate-900 border border-slate-600 rounded px-1 i-p" value="${p}" onchange="calcTotal()"><button onclick="this.parentElement.remove();calcTotal()" class="text-red-400">×</button>`;
-            document.getElementById('itemsContainer').appendChild(d); calcTotal();
-        }
-        function calcTotal() {
-            let t=0; document.querySelectorAll('.item-row').forEach(r => t += r.querySelector('.i-q').value * r.querySelector('.i-p').value);
-            document.getElementById('grandTotal').innerText = t.toFixed(2) + ' ฿';
-        }
-        // --- STATISTICS CHART LOGIC ---
-        let chartCountInstance = null;
-        let chartCostInstance = null;
+    function renderStatistics() {
+        if ($('statYear').options.length <= 1) initStatFilters();
 
-        function initStatFilters() {
-            const years = new Set();
-            appData.reqs.forEach(r => {
-                if (r.requestDate) {
-                    const y = new Date(r.requestDate).getFullYear();
-                    if(!isNaN(y)) years.add(y);
-                }
-            });
-            const yearSelect = document.getElementById('statYear');
-            yearSelect.innerHTML = '<option value="all">รวมทุกปี</option>';
-            
-            const currentYear = new Date().getFullYear();
-            if(years.size === 0) years.add(currentYear); // เผื่อกรณีไม่มีข้อมูลเลย
-            
-            Array.from(years).sort().reverse().forEach(y => {
-                yearSelect.innerHTML += `<option value="${y}" ${y === currentYear ? 'selected' : ''}>ปี ${y}</option>`;
-            });
-        }
+        const yf = $('statYear').value;
+        const mf = $('statMonth').value;
 
-        function renderStatistics() {
-            // เติมตัวเลือกปีอัตโนมัติหากยังไม่มี
-            if (document.getElementById('statYear').options.length <= 1) initStatFilters();
+        const deptStats = Object.create(null);
 
-            const yearFilter = document.getElementById('statYear').value;
-            const monthFilter = document.getElementById('statMonth').value;
+        appData.reqs.forEach(r => {
+            if (!r.requestDate) return;
+            const d = new Date(r.requestDate);
+            const y = d.getFullYear().toString();
+            const m = (d.getMonth() + 1).toString().padStart(2, '0');
+            if (yf !== 'all' && y !== yf) return;
+            if (mf !== 'all' && m !== mf) return;
 
-            const deptStats = {};
+            const dept = r.positionDept || 'ไม่ระบุแผนก';
+            if (!deptStats[dept]) deptStats[dept] = { count: 0, cost: 0 };
+            deptStats[dept].count++;
+            deptStats[dept].cost += parseFloat(r.cost) || 0;
+        });
 
-            // 1. คัดกรองและประมวลผลข้อมูล
-            appData.reqs.forEach(r => {
-                if(!r.requestDate) return;
-                const d = new Date(r.requestDate);
-                const y = d.getFullYear().toString();
-                const m = (d.getMonth() + 1).toString().padStart(2, '0');
+        const byCount = Object.keys(deptStats).sort((a, b) => deptStats[b].count - deptStats[a].count);
+        const byCost  = Object.keys(deptStats).sort((a, b) => deptStats[b].cost  - deptStats[a].cost);
 
-                // กรองตาม ปี และ เดือน
-                if (yearFilter !== 'all' && y !== yearFilter) return;
-                if (monthFilter !== 'all' && m !== monthFilter) return;
+        // Destroy & recreate charts
+        chartCountInstance?.destroy();
+        chartCostInstance?.destroy();
 
-                const dept = r.positionDept || 'ไม่ระบุแผนก';
-                if (!deptStats[dept]) deptStats[dept] = { count: 0, cost: 0 };
-                
-                deptStats[dept].count += 1;
-                deptStats[dept].cost += parseFloat(r.cost) || 0;
-            });
+        chartCountInstance = new Chart($('chartCount').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: byCount,
+                datasets: [{ label: 'จำนวนงาน (งาน)', data: byCount.map(l => deptStats[l].count),
+                    backgroundColor: 'rgba(59,130,246,0.8)', borderColor: 'rgb(37,99,235)', borderWidth: 1, borderRadius: 4 }]
+            },
+            options: CHART_OPTS
+        });
 
-            // 2. จัดเรียงข้อมูลจากมากไปน้อยเพื่อนำไปแสดงกราฟ
-            // - กราฟจำนวนงาน (เรียงตามจำนวนงาน)
-            const sortedByCount = Object.keys(deptStats).sort((a,b) => deptStats[b].count - deptStats[a].count);
-            const labelsCount = sortedByCount;
-            const dataCount = sortedByCount.map(l => deptStats[l].count);
-
-            // - กราฟค่าใช้จ่าย (เรียงตามค่าใช้จ่ายรวม)
-            const sortedByCost = Object.keys(deptStats).sort((a,b) => deptStats[b].cost - deptStats[a].cost);
-            const labelsCost = sortedByCost;
-            const dataCost = sortedByCost.map(l => deptStats[l].cost);
-
-            // Setting สีสำหรับกราฟ (Dark Mode Compatible)
-            const chartOptions = {
-                responsive: true,
-                plugins: { legend: { display: false } }, // ซ่อน Label ป้ายกำกับใหญ่
-                scales: {
-                    y: { beginAtZero: true, ticks: { color: '#94a3b8' }, grid: { color: '#334155' } },
-                    x: { ticks: { color: '#e2e8f0', font: { family: 'Sarabun' } }, grid: { display: false } }
-                }
-            };
-
-            // 3. วาดกราฟ: จำนวนงานซ่อม
-            const ctxCount = document.getElementById('chartCount').getContext('2d');
-            if(chartCountInstance) chartCountInstance.destroy();
-            chartCountInstance = new Chart(ctxCount, {
-                type: 'bar',
-                data: {
-                    labels: labelsCount,
-                    datasets: [{
-                        label: 'จำนวนงาน (งาน)',
-                        data: dataCount,
-                        backgroundColor: 'rgba(59, 130, 246, 0.8)', // Blue-500
-                        borderColor: 'rgb(37, 99, 235)',
-                        borderWidth: 1,
-                        borderRadius: 4
-                    }]
-                },
-                options: chartOptions
-            });
-
-            // 4. วาดกราฟ: ค่าใช้จ่าย
-            const ctxCost = document.getElementById('chartCost').getContext('2d');
-            if(chartCostInstance) chartCostInstance.destroy();
-            chartCostInstance = new Chart(ctxCost, {
-                type: 'bar',
-                data: {
-                    labels: labelsCost,
-                    datasets: [{
-                        label: 'ค่าใช้จ่าย (บาท)',
-                        data: dataCost,
-                        backgroundColor: 'rgba(245, 158, 11, 0.8)', // Gold/Amber-500
-                        borderColor: 'rgb(217, 119, 6)',
-                        borderWidth: 1,
-                        borderRadius: 4
-                    }]
-                },
-                options: chartOptions
-            });
-        }
+        chartCostInstance = new Chart($('chartCost').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: byCost,
+                datasets: [{ label: 'ค่าใช้จ่าย (บาท)', data: byCost.map(l => deptStats[l].cost),
+                    backgroundColor: 'rgba(245,158,11,0.8)', borderColor: 'rgb(217,119,6)', borderWidth: 1, borderRadius: 4 }]
+            },
+            options: CHART_OPTS
+        });
+    }
     </script>
 </body>
 </html>
