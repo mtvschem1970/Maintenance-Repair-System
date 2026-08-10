@@ -3,11 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maintenance System</title>
-    <script src="./tailwind.js"></script>
+    <title>Maintenance System (Pittawad Powered)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- ไลบรารีสำหรับสร้างและดาวน์โหลดไฟล์ Excel (ExcelJS & FileSaver) ระดับโปร -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Firebase V9 Compat SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+
     <script>
         tailwind.config = {
             theme: {
@@ -55,7 +67,6 @@
         .modal-content-img { max-width: 95%; max-height: 95%; position: relative; animation: zoomIn 0.3s ease; text-align: center; }
         .modal-close-img { position: absolute; top: -40px; right: 0; color: white; font-size: 30px; cursor: pointer; font-weight: bold; text-shadow: 0 0 5px black; }
 
-        /* Fade-in for views */
         .fade-in { animation: fadeIn 0.18s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
     </style>
@@ -77,13 +88,13 @@
                 <div class="bg-white rounded p-1 shadow-md h-12 w-12 flex items-center justify-center overflow-hidden"><span class="text-2xl">🛠️</span></div>
                 <div>
                     <h1 class="text-xl font-bold text-white">MAINTENANCE SYSTEM</h1>
-                    <p class="text-xs text-corp-gold font-medium tracking-wider uppercase">Vschem1970 (Phra samut chedi)</p>
+                    <p class="text-xs text-corp-gold font-medium tracking-wider uppercase">Vschem1970 (Powered by Firebase)</p>
                 </div>
             </div>
             <div class="flex items-center space-x-3">
                 <button onclick="refreshData()" class="p-2 rounded-full hover:bg-slate-700 transition text-slate-400 hover:text-white" title="Refresh">🔄</button>
                 <button id="btnLogin"  onclick="showLoginModal()" class="bg-corp-gold text-corp-blue font-bold py-2 px-4 rounded-md shadow-md flex items-center gap-2">🔐 Admin</button>
-                <button id="btnLogout" onclick="logout()"          class="hidden bg-red-600 text-white font-bold py-2 px-4 rounded-md shadow-md flex items-center gap-2">🚪 Logout</button>
+                <button id="btnLogout" onclick="logout()"         class="hidden bg-red-600 text-white font-bold py-2 px-4 rounded-md shadow-md flex items-center gap-2">🚪 Logout</button>
             </div>
         </div>
     </header>
@@ -127,7 +138,7 @@
                         <div class="border border-dashed border-slate-600 rounded-lg p-4 text-center hover:bg-slate-800 transition cursor-pointer relative" onclick="document.getElementById('reqImg').click()">
                             <input type="file" id="reqImg" accept="image/*" class="hidden" onchange="previewImage(this,'reqPreview')">
                             <span class="text-corp-gold font-bold">📷 แตะเพื่อแนบรูปภาพ (ก่อนซ่อม)</span>
-                            <p class="text-xs text-slate-500 mt-1">อัปโหลดไปยัง Google Drive</p>
+                            <p class="text-xs text-slate-500 mt-1">อัปโหลดไปยัง Firebase Storage ทันที</p>
                             <img id="reqPreview" class="img-preview mx-auto">
                         </div>
                         <div><label class="block text-sm text-slate-400 mb-1">รายละเอียดปัญหา</label><textarea id="reqDetail" rows="4" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"></textarea></div>
@@ -149,23 +160,18 @@
         <div id="view-settings" class="view-section hidden max-w-5xl mx-auto fade-in">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div class="bg-corp-lightBlue rounded-xl border border-slate-700 p-6 shadow-lg">
-                    <h3 class="text-lg font-bold text-corp-gold mb-4 border-b border-slate-700 pb-2">🔗 System Config</h3>
-                    <div class="mb-4"><label class="block text-xs text-slate-400 mb-1">API URL (Google Apps Script)</label><input id="setting-api-url" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-slate-300" placeholder="วางลิงก์ GAS ตรงนี้"></div>
-                    <div class="grid grid-cols-1 gap-4 mb-4">
-                        <div><label class="block text-xs text-slate-400 mb-1">Folder ID (Before Repair)</label><input id="setting-folder-before" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-slate-300"></div>
-                        <div><label class="block text-xs text-slate-400 mb-1">Folder ID (After Repair)</label><input id="setting-folder-after" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-slate-300"></div>
-                    </div>
+                    <h3 class="text-lg font-bold text-corp-gold mb-4 border-b border-slate-700 pb-2">🔗 System Config (Firebase Cloud Sync)</h3>
+                    <div class="mb-4 text-xs text-green-400">การตั้งค่าทั้งหมดถูกเก็บไว้ใน Firebase อย่างปลอดภัยและซิงค์ตรงกันทุกอุปกรณ์</div>
                     <div class="border-t border-slate-700 pt-4 mt-4">
-                        <h4 class="text-sm font-bold text-white mb-3">🆔 ตั้งค่าหมายเลขงาน (Job ID)</h4>
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div><label class="block text-xs text-slate-400 mb-1">คำนำหน้า (Prefix)</label><input id="setting-id-prefix" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-slate-300" placeholder="เช่น MTN"></div>
-                            <div><label class="block text-xs text-slate-400 mb-1">เลขเริ่มต้น (Start Number)</label><input type="number" id="setting-id-start" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-slate-300" placeholder="เช่น 1"></div>
+                            <div><label class="block text-xs text-slate-400 mb-1">เลขเริ่มต้น (Start)</label><input type="number" id="setting-id-start" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-slate-300" placeholder="เช่น 1"></div>
+                            <div><label class="block text-xs text-yellow-500 mb-1 font-bold">🔑 รหัสผ่าน Admin</label><input type="text" id="setting-admin-pass" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-yellow-400 font-bold" placeholder="ตั้งรหัสใหม่"></div>
                         </div>
-                        <p class="text-xs text-slate-500 mt-2">รูปแบบตัวอย่าง: <span id="id-preview" class="text-corp-gold font-mono">MTN-2026-0001</span></p>
+                        <p class="text-xs text-slate-500 mt-3">รูปแบบ Job ID ตัวอย่าง: <span id="id-preview" class="text-corp-gold font-mono">MTN-2026-0001</span></p>
                     </div>
                     <div class="flex gap-2 mt-4">
-                        <button onclick="saveSystemSettings()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded text-sm font-bold">บันทึก & รีโหลด</button>
-                        <button onclick="resetConfig()"        class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">Reset</button>
+                        <button onclick="saveSystemSettings()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded text-sm font-bold shadow-lg">💾 บันทึกการตั้งค่าลงระบบ</button>
                     </div>
                 </div>
                 <div class="bg-corp-lightBlue rounded-xl border border-slate-700 p-6 shadow-lg">
@@ -204,7 +210,17 @@
             <div class="bg-corp-lightBlue rounded-xl shadow-2xl border border-slate-700 overflow-hidden">
                 <div class="p-4 border-b border-slate-700 bg-slate-800 flex flex-col md:flex-row justify-between items-center gap-3">
                     <h2 class="text-xl font-bold text-corp-gold">📋 จัดการงานซ่อม</h2>
-                    <div class="flex gap-2 w-full md:w-auto">
+                    
+                    <!-- เมนูการกระทำชุดใหม่ของ Admin -->
+                    <div class="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
+                        <!-- ปุ่มโหลดใบงานที่เลือก (แบบมีรูป) -->
+                        <button onclick="exportSelectedJobsExcel()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1 rounded-lg text-sm font-bold flex items-center gap-1 transition whitespace-nowrap">🖨️ โหลดใบงานที่เลือก</button>
+                        
+                        <input type="file" id="importExcelFile" accept=".xlsx, .xls" class="hidden" onchange="handleImportExcel(event)">
+                        <button onclick="document.getElementById('importExcelFile').click()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded-lg text-sm font-bold flex items-center gap-1 transition whitespace-nowrap">📤 Import เก่า</button>
+                        
+                        <button onclick="exportToExcelAll()" class="bg-green-600 hover:bg-green-500 text-white px-3 py-1 rounded-lg text-sm font-bold flex items-center gap-1 transition whitespace-nowrap">📥 โหลดรายงานรวม</button>
+                        
                         <select id="adminStatusFilter" onchange="applyAdminFilters()" class="bg-slate-900 border border-slate-600 rounded-lg px-3 py-1 text-sm focus:outline-none focus:border-corp-gold text-slate-300">
                             <option value="All">แสดงทั้งหมด</option>
                             <option value="Active">🚧 ยังไม่ปิดจบงาน (Active)</option>
@@ -217,8 +233,18 @@
                     </div>
                 </div>
                 <div class="overflow-x-auto">
+                    <!-- ตารางจัดเรียงใหม่ตามคำขอ -->
                     <table class="w-full text-left border-collapse" id="adminTable">
-                        <thead class="bg-slate-900 text-slate-400 uppercase text-xs"><tr><th class="p-4">Action</th><th class="p-4">ID</th><th class="p-4">User</th><th class="p-4">Equipment</th><th class="p-4">Status</th></tr></thead>
+                        <thead class="bg-slate-900 text-slate-400 uppercase text-xs">
+                            <tr>
+                                <th class="p-4 w-10 text-center"><input type="checkbox" id="chkAll" onchange="toggleSelectAll(this)" class="accent-corp-gold w-4 h-4 cursor-pointer"></th>
+                                <th class="p-4 w-24">Status</th>
+                                <th class="p-4">ID</th>
+                                <th class="p-4">User</th>
+                                <th class="p-4">Equipment</th>
+                                <th class="p-4 text-right">Action</th>
+                            </tr>
+                        </thead>
                         <tbody id="adminTableBody" class="text-sm divide-y divide-slate-700"></tbody>
                     </table>
                 </div>
@@ -284,7 +310,7 @@
                 <div class="flex items-center gap-3">
                     <button onclick="document.getElementById('adminImg').click()" class="text-xs bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded">Choose Image</button>
                     <input type="file" id="adminImg" accept="image/*" class="hidden" onchange="previewImage(this,'adminPreview')">
-                    <div class="text-xs text-slate-500">Upload to Drive (After)</div>
+                    <div class="text-xs text-slate-500">Upload to Storage (After)</div>
                 </div>
                 <img id="adminPreview" class="img-preview mt-2 max-h-24 border-slate-600">
             </div>
@@ -362,35 +388,40 @@
     </div>
 
     <!-- ============================================================
-         JAVASCRIPT — optimised version
+         JAVASCRIPT — FIREBASE INTEGRATION
          ============================================================ -->
     <script>
     // ----------------------------------------------------------------
-    // CONFIG & STATE
+    // 1. FIREBASE SETUP
     // ----------------------------------------------------------------
-    const DEFAULT_CFG = {
-        apiUrl:       'https://script.google.com/macros/s/AKfycbyO_WujuPwMEiUXYUeGHfVccP6exfzIOC2cgkJ_lPcWEfF9LdW_oD4597ofe9m8m2Fleg/exec',
-        folderBefore: '1W30HTKv8BDYJTQPYVNTsqeRLZo7pruRB',
-        folderAfter:  '1sMkTHkkX7S6ngFPacQRhNMA7j2ESP1S5',
-        adminPass:    '888',
-        jobId:        { prefix: 'MTN', startNum: 1 }
+    const firebaseConfig = {
+      apiKey: "AIzaSyAQ6zJ7_s__e3iLpQE8bScUxUgVVGbYOAU",
+      authDomain: "maintenance-system-e6ed7.firebaseapp.com",
+      projectId: "maintenance-system-e6ed7",
+      storageBucket: "maintenance-system-e6ed7.firebasestorage.app",
+      messagingSenderId: "323374959927",
+      appId: "1:323374959927:web:3e4be4eac6f569c0d05eb2"
     };
 
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+
+    // ----------------------------------------------------------------
+    // 2. CONFIG & STATE
+    // ----------------------------------------------------------------
     const appData = {
         reqs:    [],
         lists:   { depts: [], techs: [] },
         isAdmin: false,
-        cfg:     { ...DEFAULT_CFG }
+        adminPass: '888',
+        cfg:     { jobId: { prefix: 'MTN', startNum: 1 } }
     };
 
-    // ----------------------------------------------------------------
-    // UTILITY — small helpers
-    // ----------------------------------------------------------------
     const $ = id => document.getElementById(id);
     const setText  = (id, val) => { const el = $(id); if (el) el.innerText = val ?? '-'; };
     const setVal   = (id, val) => { const el = $(id); if (el) el.value   = val ?? ''; };
 
-    /** Debounce factory */
     function debounce(fn, ms = 300) {
         let t;
         return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
@@ -400,29 +431,484 @@
     const debouncedAdminSearch = debounce(() => applyAdminFilters());
 
     // ----------------------------------------------------------------
-    // API — single caller with AbortController timeout
+    // 2.5 EXPORT REPORT TO EXCEL (WITH IMAGES) & BATCH EXPORT
     // ----------------------------------------------------------------
-    async function callApi(act, params = {}) {
-        if (!appData.cfg.apiUrl) throw new Error('ไม่พบ URL API');
-        const ctrl = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), 120000); // s timeout
+
+    // ฟังก์ชันดึงรูปภาพและแปลงให้เป็น Base64 แบบสมบูรณ์
+    async function getBase64Image(url) {
+        if (!url || url.includes('drive.google')) return null; 
+        
         try {
-            const res = await fetch(appData.cfg.apiUrl, {
-                method: 'POST',
-                body:   JSON.stringify({ action: act, ...params }),
-                signal: ctrl.signal
+            let res;
+            try {
+                res = await fetch(url);
+                if(!res.ok) throw new Error("Fetch failed");
+            } catch(e) {
+                const proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(url);
+                res = await fetch(proxyUrl);
+            }
+            
+            const blob = await res.blob();
+            if (!blob.type.includes('image')) return null;
+
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    const result = reader.result;
+                    if (result && result.includes(',')) {
+                        resolve(result.split(',')[1]); 
+                    } else {
+                        resolve(null);
+                    }
+                };
+                reader.readAsDataURL(blob);
             });
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            return await res.json();
-        } finally {
-            clearTimeout(timer);
+        } catch (e) {
+            console.warn("ดึงรูปภาพไม่สำเร็จ:", e);
+            return null;
         }
     }
 
+    // ฟังก์ชันสร้าง Sheet รายบุคคล (แบบฟอร์ม 100% ตรงกลาง A4)
+    async function buildJobSheet(workbook, jobId) {
+        const r = appData.reqs.find(x => x.jobID === jobId);
+        if (!r) return;
+
+        const sheet = workbook.addWorksheet(jobId, {
+            pageSetup: { 
+                paperSize: 9, // A4
+                orientation: 'portrait', 
+                fitToPage: false, // ปิด FitToPage เพื่อให้การตัดหน้า (Page Break) ทำงานสมบูรณ์
+                margins: { left: 0.4, right: 0.4, top: 0.5, bottom: 0.5, header: 0.3, footer: 0.3 }
+            }
+        });
+
+        // จัดความกว้าง Column เพื่อให้พอดีกับกระดาษ A4 (A กับ G เป็น Margin รอบนอก)
+        sheet.getColumn(1).width = 3;   // A
+        sheet.getColumn(2).width = 16;  // B
+        sheet.getColumn(3).width = 32;  // C
+        sheet.getColumn(4).width = 15;  // D
+        sheet.getColumn(5).width = 15;  // E
+        sheet.getColumn(6).width = 15;  // F
+        sheet.getColumn(7).width = 3;   // G
+
+        const thFont = { name: 'Sarabun', size: 12 };
+        const boldFont = { name: 'Sarabun', size: 12, bold: true };
+
+        const setBorder = (cell) => {
+            cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
+        };
+
+        const drawTitle = (rowStart, pageNum) => {
+            // หัวข้อตรงกลาง B ถึง F (รวม 3 บรรทัด)
+            sheet.mergeCells(`B${rowStart}:F${rowStart+2}`);
+            const title = sheet.getCell(`B${rowStart}`);
+            title.value = {
+                richText: [
+                    { font: { name: 'Sarabun', size: 16, bold: true }, text: 'ใบรายงานสรุปงานซ่อมบำรุง\nMAINTENANCE REPAIR JOB REPORT\n' },
+                    { font: { name: 'Sarabun', size: 12, bold: true, color: { argb: 'FF475569' } }, text: `Page ${pageNum}/3   |   Job ID: ${jobId}` }
+                ]
+            };
+            title.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+            
+            sheet.getRow(rowStart).height = 25;
+            sheet.getRow(rowStart+1).height = 25;
+            sheet.getRow(rowStart+2).height = 20;
+        };
+
+        // ================= PAGE 1 =================
+        drawTitle(1, 1);
+
+        sheet.mergeCells('B4:F4');
+        const h1 = sheet.getCell('B4');
+        h1.value = ' 1. ข้อมูลทั่วไป (General Information)';
+        h1.font = boldFont;
+        h1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
+        setBorder(h1);
+
+        sheet.getCell('B5').value = 'ผู้แจ้ง:'; sheet.getCell('B5').font = boldFont;
+        sheet.getCell('C5').value = r.requesterName || '-';
+        sheet.getCell('D5').value = 'สถานะงาน:'; sheet.getCell('D5').font = boldFont;
+        sheet.mergeCells('E5:F5');
+        sheet.getCell('E5').value = r.status || '-';
+        
+        sheet.getCell('B6').value = 'แผนก:'; sheet.getCell('B6').font = boldFont;
+        sheet.getCell('C6').value = r.positionDept || '-';
+        sheet.getCell('D6').value = 'ความเร่งด่วน:'; sheet.getCell('D6').font = boldFont;
+        sheet.mergeCells('E6:F6');
+        sheet.getCell('E6').value = r.urgency === 'High' ? 'ด่วนมาก' : (r.urgency === 'Medium' ? 'ด่วน' : 'ปกติ');
+
+        sheet.getCell('B7').value = 'ข้อมูลติดต่อกลับ:'; sheet.getCell('B7').font = boldFont;
+        sheet.getCell('C7').value = r.phoneNumber || '-';
+        sheet.getCell('D7').value = 'วันที่แจ้ง:'; sheet.getCell('D7').font = boldFont;
+        sheet.mergeCells('E7:F7');
+        sheet.getCell('E7').value = r.requestDate ? new Date(r.requestDate).toLocaleString('th-TH') : '-';
+
+        ['B5','C5','D5','E5','F5','B6','C6','D6','E6','F6','B7','C7','D7','E7','F7'].forEach(c => setBorder(sheet.getCell(c)));
+
+        sheet.mergeCells('B9:F9');
+        const h2 = sheet.getCell('B9');
+        h2.value = ' 2. ปัญหา/อาการเสีย (Problem Description)';
+        h2.font = boldFont;
+        h2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
+        setBorder(h2);
+
+        sheet.getCell('B10').value = 'อุปกรณ์:'; sheet.getCell('B10').font = boldFont;
+        sheet.mergeCells('C10:F10');
+        sheet.getCell('C10').value = r.equipmentLocation || '-';
+
+        sheet.getCell('B11').value = 'รายละเอียด:'; sheet.getCell('B11').font = boldFont;
+        sheet.mergeCells('C11:F13');
+        const prob = sheet.getCell('C11');
+        prob.value = r.problemDetails || '-';
+        prob.alignment = { vertical: 'top', wrapText: true };
+        
+        ['B10','C10','D10','E10','F10','B11','C11','D11','E11','F11','B12','C12','D12','E12','F12','B13','C13','D13','E13','F13'].forEach(c => setBorder(sheet.getCell(c)));
+
+        sheet.mergeCells('B15:F15');
+        const h3 = sheet.getCell('B15');
+        h3.value = ' 3. การดำเนินงาน (Action Taken)';
+        h3.font = boldFont;
+        h3.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
+        setBorder(h3);
+
+        sheet.getCell('B16').value = 'ช่างผู้รับผิดชอบ:'; sheet.getCell('B16').font = boldFont;
+        sheet.mergeCells('C16:F16');
+        sheet.getCell('C16').value = r.technician || '-';
+
+        sheet.getCell('B17').value = 'เริ่มงาน:'; sheet.getCell('B17').font = boldFont;
+        sheet.getCell('C17').value = r.acceptedDate ? new Date(r.acceptedDate).toLocaleString('th-TH') : '-';
+        sheet.getCell('D17').value = 'เสร็จสิ้น:'; sheet.getCell('D17').font = boldFont;
+        sheet.mergeCells('E17:F17');
+        sheet.getCell('E17').value = r.completedDate ? new Date(r.completedDate).toLocaleString('th-TH') : '-';
+
+        sheet.getCell('B18').value = 'วิธีแก้ไข:'; sheet.getCell('B18').font = boldFont;
+        sheet.mergeCells('C18:F20');
+        const rem = sheet.getCell('C18');
+        rem.value = r.adminRemarks || '-';
+        rem.alignment = { vertical: 'top', wrapText: true };
+
+        sheet.getCell('B21').value = 'หมายเหตุ:'; sheet.getCell('B21').font = boldFont;
+        sheet.mergeCells('C21:F21');
+        sheet.getCell('C21').value = r.additionalNotes || '-';
+
+        ['B16','C16','D16','E16','F16','B17','C17','D17','E17','F17',
+         'B18','C18','D18','E18','F18','B19','C19','D19','E19','F19',
+         'B20','C20','D20','E20','F20','B21','C21','D21','E21','F21'].forEach(c => setBorder(sheet.getCell(c)));
+
+        sheet.mergeCells('B25:C25');
+        sheet.getCell('B25').value = 'ผู้แจ้ง (Requester)';
+        sheet.getCell('B25').alignment = { horizontal: 'center' };
+        sheet.getCell('B25').font = boldFont;
+
+        sheet.mergeCells('E25:F25');
+        sheet.getCell('E25').value = 'ช่างผู้รับผิดชอบ (Technician)';
+        sheet.getCell('E25').alignment = { horizontal: 'center' };
+        sheet.getCell('E25').font = boldFont;
+
+        sheet.mergeCells('B27:C29');
+        const sigReq = sheet.getCell('B27');
+        sigReq.value = `✅ VERIFIED via PIN\n( ${r.requesterName} )\nDate: ${r.completedDate ? new Date(r.completedDate).toLocaleString('th-TH') : '-'}`;
+        sigReq.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        setBorder(sheet.getCell('B27')); setBorder(sheet.getCell('C27'));
+        setBorder(sheet.getCell('B28')); setBorder(sheet.getCell('C28'));
+        setBorder(sheet.getCell('B29')); setBorder(sheet.getCell('C29'));
+
+        sheet.mergeCells('E27:F29');
+        const sigTech = sheet.getCell('E27');
+        sigTech.value = `🛠️ JOB COMPLETED\n( ${r.technician || '-'} )\nDate: ${r.completedDate ? new Date(r.completedDate).toLocaleString('th-TH') : '-'}`;
+        sigTech.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+        setBorder(sheet.getCell('E27')); setBorder(sheet.getCell('F27'));
+        setBorder(sheet.getCell('E28')); setBorder(sheet.getCell('F28'));
+        setBorder(sheet.getCell('E29')); setBorder(sheet.getCell('F29'));
+
+        // ================= PAGE 2 (รายการอะไหล่) =================
+        const rPage2 = 40;
+        sheet.getRow(rPage2).addPageBreak(); // ตัดขึ้นหน้าใหม่ให้แผ่น 2
+        drawTitle(rPage2 + 1, 2);
+
+        sheet.mergeCells(`B${rPage2+4}:F${rPage2+4}`);
+        const h4 = sheet.getCell(`B${rPage2+4}`);
+        h4.value = ' รายการอุปกรณ์ที่ใช้ (Spare Parts)';
+        h4.font = boldFont;
+        h4.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
+        setBorder(h4);
+
+        const thB = sheet.getCell(`B${rPage2+5}`); thB.value = 'ลำดับ'; thB.font = boldFont; thB.alignment = {horizontal:'center'}; setBorder(thB);
+        const thC = sheet.getCell(`C${rPage2+5}`); thC.value = 'รายการ (Item Name)'; thC.font = boldFont; thC.alignment = {horizontal:'center'}; setBorder(thC);
+        const thD = sheet.getCell(`D${rPage2+5}`); thD.value = 'จำนวน'; thD.font = boldFont; thD.alignment = {horizontal:'center'}; setBorder(thD);
+        const thE = sheet.getCell(`E${rPage2+5}`); thE.value = 'หน่วยละ'; thE.font = boldFont; thE.alignment = {horizontal:'center'}; setBorder(thE);
+        const thF = sheet.getCell(`F${rPage2+5}`); thF.value = 'รวม (บาท)'; thF.font = boldFont; thF.alignment = {horizontal:'center'}; setBorder(thF);
+
+        let items = [];
+        try { items = JSON.parse(r.itemsData || '[]'); } catch(e){}
+        let currentRow = rPage2+6;
+        
+        if(items.length === 0) {
+            sheet.getCell(`B${currentRow}`).value = '-'; setBorder(sheet.getCell(`B${currentRow}`)); sheet.getCell(`B${currentRow}`).alignment = {horizontal:'center'};
+            sheet.getCell(`C${currentRow}`).value = 'ไม่มีการใช้อะไหล่'; setBorder(sheet.getCell(`C${currentRow}`));
+            sheet.getCell(`D${currentRow}`).value = '-'; setBorder(sheet.getCell(`D${currentRow}`)); sheet.getCell(`D${currentRow}`).alignment = {horizontal:'center'};
+            sheet.getCell(`E${currentRow}`).value = '-'; setBorder(sheet.getCell(`E${currentRow}`)); sheet.getCell(`E${currentRow}`).alignment = {horizontal:'center'};
+            sheet.getCell(`F${currentRow}`).value = '-'; setBorder(sheet.getCell(`F${currentRow}`)); sheet.getCell(`F${currentRow}`).alignment = {horizontal:'center'};
+            currentRow++;
+        } else {
+            items.forEach((item, idx) => {
+                sheet.getCell(`B${currentRow}`).value = idx + 1; setBorder(sheet.getCell(`B${currentRow}`)); sheet.getCell(`B${currentRow}`).alignment = {horizontal:'center'};
+                sheet.getCell(`C${currentRow}`).value = item.name; setBorder(sheet.getCell(`C${currentRow}`));
+                sheet.getCell(`D${currentRow}`).value = item.quantity; setBorder(sheet.getCell(`D${currentRow}`)); sheet.getCell(`D${currentRow}`).alignment = {horizontal:'center'};
+                sheet.getCell(`E${currentRow}`).value = item.unitPrice; setBorder(sheet.getCell(`E${currentRow}`)); sheet.getCell(`E${currentRow}`).alignment = {horizontal:'center'};
+                sheet.getCell(`F${currentRow}`).value = item.total; setBorder(sheet.getCell(`F${currentRow}`)); sheet.getCell(`F${currentRow}`).alignment = {horizontal:'center'};
+                currentRow++;
+            });
+        }
+        
+        // เติมช่องว่างให้ตารางดูเต็มหน้า
+        while (currentRow < rPage2 + 20) {
+            ['B','C','D','E','F'].forEach(c => setBorder(sheet.getCell(`${c}${currentRow}`)));
+            currentRow++;
+        }
+
+        sheet.mergeCells(`B${currentRow}:E${currentRow}`);
+        const tLabel = sheet.getCell(`B${currentRow}`);
+        tLabel.value = 'ยอดรวมสุทธิ (Grand Total):'; tLabel.alignment = { horizontal: 'right' }; tLabel.font = boldFont; setBorder(tLabel);
+        setBorder(sheet.getCell(`C${currentRow}`)); setBorder(sheet.getCell(`D${currentRow}`)); setBorder(sheet.getCell(`E${currentRow}`));
+        
+        const tVal = sheet.getCell(`F${currentRow}`);
+        tVal.value = r.cost || 0; tVal.font = boldFont; tVal.alignment = {horizontal:'center'}; setBorder(tVal);
+
+        // ================= PAGE 3 (รูปภาพ ใหญ่และอยู่บน-ล่าง) =================
+        const rPage3 = 80;
+        sheet.getRow(rPage3).addPageBreak(); // ตัดขึ้นหน้าใหม่ให้แผ่น 3
+        drawTitle(rPage3 + 1, 3);
+
+        sheet.mergeCells(`B${rPage3+4}:F${rPage3+4}`);
+        const h5 = sheet.getCell(`B${rPage3+4}`);
+        h5.value = ' หลักฐานรูปภาพ (Photographic Evidence)';
+        h5.font = boldFont;
+        h5.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
+        setBorder(h5);
+
+        // ---- รูปภาพ ก่อนซ่อม ----
+        sheet.mergeCells(`B${rPage3+6}:F${rPage3+6}`);
+        const lblBefore = sheet.getCell(`B${rPage3+6}`);
+        lblBefore.value = '📷 รูปก่อนซ่อม (Before Repair):';
+        lblBefore.font = boldFont;
+
+        const b64Before = await getBase64Image(r.imageBefore);
+        if (b64Before) {
+            const imgId = workbook.addImage({ base64: b64Before, extension: 'jpeg' });
+            // แปะรูปขนาดใหญ่ ขยายจาก B ถึง F และสูง 15 บรรทัด
+            sheet.addImage(imgId, `B${rPage3+7}:F${rPage3+22}`);
+        } else if (r.imageBefore) {
+            sheet.mergeCells(`B${rPage3+7}:F${rPage3+8}`);
+            sheet.getCell(`B${rPage3+7}`).value = { text: '>> คลิกลิงก์เพื่อเปิดดูรูปภาพ (ไฟล์เก่า) <<', hyperlink: r.imageBefore };
+            sheet.getCell(`B${rPage3+7}`).font = { ...thFont, color: { argb: 'FF0563C1' }, underline: true };
+        } else {
+            sheet.getCell(`B${rPage3+7}`).value = '- ไม่มีรูปภาพ -';
+        }
+
+        // ---- รูปภาพ หลังซ่อม ----
+        const rAfter = rPage3 + 24;
+        sheet.mergeCells(`B${rAfter}:F${rAfter}`);
+        const lblAfter = sheet.getCell(`B${rAfter}`);
+        lblAfter.value = '📷 รูปหลังซ่อม (After Repair):';
+        lblAfter.font = boldFont;
+        
+        const b64After = await getBase64Image(r.imageAfter);
+        if (b64After) {
+            const imgId2 = workbook.addImage({ base64: b64After, extension: 'jpeg' });
+            // แปะรูปขนาดใหญ่ ขยายจาก B ถึง F และสูง 15 บรรทัด
+            sheet.addImage(imgId2, `B${rAfter+1}:F${rAfter+16}`);
+        } else if (r.imageAfter) {
+            sheet.mergeCells(`B${rAfter+1}:F${rAfter+2}`);
+            sheet.getCell(`B${rAfter+1}`).value = { text: '>> คลิกลิงก์เพื่อเปิดดูรูปภาพ (ไฟล์เก่า) <<', hyperlink: r.imageAfter };
+            sheet.getCell(`B${rAfter+1}`).font = { ...thFont, color: { argb: 'FF0563C1' }, underline: true };
+        } else {
+            sheet.getCell(`B${rAfter+1}`).value = '- ไม่มีรูปภาพ -';
+        }
+
+        // เซ็ตฟอนต์ทั้งหน้าให้ชัวร์
+        sheet.eachRow((row) => {
+            row.eachCell((cell) => {
+                if (!cell.font) cell.font = thFont;
+                else cell.font.name = 'Sarabun';
+            });
+        });
+    }
+
+    // ฟังก์ชันเมื่อกดปุ่ม "🖨️ โหลดใบงานที่เลือก" จากหน้าตาราง
+    async function exportSelectedJobsExcel() {
+        const checkboxes = document.querySelectorAll('.chk-job:checked');
+        if (checkboxes.length === 0) {
+            return Swal.fire('ไม่ได้เลือกงาน', 'กรุณาติ๊กช่องสี่เหลี่ยมหน้างานที่ต้องการดาวน์โหลดใบรายงาน', 'warning');
+        }
+        
+        Swal.fire({ 
+            title: 'กำลังสร้างไฟล์ใบงาน...', 
+            text: `กำลังประทับตรารูปภาพและจัดหน้ากระดาษ ${checkboxes.length} งาน (กรุณารอสักครู่)`, 
+            didOpen: () => Swal.showLoading(), 
+            allowOutsideClick: false 
+        });
+
+        try {
+            const workbook = new ExcelJS.Workbook();
+            for (const cb of checkboxes) {
+                await buildJobSheet(workbook, cb.value);
+            }
+            
+            const buffer = await workbook.xlsx.writeBuffer();
+            const dateStr = new Date().toISOString().split('T')[0];
+            saveAs(new Blob([buffer]), `Job_Reports_${dateStr}.xlsx`);
+            Swal.close();
+        } catch (e) {
+            console.error(e);
+            Swal.fire('ข้อผิดพลาด', 'ไม่สามารถสร้างไฟล์ได้: ' + e.message, 'error');
+        }
+    }
+
+    function exportToExcelAll() {
+        if (!appData.reqs || appData.reqs.length === 0) {
+            return Swal.fire('ไม่มีข้อมูล', 'ยังไม่มีข้อมูลแจ้งซ่อมในระบบ', 'warning');
+        }
+
+        const sortedData = [...appData.reqs].sort((a, b) => new Date(b.requestDate) - new Date(a.requestDate));
+
+        const reportData = sortedData.map(r => ({
+            "วันที่แจ้ง": r.requestDate ? new Date(r.requestDate).toLocaleString('th-TH') : "-",
+            "รหัสงาน (Job ID)": r.jobID || "-",
+            "ผู้แจ้ง": r.requesterName || "-",
+            "แผนก": r.positionDept || "-",
+            "เบอร์โทร": r.phoneNumber || "-",
+            "รหัสอุปกรณ์": r.equipId || "-",
+            "ชื่ออุปกรณ์/สถานที่": r.equipmentLocation || "-",
+            "อาการเสีย": r.problemDetails || "-",
+            "ความเร่งด่วน": r.urgency === 'High' ? 'ด่วนมาก' : (r.urgency === 'Medium' ? 'ด่วน' : 'ปกติ'),
+            "สถานะงาน": r.status === 'Waiting' ? 'รอรับงาน' : (r.status === 'Processing' ? 'กำลังดำเนินการ' : (r.status === 'Done' ? 'รอตรวจสอบ' : 'ปิดงานแล้ว')),
+            "ช่างผู้รับผิดชอบ": r.technician || "-",
+            "บันทึกช่าง (หมายเหตุ)": r.adminRemarks || "-",
+            "ค่าใช้จ่าย (บาท)": r.cost || 0,
+            "วันที่ปิดงาน": r.completedDate ? new Date(r.completedDate).toLocaleString('th-TH') : "-"
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(reportData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Maintenance_Report");
+        
+        const dateStr = new Date().toISOString().split('T')[0];
+        XLSX.writeFile(workbook, `Maintenance_Summary_${dateStr}.xlsx`);
+    }
+
+    // ฟังก์ชันติ๊กเลือกทั้งหมดในตาราง
+    function toggleSelectAll(source) {
+        const checkboxes = document.querySelectorAll('.chk-job');
+        checkboxes.forEach(cb => {
+            // เลือกติ๊กเฉพาะแถวที่ไม่ได้ถูกซ่อนจากการค้นหา
+            if(cb.closest('tr').style.display !== 'none') {
+                cb.checked = source.checked;
+            }
+        });
+    }
+
     // ----------------------------------------------------------------
-    // IMAGE UTILS
+    // 2.6 IMPORT FROM EXCEL FUNCTION
     // ----------------------------------------------------------------
-    /** Compress & base64 — max 800px, 0.6 quality */
+    function convertDriveLink(url) {
+        if (!url) return "";
+        const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+        if (match && match[1]) {
+            return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1000`;
+        }
+        return url;
+    }
+
+    async function handleImportExcel(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        Swal.fire({ title: 'กำลังอ่านไฟล์...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array', cellDates: true});
+                
+                if (!workbook.SheetNames.includes("Requests")) {
+                    return Swal.fire("ผิดพลาด", "ไม่พบชีทที่ชื่อ 'Requests' ในไฟล์นี้", "error");
+                }
+                
+                const worksheet = workbook.Sheets["Requests"];
+                const rawData = XLSX.utils.sheet_to_json(worksheet);
+                
+                if (rawData.length === 0) {
+                    return Swal.fire("ผิดพลาด", "ไม่มีข้อมูลในชีท Requests", "error");
+                }
+                
+                Swal.fire({ 
+                    title: `กำลังนำเข้าและแปลงไฟล์รูป ${rawData.length} รายการ...`, 
+                    text: 'กระบวนการนี้อาจใช้เวลา 1-2 นาที กรุณาอย่าเพิ่งปิดหน้าเว็บ',
+                    didOpen: () => Swal.showLoading(), 
+                    allowOutsideClick: false 
+                });
+                
+                let successCount = 0;
+                
+                for (let i = 0; i < rawData.length; i++) {
+                    const row = rawData[i];
+                    const jobId = row["Job ID"];
+                    if (!jobId) continue;
+                    
+                    let reqDate = new Date();
+                    if (row["Date"]) reqDate = new Date(row["Date"]);
+                    
+                    let userPin = String(row["UserPIN"] || "");
+                    if (userPin.endsWith(".0")) userPin = userPin.replace(".0", "");
+                    
+                    const payload = {
+                        jobID: jobId,
+                        requestDate: reqDate.toISOString(),
+                        requesterName: row["Requester"] || "-",
+                        positionDept: row["Dept"] || "-",
+                        phoneNumber: String(row["Phone"] || "-"),
+                        equipId: "",
+                        equipmentLocation: row["Equip"] || "-",
+                        problemDetails: row["Problem"] || "-",
+                        urgency: row["Urgency"] || "Low",
+                        status: row["Status"] || "Waiting",
+                        technician: row["Tech"] || "",
+                        adminRemarks: row["Remarks"] || "",
+                        cost: parseFloat(row["Cost"]) || 0,
+                        itemsData: row["Items"] || "[]",
+                        additionalNotes: row["Notes"] || "",
+                        imageBefore: convertDriveLink(row["ImageBefore"]),
+                        imageAfter: convertDriveLink(row["ImageAfter"]),
+                        userPin: userPin
+                    };
+                    
+                    if (row["Accepted"]) payload.acceptedDate = new Date(row["Accepted"]).toISOString();
+                    if (row["Completed"]) payload.completedDate = new Date(row["Completed"]).toISOString();
+                    
+                    await db.collection("requests").doc(jobId).set(payload);
+                    successCount++;
+                }
+                
+                Swal.fire("สำเร็จ!", `อัปโหลดประวัติและแปลงรูปภาพเรียบร้อยแล้ว ${successCount} รายการ`, "success");
+                event.target.value = ''; 
+                
+                await refreshData(true);
+                switchTab('status'); 
+                
+            } catch (error) {
+                console.error(error);
+                Swal.fire("เกิดข้อผิดพลาด", "โครงสร้างไฟล์อาจไม่ถูกต้อง หรือ " + String(error), "error");
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    // ----------------------------------------------------------------
+    // 3. IMAGE UTILS
+    // ----------------------------------------------------------------
     function fileToBase64(file) {
         return new Promise((resolve, reject) => {
             if (!file.type.startsWith('image/')) return reject('Not an image');
@@ -458,20 +944,9 @@
         reader.readAsDataURL(file);
     }
 
-    /** Convert any Google Drive share URL → direct lh3 URL */
-    function driveDirectUrl(url) {
-        if (!url) return null;
-        try {
-            let m = url.match(/\/d\/([-\w]+)/);
-            if (!m) m = url.match(/id=([-\w]+)/);
-            if (m) return `https://lh3.googleusercontent.com/d/${m[1]}=s4000`;
-        } catch (_) {}
-        return null;
-    }
-
     function openImageViewer(url) {
         if (!url) return;
-        $('imageViewerSrc').src = driveDirectUrl(url) || url;
+        $('imageViewerSrc').src = url;
         $('imageViewerModal').style.display = 'flex';
     }
     function closeImageViewer() {
@@ -480,29 +955,75 @@
     }
 
     // ----------------------------------------------------------------
-    // BOOTSTRAP
+    // 4. BOOTSTRAP
     // ----------------------------------------------------------------
     document.addEventListener('DOMContentLoaded', () => {
-        loadSettings();
-        // Parallel: fetch data + fetch lists at the same time
-        Promise.all([refreshData(true), loadLists()]);
+        $('setting-id-prefix').addEventListener('input', updateIdPreview);
+        $('setting-id-start').addEventListener('input',  updateIdPreview);
+        
+        Promise.all([refreshData(true), loadSystemConfig()]);
     });
 
     // ----------------------------------------------------------------
-    // LIST MANAGEMENT
+    // 5. SYSTEM CONFIG & LIST MANAGEMENT (Firebase)
     // ----------------------------------------------------------------
-    async function loadLists(manual = false) {
+    async function loadSystemConfig(manual = false) {
         try {
-            const r = await callApi('getLists');
-            if (r.status === 'success') {
-                appData.lists = r.data;
-                renderLists();
-                renderDrops();
+            const doc = await db.collection('system').doc('config').get();
+            if (doc.exists) {
+                const data = doc.data();
+                if (data.lists) appData.lists = data.lists;
+                if (data.adminPass) appData.adminPass = data.adminPass;
+                if (data.jobIdConfig) appData.cfg.jobId = data.jobIdConfig;
+            } else {
+                await db.collection('system').doc('config').set({ 
+                    lists: { depts: [], techs: [] }, 
+                    adminPass: '888',
+                    jobIdConfig: { prefix: 'MTN', startNum: 1 }
+                }, {merge: true});
             }
+            
+            renderLists();
+            renderDrops();
+            
+            $('setting-admin-pass').value = appData.adminPass;
+            $('setting-id-prefix').value  = appData.cfg.jobId.prefix;
+            $('setting-id-start').value   = appData.cfg.jobId.startNum;
+            updateIdPreview();
+            
         } catch (e) {
-            console.warn('loadLists failed', e);
+            console.warn('loadSystemConfig failed', e);
         }
         if (manual) Swal.close();
+    }
+
+    function updateIdPreview() {
+        const p      = $('setting-id-prefix').value || 'XXX';
+        const s      = $('setting-id-start').value  || '1';
+        const padded = s.toString().padStart(4, '0');
+        $('id-preview').innerText = `${p}-${new Date().getFullYear()}-${padded}`;
+    }
+
+    async function saveSystemSettings() {
+        const newPrefix = $('setting-id-prefix').value.trim() || 'MTN';
+        const newStartNum = parseInt($('setting-id-start').value.trim()) || 1;
+        const newPass = $('setting-admin-pass').value.trim() || '888';
+
+        appData.cfg.jobId = { prefix: newPrefix, startNum: newStartNum };
+        appData.adminPass = newPass;
+        
+        Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
+        try {
+            await db.collection('system').doc('config').set({
+                adminPass: newPass,
+                jobIdConfig: appData.cfg.jobId
+            }, { merge: true });
+            
+            Swal.fire('สำเร็จ', 'บันทึกการตั้งค่าลงระบบคลาวด์เรียบร้อย', 'success');
+            updateIdPreview();
+        } catch (e) {
+            Swal.fire('Error', String(e), 'error');
+        }
     }
 
     async function modifyList(type, act, id) {
@@ -510,10 +1031,14 @@
         if (!val) return;
         Swal.showLoading();
         try {
-            const r = await callApi('manageList', { type, act, value: val });
-            if (r.status !== 'success') throw new Error(r.message);
-            if (act === 'add') $(id).value = '';
-            await loadLists();
+            const ref = db.collection('system').doc('config');
+            if (act === 'add') {
+                await ref.update({ [`lists.${type}`]: firebase.firestore.FieldValue.arrayUnion(val) });
+                $(id).value = '';
+            } else {
+                await ref.update({ [`lists.${type}`]: firebase.firestore.FieldValue.arrayRemove(val) });
+            }
+            await loadSystemConfig();
             Swal.close();
         } catch (e) {
             Swal.fire('Error', String(e), 'error');
@@ -521,7 +1046,7 @@
     }
 
     // ----------------------------------------------------------------
-    // SUBMIT REQUEST
+    // 6. SUBMIT REQUEST (Firebase)
     // ----------------------------------------------------------------
     async function submitRequest(e) {
         e.preventDefault();
@@ -530,20 +1055,19 @@
         if (!fileInput.files.length) {
             return Swal.fire({
                 icon: 'warning', title: 'ข้อมูลไม่ครบถ้วน',
-                text: 'กรุณาแนบรูปภาพของอุปกรณ์หรือบริเวณที่ต้องการซ่อมแซม เพื่อเป็นข้อมูลประกอบการพิจารณาและดำเนินงาน',
+                text: 'กรุณาแนบรูปภาพของอุปกรณ์',
                 background: '#1e293b', color: '#fff', confirmButtonColor: '#f59e0b'
             });
         }
 
         const urg = document.querySelector('input[name="urgency"]:checked').value;
-
         if (urg === 'High') {
             const { isConfirmed } = await Swal.fire({
                 title: 'ยืนยันระดับความเร่งด่วนสูงสุด',
-                text: 'โปรดยืนยันว่าปัญหาดังกล่าวส่งผลกระทบโดยตรงต่อสายการผลิต หรือกระบวนการทำงานหลัก ซึ่งอาจก่อให้เกิดความสูญเสียหรือเสียผลประโยชน์ต่อบริษัทฯ ใช่หรือไม่?',
+                text: 'ปัญหาดังกล่าวส่งผลกระทบโดยตรงต่อการทำงานหลักใช่หรือไม่?',
                 icon: 'warning', showCancelButton: true,
                 confirmButtonColor: '#ef4444', cancelButtonColor: '#475569',
-                confirmButtonText: 'ใช่, ขอยืนยันส่งข้อมูล', cancelButtonText: 'ยกเลิก',
+                confirmButtonText: 'ใช่, ขอยืนยัน', cancelButtonText: 'ยกเลิก',
                 background: '#1e293b', color: '#fff'
             });
             if (!isConfirmed) return;
@@ -554,62 +1078,82 @@
             return Swal.fire('ข้อผิดพลาด', 'กรุณาตั้งรหัสยืนยันอย่างน้อย 4 หลัก', 'warning');
         }
 
-        let imgData = '';
-        try { imgData = await fileToBase64(fileInput.files[0]); }
-        catch { return Swal.fire('ข้อผิดพลาดเกี่ยวกับรูปภาพ', 'ไม่สามารถประมวลผลรูปภาพได้', 'error'); }
-
-        const payload = {
-            requesterName:     $('reqName').value,
-            positionDept:      $('reqDept').value,
-            phoneNumber:       $('reqPhone').value,
-            equipId:           $('reqEquipId').value,
-            equipmentLocation: $('reqEquip').value,
-            problemDetails:    $('reqDetail').value,
-            urgency: urg, status: 'Waiting',
-            jobIdConfig: JSON.stringify(appData.cfg.jobId),
-            imageFile:   imgData,
-            folderId:    appData.cfg.folderBefore,
-            userPin
-        };
-
-        Swal.fire({ title: 'กำลังประมวลผล...', text: 'ระบบกำลังจัดส่งข้อมูล กรุณารอสักครู่', allowOutsideClick: false, didOpen: () => Swal.showLoading(), background: '#1e293b', color: '#fff' });
+        Swal.fire({ title: 'กำลังประมวลผล...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), background: '#1e293b', color: '#fff' });
 
         try {
-            const r = await callApi('submit', payload);
-            if (r.status !== 'success') throw new Error(r.message);
+            // Generate Job ID
+            const p = appData.cfg.jobId.prefix || 'MTN';
+            const s = appData.cfg.jobId.startNum || 1;
+            const year = new Date().getFullYear();
+            const pattern = `${p}-${year}-`;
+            let maxId = 0;
+            
+            appData.reqs.forEach(r => {
+                if (r.jobID && r.jobID.startsWith(pattern)) {
+                    const n = parseInt(r.jobID.replace(pattern, ''), 10);
+                    if (!isNaN(n) && n > maxId) maxId = n;
+                }
+            });
+            
+            const newId = pattern + String(maxId === 0 ? s : maxId + 1).padStart(4, '0');
+
+            // Image Upload
+            let imgUrl = "";
+            let imgData = await fileToBase64(fileInput.files[0]);
+            const imgRef = storage.ref(`jobs/${newId}_BEFORE.jpg`);
+            await imgRef.putString(imgData, 'data_url');
+            imgUrl = await imgRef.getDownloadURL();
+
+            const payload = {
+                jobID: newId,
+                requestDate: new Date().toISOString(),
+                requesterName: $('reqName').value,
+                positionDept: $('reqDept').value,
+                phoneNumber: $('reqPhone').value,
+                equipId: $('reqEquipId').value,
+                equipmentLocation: $('reqEquip').value,
+                problemDetails: $('reqDetail').value,
+                urgency: urg, 
+                status: 'Waiting',
+                imageBefore: imgUrl,
+                userPin: userPin,
+                technician: '', adminRemarks: '', additionalNotes: '', cost: 0, itemsData: '[]'
+            };
+
+            await db.collection('requests').doc(newId).set(payload);
 
             $('requestForm').reset();
             $('reqPreview').style.display = 'none';
 
             let html = `<div class="text-left mt-2">
                 <p class="text-sm text-green-400 mb-2">ข้อมูลของท่านได้รับการจัดส่งเข้าสู่ระบบเรียบร้อยแล้ว</p>
-                <p class="mb-1">หมายเลขงาน (Job ID): <b class="text-corp-gold font-mono">${r.jobId}</b></p>
+                <p class="mb-1">หมายเลขงาน (Job ID): <b class="text-corp-gold font-mono">${newId}</b></p>
                 <p class="mb-3">รหัสยืนยันปิดงาน (PIN): <b class="text-yellow-400 font-mono tracking-widest">${userPin}</b></p>
                 <div class="bg-slate-800 p-3 rounded border border-slate-600">
                     <p class="text-xs text-slate-300 leading-relaxed"><b>⚠️ ข้อกำหนดสำคัญ:</b><br>
-                    เมื่อเจ้าหน้าที่ดำเนินการซ่อมแซมเสร็จสิ้น โปรดเข้ามาตรวจสอบและใช้รหัส PIN เพื่อกดยืนยันการจบงานในเมนู <b class="text-corp-gold">"ติดตามงาน"</b></p>
+                    ใช้รหัส PIN เพื่อกดยืนยันการจบงานในเมนู <b class="text-corp-gold">"ติดตามงาน"</b></p>
                 </div></div>`;
 
             let title = 'จัดส่งข้อมูลสำเร็จ', icon = 'success';
             if (urg === 'Medium') {
                 title = '⚠️ จัดส่งข้อมูลสำเร็จ (ระดับด่วน)'; icon = 'warning';
-                html += `<div class="mt-4 text-sm bg-yellow-900/30 p-2 rounded border border-yellow-700">กรุณาติดต่อประสานงาน: <b class="text-yellow-400">098-279-9918</b></div>`;
+                html += `<div class="mt-4 text-sm bg-yellow-900/30 p-2 rounded border border-yellow-700">ติดต่อประสานงาน: <b class="text-yellow-400">098-279-9918</b></div>`;
             }
             if (urg === 'High') {
-                title = '🚨 จัดส่งข้อมูลสำเร็จ (ระดับด่วนมาก)'; icon = 'warning';
-                html += `<div class="mt-4 text-sm bg-red-900/30 p-2 rounded border border-red-700 text-red-300">กรุณาติดต่อเจ้าหน้าที่ทันที: <b class="text-white">098-279-9918</b></div>`;
+                title = '🚨 จัดส่งข้อมูลสำเร็จ (ด่วนมาก)'; icon = 'warning';
+                html += `<div class="mt-4 text-sm bg-red-900/30 p-2 rounded border border-red-700 text-red-300">ติดต่อเจ้าหน้าที่ทันที: <b class="text-white">098-279-9918</b></div>`;
             }
 
             await Swal.fire({ icon, title, html, background: '#1e293b', color: '#fff', confirmButtonColor: '#f59e0b' });
             refreshData(true);
             switchTab('status');
         } catch (err) {
-            Swal.fire('ข้อผิดพลาด', 'ไม่สามารถจัดส่งข้อมูลได้: ' + String(err), 'error');
+            Swal.fire('ข้อผิดพลาด', String(err), 'error');
         }
     }
 
     // ----------------------------------------------------------------
-    // VERIFY / CLOSE JOB (User side)
+    // 7. VERIFY / CLOSE JOB (User side - Firebase)
     // ----------------------------------------------------------------
     async function verifyUserJob(jobId, correctPin) {
         const { value: enteredPin } = await Swal.fire({
@@ -622,30 +1166,32 @@
 
         Swal.fire({ title: 'Verifying...', didOpen: () => Swal.showLoading() });
         try {
-            const r = await callApi('update', { jobId, status: 'Closed', folderId: appData.cfg.folderAfter });
-            if (r.status === 'success') { refreshData(true); Swal.fire('สำเร็จ', 'ยืนยันจบงานเรียบร้อยแล้ว', 'success'); }
+            await db.collection('requests').doc(jobId).update({
+                status: 'Closed',
+                completedDate: new Date().toISOString()
+            });
+            refreshData(true);
+            Swal.fire('สำเร็จ', 'ยืนยันจบงานเรียบร้อยแล้ว', 'success');
         } catch (err) { Swal.fire('Error', String(err), 'error'); }
     }
 
     // ----------------------------------------------------------------
-    // FETCH DATA
+    // 8. FETCH DATA (Firebase)
     // ----------------------------------------------------------------
     async function refreshData(silent = false) {
         if (!silent) Swal.showLoading();
         try {
-            const r = await callApi('fetch');
-            if (r.status === 'success') {
-                appData.reqs = r.data;
-                renderStatus();
-                if (appData.isAdmin) renderAdmin();
-                updateDashboard();
-            }
+            const snapshot = await db.collection('requests').orderBy('requestDate', 'desc').get();
+            appData.reqs = snapshot.docs.map(doc => doc.data());
+            renderStatus();
+            if (appData.isAdmin) renderAdmin();
+            updateDashboard();
         } catch (e) { console.warn('refreshData failed', e); }
         if (!silent) Swal.close();
     }
 
     // ----------------------------------------------------------------
-    // OPEN ADMIN MODAL
+    // 9. ADMIN FUNCTIONS (Firebase)
     // ----------------------------------------------------------------
     function openModal(id) {
         const r = appData.reqs.find(x => x.jobID === id);
@@ -668,7 +1214,6 @@
         $('adminImg').value = '';
         $('adminPreview').style.display = 'none';
 
-        // Render cost items
         const container = $('itemsContainer');
         container.innerHTML = '';
         try {
@@ -685,10 +1230,8 @@
         $('adminModal').classList.remove('hidden');
     }
 
-    // ----------------------------------------------------------------
-    // SAVE JOB
-    // ----------------------------------------------------------------
     async function saveJob() {
+        const jobId = $('modalJobId').value;
         const st = $('modalStatus').value;
         let items = [], cost = 0;
 
@@ -701,42 +1244,99 @@
             });
         }
 
-        // Process images in parallel if both present
-        const [imgDataAfter, imgDataBefore] = await Promise.all([
-            $('adminImg').files[0]        ? fileToBase64($('adminImg').files[0]).catch(() => '')        : Promise.resolve(''),
-            $('edit-img-before').files[0] ? fileToBase64($('edit-img-before').files[0]).catch(() => '') : Promise.resolve('')
-        ]);
-
-        const payload = {
-            jobId:             $('modalJobId').value,
-            updateDateFlag:    $('modalUpdateDate')?.checked ?? false,
-            requesterName:     $('edit-reqName').value,
-            positionDept:      $('edit-reqDept').value,
-            equipmentLocation: $('edit-equip').value,
-            problemDetails:    $('edit-problem').value,
-            imageFileBefore:   imgDataBefore,
-            folderIdBefore:    appData.cfg.folderBefore,
-            status:            st,
-            technician:        $('modalTech').value,
-            adminRemarks:      $('modalRemark').value,
-            additionalNotes:   $('modalNotes').value,
-            cost, itemsData:   JSON.stringify(items),
-            imageFile:         imgDataAfter,
-            folderId:          appData.cfg.folderAfter
-        };
-
         Swal.fire({ title: 'Saving...', text: 'Updating job info...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        
         try {
-            const r = await callApi('update', payload);
-            if (r.status !== 'success') throw new Error(r.message);
+            const updateData = {
+                requesterName: $('edit-reqName').value,
+                positionDept: $('edit-reqDept').value,
+                equipmentLocation: $('edit-equip').value,
+                problemDetails: $('edit-problem').value,
+                status: st,
+                technician: $('modalTech').value,
+                adminRemarks: $('modalRemark').value,
+                additionalNotes: $('modalNotes').value
+            };
+
+            // Before Image Update
+            if ($('edit-img-before').files.length > 0) {
+                const b64Before = await fileToBase64($('edit-img-before').files[0]);
+                const refBefore = storage.ref(`jobs/${jobId}_BEFORE_UPDATED.jpg`);
+                await refBefore.putString(b64Before, 'data_url');
+                updateData.imageBefore = await refBefore.getDownloadURL();
+            }
+
+            if (st === 'Done' || st === 'Closed') {
+                updateData.cost = cost;
+                updateData.itemsData = JSON.stringify(items);
+                if ($('modalUpdateDate')?.checked) updateData.completedDate = new Date().toISOString();
+
+                // After Image Upload
+                if ($('adminImg').files.length > 0) {
+                    const b64After = await fileToBase64($('adminImg').files[0]);
+                    const refAfter = storage.ref(`jobs/${jobId}_AFTER.jpg`);
+                    await refAfter.putString(b64After, 'data_url');
+                    updateData.imageAfter = await refAfter.getDownloadURL();
+                }
+            } else if (st === 'Processing') {
+                const r = appData.reqs.find(x => x.jobID === jobId);
+                if (!r.acceptedDate) updateData.acceptedDate = new Date().toISOString();
+            }
+
+            await db.collection('requests').doc(jobId).update(updateData);
             closeModal();
             refreshData(true);
             Swal.fire('Saved', 'บันทึกข้อมูลเรียบร้อยแล้ว', 'success');
         } catch (e) { Swal.fire('Error', String(e), 'error'); }
     }
 
+    async function deleteJobPrompt(jobId) {
+        const r = appData.reqs.find(x => x.jobID === jobId);
+        if (!r) return Swal.fire('Error', 'ไม่พบข้อมูลงาน', 'error');
+
+        const { value: enteredUserPin } = await Swal.fire({
+            title: 'ยืนยันการลบงาน (1/2)',
+            text: `กรุณาใส่รหัส PIN ของผู้แจ้งซ่อมสำหรับงาน ${jobId}`,
+            input: 'password',
+            background: '#1e293b', color: '#fff', confirmButtonColor: '#ef4444', showCancelButton: true
+        });
+        if (!enteredUserPin) return;
+        if (String(enteredUserPin) !== String(r.userPin)) return Swal.fire('รหัสไม่ถูกต้อง', 'รหัส PIN ผู้แจ้งไม่ตรงกัน', 'error');
+
+        const { value: enteredAdminPass } = await Swal.fire({
+            title: 'ยืนยันการลบงาน (2/2)',
+            text: 'กรุณาใส่รหัสผ่าน Admin เพื่อยืนยันสิทธิ์',
+            input: 'password',
+            background: '#1e293b', color: '#fff', confirmButtonColor: '#ef4444', showCancelButton: true
+        });
+        if (!enteredAdminPass) return;
+        if (enteredAdminPass !== appData.adminPass) return Swal.fire('รหัสไม่ถูกต้อง', 'รหัส Admin ไม่ถูกต้อง', 'error');
+
+        const { isConfirmed } = await Swal.fire({
+            title: 'ยืนยันการลบถาวร',
+            text: `คุณกำลังจะลบข้อมูลงาน ${jobId} อย่างถาวร ข้อมูลนี้ไม่สามารถกู้คืนได้!`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#475569',
+            confirmButtonText: 'ใช่, ลบเลย!',
+            background: '#1e293b', color: '#fff'
+        });
+
+        if (isConfirmed) {
+            Swal.fire({ title: 'กำลังลบข้อมูล...', didOpen: () => Swal.showLoading() });
+            try {
+                await db.collection('requests').doc(jobId).delete();
+                await refreshData(true);
+                Swal.fire('Deleted!', 'ลบข้อมูลออกจากระบบสำเร็จ', 'success');
+            } catch (e) {
+                Swal.fire('Error', String(e), 'error');
+            }
+        }
+    }
+
     // ----------------------------------------------------------------
-    // RENDERERS
+    // 10. RENDERERS
     // ----------------------------------------------------------------
     function renderLists() {
         ['depts', 'techs'].forEach(k => {
@@ -754,7 +1354,6 @@
         $('modalTech').innerHTML = opts(appData.lists.techs);
     }
 
-    // Pre-compute status badge HTML — avoids repeated inline ternary chains
     const STATUS_BADGE = {
         Waiting:    `<span class="inline-block px-2 py-1 rounded text-xs font-bold bg-yellow-900/30 text-yellow-400 border border-yellow-500/50 status-waiting">Waiting</span>`,
         Processing: `<span class="inline-block px-2 py-1 rounded text-xs font-bold bg-blue-900/30 text-blue-400 border border-blue-500/50">Processing</span>`,
@@ -763,9 +1362,7 @@
         _default:   `<span class="inline-block px-2 py-1 rounded text-xs font-bold bg-slate-700 text-slate-400 border border-slate-600">`
     };
 
-    function getBadge(status) {
-        return STATUS_BADGE[status] || (STATUS_BADGE._default + status + '</span>');
-    }
+    function getBadge(status) { return STATUS_BADGE[status] || (STATUS_BADGE._default + status + '</span>'); }
 
     function getUrgClass(r) {
         if (r.status === 'Done' || r.status === 'Closed') return 'bg-green-900/20 border-b border-green-800/50';
@@ -788,7 +1385,6 @@
             return;
         }
 
-        // Group by YYYY-MM using a Map for insertion-order preservation
         const groups = new Map();
         filtered.forEach(r => {
             const key = (r.requestDate || '').substring(0, 7);
@@ -796,10 +1392,8 @@
             groups.get(key).push(r);
         });
 
-        // Sort months descending
         const sorted = [...groups.entries()].sort((a, b) => b[0].localeCompare(a[0]));
 
-        // Build HTML via array join (faster than repeated concatenation)
         const html = sorted.map(([month, rows], idx) => {
             const rowsHtml = rows.map(r => {
                 const hasRemark  = r.adminRemarks?.trim();
@@ -816,12 +1410,10 @@
                     <div class="text-xs ${remarkCls} break-words leading-relaxed border-l-2 pl-2 mb-3">${detail}</div>
                     <div class="flex items-center gap-4 text-[11px] text-slate-500 border-t border-slate-800 pt-2 mt-2">
                         <div class="flex items-center gap-1 overflow-hidden whitespace-nowrap text-ellipsis max-w-[50%]">
-                            <span class="opacity-70">👤</span>
-                            <span class="text-slate-300 font-medium truncate">${r.requesterName}</span>
+                            <span class="opacity-70">👤</span><span class="text-slate-300 font-medium truncate">${r.requesterName}</span>
                         </div>
                         <div class="flex items-center gap-1 whitespace-nowrap"><span class="opacity-70">🕒</span><span class="text-slate-400">${dateStr}</span></div>
                     </div>
-                    <div class="mt-1 text-[10px] text-slate-600 flex justify-end items-center gap-1 group-hover:text-slate-400 transition">แตะเพื่อดูรายละเอียด <span class="text-lg">›</span></div>
                 </div>`;
             }).join('');
 
@@ -853,14 +1445,19 @@
             else if (r.urgency === 'Medium') trCls += ' urgency-medium-blink';
 
             return `<tr class="${trCls}" data-status="${r.status}">
-                <td class="p-3"><button onclick="openModal('${r.jobID}')" class="bg-blue-600 px-2 py-1 rounded text-xs hover:bg-blue-500 transition">Edit</button></td>
+                <td class="p-3 text-center"><input type="checkbox" class="chk-job accent-corp-gold w-4 h-4 cursor-pointer" value="${r.jobID}"></td>
+                <td class="p-3 text-xs ${sCls}">${r.status}</td>
                 <td class="p-3 font-mono text-xs">${r.jobID}</td>
                 <td class="p-3 text-sm">${r.requesterName}</td>
-                <td class="p-3 text-sm">${r.equipmentLocation}</td>
-                <td class="p-3 text-xs ${sCls}">${r.status}</td>
+                <td class="p-3 text-sm max-w-[200px] truncate" title="${r.equipmentLocation}">${r.equipmentLocation}</td>
+                <td class="p-3 text-right whitespace-nowrap">
+                    <button onclick="openModal('${r.jobID}')" class="bg-blue-600 px-2 py-1 rounded text-xs hover:bg-blue-500 transition mr-1 mb-1 md:mb-0">Edit</button>
+                    <button onclick="deleteJobPrompt('${r.jobID}')" class="bg-red-600 px-2 py-1 rounded text-xs hover:bg-red-500 transition">Del</button>
+                </td>
             </tr>`;
         });
         tbody.innerHTML = rows.join('');
+        document.getElementById('chkAll').checked = false;
         applyAdminFilters();
     }
 
@@ -872,26 +1469,17 @@
         $('kpi-done').innerText       = reqs.filter(x => x.status === 'Done' || x.status === 'Closed').length;
     }
 
-    // ----------------------------------------------------------------
-    // ADMIN FILTER
-    // ----------------------------------------------------------------
     function applyAdminFilters() {
         const sf  = $('adminStatusFilter').value;
         const tf  = $('adminSearchInput').value.toLowerCase();
         document.querySelectorAll('#adminTableBody tr').forEach(row => {
             const s = row.dataset.status;
-            const statusOk =
-                sf === 'All'    ? true :
-                sf === 'Active' ? s !== 'Closed' :
-                s === sf;
+            const statusOk = sf === 'All' ? true : sf === 'Active' ? s !== 'Closed' : s === sf;
             const textOk = !tf || row.innerText.toLowerCase().includes(tf);
             row.style.display = statusOk && textOk ? '' : 'none';
         });
     }
 
-    // ----------------------------------------------------------------
-    // DETAIL MODAL
-    // ----------------------------------------------------------------
     function openDetailModal(jobId) {
         const r = appData.reqs.find(x => x.jobID === jobId);
         if (!r) return;
@@ -927,9 +1515,8 @@
 
         const setImg = (id, url, placeholder) => {
             const div = $(id);
-            const direct = driveDirectUrl(url);
-            div.innerHTML = direct
-                ? `<img src="${direct}" class="h-full w-full object-cover rounded cursor-pointer hover:scale-105 transition" onclick="openImageViewer('${url}')">`
+            div.innerHTML = url
+                ? `<img src="${url}" class="h-full w-full object-cover rounded cursor-pointer hover:scale-105 transition" onclick="openImageViewer('${url}')">`
                 : `<span class="text-slate-600 text-xs">${placeholder}</span>`;
         };
         setImg('d-img-before', r.imageBefore, 'ไม่มีรูป');
@@ -945,70 +1532,44 @@
     function closeDetailModal() { $('detailModal').style.display = 'none'; }
 
     // ----------------------------------------------------------------
-    // SYSTEM SETTINGS
+    // 12. AUTH & MODAL HELPERS (ดึงรหัสผ่านจาก Firebase)
     // ----------------------------------------------------------------
-    function loadSettings() {
-        const saved = JSON.parse(localStorage.getItem('maint_cfg_v15') || '{}');
-        appData.cfg = { ...DEFAULT_CFG, ...saved };
-        // Ensure nested objects are intact
-        if (!appData.cfg.folderBefore) appData.cfg.folderBefore = DEFAULT_CFG.folderBefore;
-        if (!appData.cfg.folderAfter)  appData.cfg.folderAfter  = DEFAULT_CFG.folderAfter;
-        if (!appData.cfg.jobId)        appData.cfg.jobId        = { ...DEFAULT_CFG.jobId };
+    async function showLoginModal() {
+        const { value: enteredPass } = await Swal.fire({ 
+            title: 'Admin Login', 
+            input: 'password', 
+            background: '#1e293b', 
+            color: '#fff' 
+        });
+        if (!enteredPass) return;
 
-        setVal('setting-api-url',      appData.cfg.apiUrl);
-        setVal('setting-folder-before', appData.cfg.folderBefore);
-        setVal('setting-folder-after',  appData.cfg.folderAfter);
-        setVal('setting-id-prefix',     appData.cfg.jobId.prefix || 'MTN');
-        setVal('setting-id-start',      appData.cfg.jobId.startNum || 1);
-
-        updateIdPreview();
-        $('setting-id-prefix').addEventListener('input', updateIdPreview);
-        $('setting-id-start').addEventListener('input',  updateIdPreview);
-    }
-
-    function updateIdPreview() {
-        const p      = $('setting-id-prefix').value || 'XXX';
-        const s      = $('setting-id-start').value  || '1';
-        const padded = s.toString().padStart(4, '0');
-        $('id-preview').innerText = `${p}-${new Date().getFullYear()}-${padded}`;
-    }
-
-    function saveSystemSettings() {
-        appData.cfg.apiUrl       = $('setting-api-url').value.trim();
-        appData.cfg.folderBefore = $('setting-folder-before').value.trim();
-        appData.cfg.folderAfter  = $('setting-folder-after').value.trim();
-        appData.cfg.jobId = {
-            prefix:   $('setting-id-prefix').value.trim() || 'MTN',
-            startNum: parseInt($('setting-id-start').value.trim()) || 1
-        };
-        localStorage.setItem('maint_cfg_v15', JSON.stringify(appData.cfg));
-        location.reload();
-    }
-
-    function resetConfig() { localStorage.removeItem('maint_cfg_v15'); location.reload(); }
-
-    // ----------------------------------------------------------------
-    // AUTH
-    // ----------------------------------------------------------------
-    function showLoginModal() {
-        Swal.fire({ title: 'Admin', input: 'password', background: '#1e293b', color: '#fff' }).then(({ value }) => {
-            if (value === appData.cfg.adminPass) {
+        Swal.fire({ title: 'ตรวจสอบรหัสผ่าน...', didOpen: () => Swal.showLoading() });
+        
+        try {
+            const doc = await db.collection('system').doc('config').get();
+            let correctPass = '888';
+            
+            if (doc.exists && doc.data().adminPass) {
+                correctPass = doc.data().adminPass;
+            }
+            
+            if (enteredPass === correctPass) {
                 appData.isAdmin = true;
                 document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
                 $('btnLogin').classList.add('hidden');
                 $('btnLogout').classList.remove('hidden');
+                Swal.close();
                 switchTab('settings');
-            } else if (value) {
-                Swal.fire('Error', 'รหัสผิด', 'error');
+            } else {
+                Swal.fire('Error', 'รหัสผ่านไม่ถูกต้อง', 'error');
             }
-        });
+        } catch (e) {
+            Swal.fire('Error', 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้', 'error');
+        }
     }
 
     function logout() { location.reload(); }
 
-    // ----------------------------------------------------------------
-    // TAB SWITCHING
-    // ----------------------------------------------------------------
     function switchTab(id) {
         document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
         document.querySelectorAll('.tab-btn').forEach(el => {
@@ -1024,9 +1585,6 @@
         if (id === 'statistics') { renderStatistics(); }
     }
 
-    // ----------------------------------------------------------------
-    // MODAL HELPERS
-    // ----------------------------------------------------------------
     function closeModal() { $('adminModal').classList.add('hidden'); }
 
     function toggleAdminFields() {
@@ -1056,7 +1614,7 @@
     }
 
     // ----------------------------------------------------------------
-    // STATISTICS
+    // 13. STATISTICS
     // ----------------------------------------------------------------
     let chartCountInstance = null;
     let chartCostInstance  = null;
@@ -1084,10 +1642,8 @@
 
     function renderStatistics() {
         if ($('statYear').options.length <= 1) initStatFilters();
-
         const yf = $('statYear').value;
         const mf = $('statMonth').value;
-
         const deptStats = Object.create(null);
 
         appData.reqs.forEach(r => {
@@ -1107,27 +1663,18 @@
         const byCount = Object.keys(deptStats).sort((a, b) => deptStats[b].count - deptStats[a].count);
         const byCost  = Object.keys(deptStats).sort((a, b) => deptStats[b].cost  - deptStats[a].cost);
 
-        // Destroy & recreate charts
         chartCountInstance?.destroy();
         chartCostInstance?.destroy();
 
         chartCountInstance = new Chart($('chartCount').getContext('2d'), {
             type: 'bar',
-            data: {
-                labels: byCount,
-                datasets: [{ label: 'จำนวนงาน (งาน)', data: byCount.map(l => deptStats[l].count),
-                    backgroundColor: 'rgba(59,130,246,0.8)', borderColor: 'rgb(37,99,235)', borderWidth: 1, borderRadius: 4 }]
-            },
+            data: { labels: byCount, datasets: [{ label: 'จำนวนงาน (งาน)', data: byCount.map(l => deptStats[l].count), backgroundColor: 'rgba(59,130,246,0.8)', borderColor: 'rgb(37,99,235)', borderWidth: 1, borderRadius: 4 }] },
             options: CHART_OPTS
         });
 
         chartCostInstance = new Chart($('chartCost').getContext('2d'), {
             type: 'bar',
-            data: {
-                labels: byCost,
-                datasets: [{ label: 'ค่าใช้จ่าย (บาท)', data: byCost.map(l => deptStats[l].cost),
-                    backgroundColor: 'rgba(245,158,11,0.8)', borderColor: 'rgb(217,119,6)', borderWidth: 1, borderRadius: 4 }]
-            },
+            data: { labels: byCost, datasets: [{ label: 'ค่าใช้จ่าย (บาท)', data: byCost.map(l => deptStats[l].cost), backgroundColor: 'rgba(245,158,11,0.8)', borderColor: 'rgb(217,119,6)', borderWidth: 1, borderRadius: 4 }] },
             options: CHART_OPTS
         });
     }
