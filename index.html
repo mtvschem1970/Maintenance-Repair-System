@@ -314,6 +314,12 @@
                 <div><label class="text-xs text-slate-400">Status</label><select id="modalStatus" onchange="toggleAdminFields()" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white"><option>Waiting</option><option>Processing</option><option>Done</option><option>Closed</option></select></div>
                 <div><label class="text-xs text-slate-400">Technician</label><select id="modalTech" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white"></select></div>
             </div>
+            <div class="mb-4 border border-sky-700/60 rounded-lg p-3 bg-sky-950/20">
+                <label class="text-xs text-sky-400 font-bold mb-1 block">🔗 รหัสอุปกรณ์ (เชื่อมกับทะเบียนอุปกรณ์ Asset Tracker)</label>
+                <input id="modalEquipId" oninput="debouncedModalAsset()" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-white font-mono" placeholder="ใส่รหัสอุปกรณ์ เช่น PRD-001">
+                <p id="modalAssetInfo" class="text-xs mt-1 text-slate-500"></p>
+                <div id="sparePanel" class="mt-2"></div>
+            </div>
             <div class="mb-4"><label class="text-xs text-slate-400">Admin Remarks (บันทึกช่าง)</label><textarea id="modalRemark" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white" rows="2"></textarea></div>
             <div id="adminImageSection" class="hidden mb-4 border border-slate-600 rounded p-3 bg-slate-800/30">
                 <label class="text-xs text-green-400 font-bold mb-2 block">📷 Evidence (After Repair)</label>
@@ -541,6 +547,124 @@
             }
         } catch (e) { hint.textContent = ''; }
     }, 500);
+
+    // ----------------------------------------------------------------
+    // 1.6 เบิกอะไหล่จากสต๊อกของอุปกรณ์ (ในหน้าต่างจัดการงานของแอดมิน)
+    //     - เลือกอะไหล่ -> เพิ่มเป็นรายการค่าใช้จ่ายของงาน (ราคาตามสต๊อก)
+    //     - สต๊อกถูกตัดจริงตอนกด "บันทึก" เท่านั้น
+    //     - แก้จำนวน/ลบรายการแล้วบันทึกใหม่ ระบบจะคืนหรือตัดสต๊อกเพิ่มตามส่วนต่าง
+    // ----------------------------------------------------------------
+    const escHtml = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const fmtBaht = n => Number(n || 0).toLocaleString('th-TH', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+    const usageKey = u => `${u.assetId}|${u.partId}`;
+
+    // รวมรายการที่มาจากสต๊อก (มี partId) เป็นยอดใช้ต่ออะไหล่
+    function buildStockUsage(items) {
+        const map = {};
+        items.filter(i => i.partId && i.assetId).forEach(i => {
+            const k = usageKey(i);
+            if (!map[k]) map[k] = { assetId: i.assetId, partId: String(i.partId), name: i.name, qty: 0, unitPrice: i.unitPrice };
+            map[k].qty += Number(i.quantity) || 0;
+        });
+        return Object.values(map).filter(u => u.qty > 0);
+    }
+
+    // ตัด/คืนสต๊อกตามส่วนต่างระหว่างยอดที่ตัดไปแล้ว (oldU) กับยอดใหม่ (newU) ในทรานแซกชันเดียว
+    // สต๊อกไม่พอ -> โยน error และไม่มีอะไรถูกเปลี่ยน
+    async function applyStockDelta(oldU, newU) {
+        const delta = {};
+        newU.forEach(u => { delta[usageKey(u)] = { ...u, d: (delta[usageKey(u)]?.d || 0) + u.qty }; });
+        oldU.forEach(u => { const k = usageKey(u); delta[k] = { ...u, ...(delta[k] || {}), d: (delta[k]?.d || 0) - u.qty }; });
+        const changes = Object.values(delta).filter(x => x.d !== 0);
+        if (!changes.length) return false;
+
+        const byAsset = {};
+        changes.forEach(c => (byAsset[c.assetId] = byAsset[c.assetId] || []).push(c));
+
+        await assetDb.runTransaction(async tx => {
+            const docs = {};
+            for (const aid of Object.keys(byAsset)) docs[aid] = await tx.get(assetDb.collection('assets').doc(aid));
+            for (const [aid, list] of Object.entries(byAsset)) {
+                const snap = docs[aid];
+                if (!snap.exists) {
+                    if (list.some(c => c.d > 0)) throw new Error(`ไม่พบอุปกรณ์ ${aid} ในทะเบียน`);
+                    continue;
+                }
+                const parts = (snap.data().spareParts || []).map(sp => ({ ...sp }));
+                list.forEach(c => {
+                    const sp = parts.find(x => String(x.id) === String(c.partId));
+                    if (!sp) { if (c.d > 0) throw new Error(`ไม่พบอะไหล่ "${c.name}" ในสต๊อกของ ${aid}`); return; }
+                    const left = Number(sp.stock || 0) - c.d;
+                    if (left < 0) throw new Error(`สต๊อก "${sp.name}" ไม่พอ (คงเหลือ ${fmtBaht(sp.stock)} ต้องการเพิ่ม ${c.d})`);
+                    sp.stock = left;
+                });
+                tx.update(snap.ref, { spareParts: parts });
+            }
+        });
+        return true;
+    }
+
+    // โหลดอุปกรณ์ตามรหัสในหน้าต่างแอดมิน แล้วแสดงสต๊อกอะไหล่
+    async function loadModalAsset() {
+        const v = $('modalEquipId').value.trim();
+        const info = $('modalAssetInfo');
+        appData.modalAsset = null;
+        if (!v) { info.className = 'text-xs mt-1 text-slate-500'; info.textContent = 'ยังไม่ได้ระบุรหัสอุปกรณ์'; renderSparePanel(); return; }
+        info.className = 'text-xs mt-1 text-slate-400'; info.textContent = 'กำลังตรวจสอบรหัส...';
+        let snap = null;
+        try { snap = await findAsset(v); } catch (e) { info.className = 'text-xs mt-1 text-orange-400'; info.textContent = 'เชื่อมต่อ Asset Tracker ไม่ได้'; renderSparePanel(); return; }
+        if ($('modalEquipId').value.trim() !== v) return;
+        if (!snap) {
+            info.className = 'text-xs mt-1 text-orange-400';
+            info.textContent = 'ไม่พบรหัสนี้ในทะเบียนอุปกรณ์ (ประวัติซ่อมจะไม่ถูกบันทึกลงอุปกรณ์)';
+        } else {
+            const a = snap.data();
+            appData.modalAsset = { id: snap.id, data: a };
+            info.className = 'text-xs mt-1 text-green-400';
+            info.textContent = `✓ ${a.name || snap.id}${a.location ? ' (' + a.location + ')' : ''}`;
+            if (!$('edit-equip').value.trim() && a.name) $('edit-equip').value = a.name;
+        }
+        renderSparePanel();
+    }
+    const debouncedModalAsset = debounce(loadModalAsset, 500);
+
+    function renderSparePanel() {
+        const box = $('sparePanel'); if (!box) return;
+        const a = appData.modalAsset;
+        if (!a) { box.innerHTML = ''; return; }
+        if ($('modalStatus').value === 'Waiting') {
+            box.innerHTML = `<p class="text-xs text-slate-500">เปลี่ยนสถานะเป็น Processing (รับงาน) เพื่อเบิกอะไหล่จากสต๊อก</p>`;
+            return;
+        }
+        const parts = a.data.spareParts || [];
+        if (!parts.length) { box.innerHTML = `<p class="text-xs text-slate-500">อุปกรณ์นี้ยังไม่มีรายการ Spare Part ในสต๊อก</p>`; return; }
+        box.innerHTML = `<p class="text-xs text-sky-300 font-bold mb-1">📦 สต๊อกอะไหล่ของอุปกรณ์นี้</p>
+            <div class="space-y-1 max-h-48 overflow-y-auto pr-1">${parts.map(sp => {
+                const low = Number(sp.stock) < Number(sp.minStock);
+                const out = Number(sp.stock) <= 0;
+                return `<div class="flex items-center gap-2 bg-slate-900/70 border border-slate-700 rounded px-2 py-1 text-xs">
+                    <div class="flex-1 min-w-0"><div class="text-white truncate">${escHtml(sp.name)}</div>
+                        <div class="text-slate-400">฿${fmtBaht(sp.price)} · คงเหลือ <b class="${low ? 'text-red-400' : 'text-green-400'}">${fmtBaht(sp.stock)}</b>${low ? ' ⚠️' : ''}</div></div>
+                    <input type="number" min="1" value="1" id="spq-${escHtml(sp.id)}" class="w-14 bg-slate-800 border border-slate-600 rounded px-1 py-0.5 text-white text-center" ${out ? 'disabled' : ''}>
+                    <button type="button" onclick="useSparePart('${escHtml(sp.id)}')" class="bg-sky-600 hover:bg-sky-500 disabled:opacity-40 text-white px-2 py-1 rounded" ${out ? 'disabled' : ''}>ใช้</button>
+                </div>`;
+            }).join('')}</div>
+            <p class="text-[11px] text-slate-500 mt-1">สต๊อกจะถูกตัดเมื่อกด "บันทึก (Save)"</p>`;
+    }
+
+    function useSparePart(partId) {
+        const a = appData.modalAsset; if (!a) return;
+        const sp = (a.data.spareParts || []).find(x => String(x.id) === String(partId)); if (!sp) return;
+        const q = Math.max(1, parseInt(document.getElementById('spq-' + partId)?.value, 10) || 1);
+        const existing = [...document.querySelectorAll('.item-row')].find(r => r.dataset.assetId === a.id && r.dataset.partId === String(sp.id));
+        if (existing) existing.querySelector('.i-q').value = (+existing.querySelector('.i-q').value || 0) + q;
+        else {
+            // ลบแถวว่างที่ยังไม่ได้กรอก
+            document.querySelectorAll('.item-row').forEach(r => { if (!r.dataset.partId && !r.querySelector('.i-n').value.trim()) r.remove(); });
+            addItemRow(sp.name, q, Number(sp.price) || 0, { assetId: a.id, partId: String(sp.id) });
+        }
+        calcTotal();
+    }
 
     // ----------------------------------------------------------------
     // 2. CONFIG & STATE
@@ -1348,6 +1472,7 @@
         setVal('edit-equip',    r.equipmentLocation);
         setVal('edit-problem',  r.problemDetails);
         $('edit-img-before').value = '';
+        setVal('modalEquipId',  r.equipId);
 
         setVal('modalStatus', r.status);
         setVal('modalTech',   r.technician);
@@ -1361,7 +1486,7 @@
         container.innerHTML = '';
         try {
             const items = JSON.parse(r.itemsData);
-            if (items?.length) items.forEach(i => addItemRow(i.name, i.quantity, i.unitPrice));
+            if (items?.length) items.forEach(i => addItemRow(i.name, i.quantity, i.unitPrice, i.partId ? { assetId: i.assetId, partId: i.partId } : null));
             else addItemRow();
         } catch { addItemRow(); }
 
@@ -1370,6 +1495,7 @@
         if (isDoneOrClosed) $('modalUpdateDate').checked = false;
 
         toggleAdminFields();
+        loadModalAsset();
         $('adminModal').classList.remove('hidden');
     }
 
@@ -1378,13 +1504,20 @@
         const st = $('modalStatus').value;
         let items = [], cost = 0;
 
-        if (st === 'Done' || st === 'Closed') {
+        const withCost = st !== 'Waiting';   // รับงานแล้ว (Processing/Done/Closed) บันทึกค่าใช้จ่ายได้
+        if (withCost) {
             document.querySelectorAll('.item-row').forEach(row => {
                 const n = row.querySelector('.i-n').value;
                 const q = +row.querySelector('.i-q').value;
                 const p = +row.querySelector('.i-p').value;
-                if (n) { const t = q * p; items.push({ name: n, quantity: q, unitPrice: p, total: t }); cost += t; }
+                if (n) {
+                    const t = q * p, item = { name: n, quantity: q, unitPrice: p, total: t };
+                    if (row.dataset.partId) { item.assetId = row.dataset.assetId; item.partId = row.dataset.partId; }
+                    items.push(item); cost += t;
+                }
             });
+            if (items.some(i => i.partId && (!Number.isInteger(i.quantity) || i.quantity < 1)))
+                return Swal.fire('ข้อผิดพลาด', 'จำนวนอะไหล่จากสต๊อกต้องเป็นจำนวนเต็มตั้งแต่ 1 ขึ้นไป', 'warning');
         }
 
         Swal.fire({ title: 'Saving...', text: 'Updating job info...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
@@ -1409,9 +1542,12 @@
                 updateData.imageBefore = await refBefore.getDownloadURL();
             }
 
-            if (st === 'Done' || st === 'Closed') {
+            if (withCost) {
                 updateData.cost = cost;
                 updateData.itemsData = JSON.stringify(items);
+            }
+
+            if (st === 'Done' || st === 'Closed') {
                 if ($('modalUpdateDate')?.checked) updateData.completedDate = new Date().toISOString();
 
                 // After Image Upload
@@ -1426,7 +1562,33 @@
                 if (!r.acceptedDate) updateData.acceptedDate = new Date().toISOString();
             }
 
-            await db.collection('requests').doc(jobId).update(updateData);
+            const job = appData.reqs.find(x => x.jobID === jobId) || {};
+            let newEquipId = $('modalEquipId').value.trim();
+            // ใช้รหัสตามทะเบียนอุปกรณ์ (กันพิมพ์เล็ก/ใหญ่ไม่ตรง)
+            const ma = appData.modalAsset;
+            if (ma && newEquipId.toUpperCase() === String(ma.data.id || ma.id).toUpperCase()) newEquipId = String(ma.data.id || ma.id);
+            updateData.equipId = newEquipId;
+
+            // ตัด/คืนสต๊อกตามส่วนต่าง ก่อนบันทึกงาน (ถ้าสต๊อกไม่พอจะหยุดตรงนี้)
+            const oldUsage = job.stockUsage || [];
+            let newUsage = oldUsage, stockChanged = false;
+            if (withCost) {
+                newUsage = buildStockUsage(items);
+                stockChanged = await applyStockDelta(oldUsage, newUsage);
+                updateData.stockUsage = newUsage;
+            }
+
+            try {
+                await db.collection('requests').doc(jobId).update(updateData);
+            } catch (e) {
+                if (stockChanged) { try { await applyStockDelta(newUsage, oldUsage); } catch (e2) { console.error('Stock rollback failed', e2); } }
+                throw e;
+            }
+
+            // ย้ายประวัติซ่อมถ้าเปลี่ยนรหัสอุปกรณ์
+            if (job.equipId && String(job.equipId).trim().toUpperCase() !== newEquipId.toUpperCase()) {
+                try { await removeRepairFromAsset(job); } catch (e) { console.warn('Asset history move failed', e); }
+            }
             await syncJobById(jobId);
             closeModal();
             refreshData(true);
@@ -1456,7 +1618,7 @@
         if (!enteredAdminPass) return;
         if (enteredAdminPass !== appData.adminPass) return Swal.fire('รหัสไม่ถูกต้อง', 'รหัส Admin ไม่ถูกต้อง', 'error');
 
-        const { isConfirmed } = await Swal.fire({
+        const { isConfirmed, value: returnStockChecked } = await Swal.fire({
             title: 'ยืนยันการลบถาวร',
             text: `คุณกำลังจะลบข้อมูลงาน ${jobId} อย่างถาวร ข้อมูลนี้ไม่สามารถกู้คืนได้!`,
             icon: 'warning',
@@ -1464,12 +1626,15 @@
             confirmButtonColor: '#ef4444',
             cancelButtonColor: '#475569',
             confirmButtonText: 'ใช่, ลบเลย!',
-            background: '#1e293b', color: '#fff'
+            background: '#1e293b', color: '#fff',
+            ...(r.stockUsage?.length ? { input: 'checkbox', inputValue: 1, inputPlaceholder: 'คืนอะไหล่ที่เบิกไปกลับเข้าสต๊อก' } : {})
         });
+        const returnStock = !!(r.stockUsage?.length && returnStockChecked);
 
         if (isConfirmed) {
             Swal.fire({ title: 'กำลังลบข้อมูล...', didOpen: () => Swal.showLoading() });
             try {
+                if (returnStock) await applyStockDelta(r.stockUsage, []);   // คืนสต๊อกก่อนลบ ถ้าคืนไม่ได้จะไม่ลบงาน
                 await db.collection('requests').doc(jobId).delete();
                 try { await removeRepairFromAsset(r); } catch (e) { console.warn('Asset history remove failed', e); }
                 await refreshData(true);
@@ -1735,14 +1900,16 @@
     function toggleAdminFields() {
         const st = $('modalStatus').value;
         const isDone = st === 'Done' || st === 'Closed';
-        $('costSection').style.display        = isDone ? 'block' : 'none';
+        $('costSection').style.display        = (isDone || st === 'Processing') ? 'block' : 'none';
         $('adminImageSection').style.display  = (isDone || st === 'Processing') ? 'block' : 'none';
+        renderSparePanel();
     }
 
-    function addItemRow(n = '', q = 1, p = 0) {
+    function addItemRow(n = '', q = 1, p = 0, stock = null) {
         const div = document.createElement('div');
         div.className = 'grid grid-cols-6 gap-2 item-row';
-        div.innerHTML = `<input class="col-span-3 bg-slate-900 border border-slate-600 rounded px-1 i-n" value="${n}">
+        if (stock) { div.dataset.assetId = stock.assetId; div.dataset.partId = String(stock.partId); div.title = `เบิกจากสต๊อกของ ${stock.assetId}`; }
+        div.innerHTML = `<input class="col-span-3 bg-slate-900 border ${stock ? 'border-sky-500 text-sky-200' : 'border-slate-600'} rounded px-1 i-n" value="${escHtml(n)}" ${stock ? 'readonly' : ''}>
             <input type="number" class="col-span-1 bg-slate-900 border border-slate-600 rounded px-1 i-q" value="${q}" oninput="calcTotal()">
             <input type="number" class="col-span-1 bg-slate-900 border border-slate-600 rounded px-1 i-p" value="${p}" oninput="calcTotal()">
             <button onclick="this.parentElement.remove();calcTotal()" class="text-red-400">×</button>`;
