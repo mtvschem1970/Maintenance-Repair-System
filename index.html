@@ -134,7 +134,7 @@
                                 <input type="tel" id="reqPin" required maxlength="6" class="w-full bg-slate-900 border border-yellow-500/50 rounded px-4 py-2 text-center tracking-widest text-lg font-bold text-yellow-400" placeholder="ตั้งรหัสยืนยันปิดงาน">
                                 <p class="text-[15px] text-slate-500 mt-1">* ใช้รหัสนี้เพื่อยืนยันจบงาน (ห้ามลืม)</p>
                             </div>
-                            <div><label class="block text-sm text-slate-400 mb-1">รหัสอุปกรณ์</label><input type="text" id="reqEquipId" class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2" placeholder="ถ้ามี"></div>
+                            <div><label class="block text-sm text-slate-400 mb-1">รหัสอุปกรณ์</label><input type="text" id="reqEquipId" oninput="lookupEquipId()" class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2" placeholder="ถ้ามี"><p id="reqEquipHint" class="text-xs mt-1"></p></div>
                             <div class="md:col-span-2"><label class="block text-sm text-slate-400 mb-1">ชื่ออุปกรณ์</label><input type="text" id="reqEquip" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"></div>
                         </div>
                         <div class="border border-dashed border-slate-600 rounded-lg p-4 text-center hover:bg-slate-800 transition cursor-pointer relative" onclick="document.getElementById('reqImg').click()">
@@ -419,6 +419,128 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const storage = firebase.storage();
+
+    // ----------------------------------------------------------------
+    // 1.5 เชื่อมกับระบบ MT-Asset-Tracker (โปรเจกต์ Firebase แยก)
+    //     ถ้ารหัสอุปกรณ์ในใบแจ้งซ่อมตรงกับอุปกรณ์ใน Asset Tracker
+    //     จะบันทึก/อัปเดตประวัติการซ่อมลงในอุปกรณ์นั้นให้อัตโนมัติ
+    // ----------------------------------------------------------------
+    const assetFirebaseConfig = {
+      apiKey: "AIzaSyBm8GsXBD6FeQ3bx3-35L8sZtp9fk4K_ZE",
+      authDomain: "mt-asset-tracker-3948.firebaseapp.com",
+      projectId: "mt-asset-tracker-3948",
+      storageBucket: "mt-asset-tracker-3948.firebasestorage.app",
+      messagingSenderId: "440354197118",
+      appId: "1:440354197118:web:1f6f616e4b3b40e2d2522f"
+    };
+    const assetApp = firebase.apps.find(a => a.name === 'asset-tracker') || firebase.initializeApp(assetFirebaseConfig, 'asset-tracker');
+    const assetDb  = assetApp.firestore();
+
+    const STATUS_TH = { Waiting: 'รอดำเนินการ', Processing: 'กำลังดำเนินการ', Done: 'ซ่อมเสร็จ', Closed: 'ปิดงานแล้ว', Cancelled: 'ยกเลิก' };
+    // ต้องตรงกับ docId() ใน firebase-api.js ของ Asset Tracker
+    const assetDocId = v => String(v).trim().replace(/\//g, '_');
+
+    // หาอุปกรณ์จากรหัส (ลองตรงตัวก่อน แล้วลองตัวพิมพ์ใหญ่) คืน DocumentSnapshot หรือ null
+    async function findAsset(equipId) {
+        const raw = String(equipId || '').trim();
+        if (!raw) return null;
+        for (const id of [...new Set([raw, raw.toUpperCase()])]) {
+            const snap = await assetDb.collection('assets').doc(assetDocId(id)).get();
+            if (snap.exists) return snap;
+        }
+        return null;
+    }
+
+    // สร้าง/อัปเดตรายการประวัติซ่อมในอุปกรณ์ (ใช้ Job ID เป็น id ของรายการ จึงไม่ซ้ำ)
+    // คืนค่า { linked: true, name } ถ้าบันทึกสำเร็จ, { linked: false } ถ้าไม่พบอุปกรณ์
+    async function syncRepairToAsset(job) {
+        if (!job || !job.equipId) return { linked: false };
+        const snap = await findAsset(job.equipId);
+        if (!snap) return { linked: false };
+
+        let items = [];
+        try { items = JSON.parse(job.itemsData || '[]'); } catch (e) {}
+        const parts = items.map(it => ({
+            name: it.quantity > 1 ? `${it.name} x${it.quantity}` : it.name,
+            price: Number(it.total) || 0, image: '', pdf: ''
+        }));
+        const finished = job.status === 'Done' || job.status === 'Closed';
+        const dateIso = (finished && job.completedDate) || job.requestDate || new Date().toISOString();
+        const desc = [
+            `[${job.jobID}] ${job.problemDetails || ''}`.trim(),
+            `สถานะ: ${STATUS_TH[job.status] || job.status || '-'}`,
+            job.technician ? `ช่าง: ${job.technician}` : '',
+            job.adminRemarks ? `หมายเหตุ: ${job.adminRemarks}` : ''
+        ].filter(Boolean).join(' | ');
+
+        const log = {
+            id: job.jobID,
+            date: new Date(dateIso).toLocaleDateString('en-CA'),   // YYYY-MM-DD เวลาไทย
+            type: 'ซ่อมแซม',
+            description: desc,
+            laborCost: 0,
+            totalCost: Number(job.cost) || 0,
+            parts,
+            source: 'Maintenance-Repair-System',
+            jobID: job.jobID,
+            repairStatus: job.status || '',
+            technician: job.technician || '',
+            requesterName: job.requesterName || '',
+            imageBefore: job.imageBefore || '',
+            imageAfter: job.imageAfter || ''
+        };
+
+        await assetDb.runTransaction(async tx => {
+            const s = await tx.get(snap.ref);
+            const rest = (s.data().history || []).filter(h => String(h.id) !== String(log.id));
+            const history = [...rest, log].sort((a, b) =>
+                String(b.date || '').localeCompare(String(a.date || '')) || Number(b.id || 0) - Number(a.id || 0));
+            tx.update(snap.ref, { history });
+        });
+        return { linked: true, name: snap.data().name || job.equipId };
+    }
+
+    // ลบรายการประวัติของงานนี้ออกจากอุปกรณ์ (ใช้ตอนลบใบแจ้งซ่อม)
+    async function removeRepairFromAsset(job) {
+        if (!job || !job.equipId) return;
+        const snap = await findAsset(job.equipId);
+        if (!snap) return;
+        await assetDb.runTransaction(async tx => {
+            const s = await tx.get(snap.ref);
+            const history = (s.data().history || []).filter(h => String(h.id) !== String(job.jobID));
+            tx.update(snap.ref, { history });
+        });
+    }
+
+    // อ่านงานล่าสุดจาก Firestore แล้วซิงก์ ไม่ให้ความผิดพลาดของการซิงก์ไปกระทบงานหลัก
+    async function syncJobById(jobId) {
+        try {
+            const d = await db.collection('requests').doc(jobId).get();
+            if (d.exists) return await syncRepairToAsset(d.data());
+        } catch (e) { console.warn('Asset sync failed', jobId, e); }
+        return { linked: false, error: true };
+    }
+
+    // แสดงชื่ออุปกรณ์ทันทีเมื่อกรอกรหัสในฟอร์มแจ้งซ่อม
+    const lookupEquipId = debounce(async () => {
+        const hint = $('reqEquipHint'); if (!hint) return;
+        const v = $('reqEquipId').value.trim();
+        if (!v) { hint.textContent = ''; return; }
+        hint.className = 'text-xs mt-1 text-slate-400'; hint.textContent = 'กำลังตรวจสอบรหัส...';
+        try {
+            const snap = await findAsset(v);
+            if ($('reqEquipId').value.trim() !== v) return;
+            if (snap) {
+                const a = snap.data();
+                hint.className = 'text-xs mt-1 text-green-400';
+                hint.textContent = `✓ พบในทะเบียนอุปกรณ์: ${a.name || a.id}${a.location ? ' (' + a.location + ')' : ''} — ประวัติซ่อมจะถูกบันทึกให้อัตโนมัติ`;
+                if (!$('reqEquip').value.trim() && a.name) $('reqEquip').value = a.name;
+            } else {
+                hint.className = 'text-xs mt-1 text-slate-500';
+                hint.textContent = 'ไม่พบรหัสนี้ในทะเบียนอุปกรณ์ (ยังแจ้งซ่อมได้ตามปกติ)';
+            }
+        } catch (e) { hint.textContent = ''; }
+    }, 500);
 
     // ----------------------------------------------------------------
     // 2. CONFIG & STATE
@@ -1135,13 +1257,20 @@
 
             await db.collection('requests').doc(newId).set(payload);
 
+            let assetLink = { linked: false };
+            try { assetLink = await syncRepairToAsset(payload); }
+            catch (e) { console.warn('Asset sync failed', e); assetLink = { linked: false, error: true }; }
+
             $('requestForm').reset();
             $('reqPreview').style.display = 'none';
+            if ($('reqEquipHint')) $('reqEquipHint').textContent = '';
 
             let html = `<div class="text-left mt-2">
                 <p class="text-sm text-green-400 mb-2">ข้อมูลของท่านได้รับการจัดส่งเข้าสู่ระบบเรียบร้อยแล้ว</p>
                 <p class="mb-1">หมายเลขงาน (Job ID): <b class="text-corp-gold font-mono">${newId}</b></p>
                 <p class="mb-3">รหัสยืนยันปิดงาน (PIN): <b class="text-yellow-400 font-mono tracking-widest">${userPin}</b></p>
+                ${assetLink.linked ? `<p class="mb-3 text-xs text-green-400">🔗 บันทึกลงประวัติซ่อมของอุปกรณ์ <b>${assetLink.name}</b> ใน Asset Tracker แล้ว</p>`
+                  : assetLink.error ? `<p class="mb-3 text-xs text-orange-400">⚠️ บันทึกใบแจ้งซ่อมแล้ว แต่ส่งประวัติไป Asset Tracker ไม่สำเร็จ (จะลองใหม่เมื่อมีการอัปเดตงาน)</p>` : ''}
                 <div class="bg-slate-800 p-3 rounded border border-slate-600">
                     <p class="text-xs text-slate-300 leading-relaxed"><b>⚠️ ข้อกำหนดสำคัญ:</b><br>
                     ใช้รหัส PIN เพื่อกดยืนยันการจบงานในเมนู <b class="text-corp-gold">"ติดตามงาน"</b></p>
@@ -1183,6 +1312,7 @@
                 status: 'Closed',
                 completedDate: new Date().toISOString()
             });
+            await syncJobById(jobId);
             refreshData(true);
             Swal.fire('สำเร็จ', 'ยืนยันจบงานเรียบร้อยแล้ว', 'success');
         } catch (err) { Swal.fire('Error', String(err), 'error'); }
@@ -1297,6 +1427,7 @@
             }
 
             await db.collection('requests').doc(jobId).update(updateData);
+            await syncJobById(jobId);
             closeModal();
             refreshData(true);
             Swal.fire('Saved', 'บันทึกข้อมูลเรียบร้อยแล้ว', 'success');
@@ -1340,6 +1471,7 @@
             Swal.fire({ title: 'กำลังลบข้อมูล...', didOpen: () => Swal.showLoading() });
             try {
                 await db.collection('requests').doc(jobId).delete();
+                try { await removeRepairFromAsset(r); } catch (e) { console.warn('Asset history remove failed', e); }
                 await refreshData(true);
                 Swal.fire('Deleted!', 'ลบข้อมูลออกจากระบบสำเร็จ', 'success');
             } catch (e) {
