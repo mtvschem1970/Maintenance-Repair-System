@@ -31,6 +31,8 @@
         }
     </script>
     <style>
+        html, body { height: 100vh; height: 100dvh; }
+        #docFooter { padding-bottom: env(safe-area-inset-bottom); }
         body {
             background-image: linear-gradient(rgba(15,23,42,0.95), rgba(15,23,42,0.95)),
                 url('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=2070&q=80');
@@ -71,7 +73,7 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
     </style>
 </head>
-<body class="text-slate-200 h-screen flex flex-col overflow-hidden">
+<body class="text-slate-200 flex flex-col overflow-hidden">
 
     <!-- Image Viewer -->
     <div id="imageViewerModal" class="modal-overlay" onclick="closeImageViewer()" style="z-index:70;">
@@ -274,9 +276,9 @@
 
     </main>
         <!-- Footer -->
-     <footer id="docFooter" class="bg-corp-blue border-t border-slate-700 shadow-inner z-20">
-        <div class="container mx-auto px-4 py-2 flex flex-wrap justify-center items-center gap-x-3 text-xs text-slate-400 font-mono">
-            <span>F-MTN-01-04 Rev.04</span>
+    <footer id="docFooter" class="bg-corp-blue border-t border-slate-700 shrink-0">
+        <div class="container mx-auto px-4 py-1 flex flex-wrap justify-center items-center gap-x-2 text-[10px] text-slate-500 font-mono">
+            <span>Rev.04</span>
             <span class="text-slate-600">|</span>
             <span>Effective date: 06/04/2569</span>
         </div>
@@ -349,7 +351,7 @@
                     <h3 class="text-lg font-bold text-corp-gold flex items-center gap-2">📄 รายละเอียดงาน</h3>
                     <p class="text-xs text-slate-400 font-mono flex flex-wrap items-center gap-x-2">
                     <span id="d-jobId"></span>
-                    <span class="text-slate-500">F-MTN-01-04 Rev.04 Effective date: 06/04/2569</span>
+                    <span class="text-slate-500 text-[10px]">Rev.04 Effective date: 06/04/2569</span>
                 </p>
                 </div>
                 <button onclick="closeDetailModal()" class="text-slate-400 hover:text-white text-2xl font-bold px-2">×</button>
