@@ -930,7 +930,8 @@
 
         sheet.mergeCells('E27:F29');
         const sigTech = sheet.getCell('E27');
-        sigTech.value = `🛠️ JOB COMPLETED\n( ${r.technician || '-'} )\nDate: ${closeDates.tech ? new Date(closeDates.tech).toLocaleString('th-TH') : '-'}`;
+        sigTech.value = `🛠️ JOB COMPLETED\n( ${r.technician || '-'} )\nDate: ${closeDates.tech ? new Date(closeDates.tech).toLocaleString('th-TH') + (closeDates.techEstimated ? ' *' : '') : '-'}`;
+        if (closeDates.techEstimated) sigTech.note = '* เวลาอ้างอิงจากประวัติการแก้ไขในระบบ (เติมย้อนหลัง)';
         sigTech.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
         setBorder(sheet.getCell('E27')); setBorder(sheet.getCell('F27'));
         setBorder(sheet.getCell('E28')); setBorder(sheet.getCell('F28'));
@@ -1850,9 +1851,12 @@
     function getCloseDates(r) {
         const isClosed = r.status === 'Closed';
         const isDone   = r.status === 'Done';
-        const tech  = r.techDoneDate || (isDone ? r.completedDate : null) || null;
+        const recorded = r.techDoneDate || (isDone ? r.completedDate : null) || null;
+        // techDoneDateEstimate: เติมย้อนหลังจากเวลาแก้ไขล่าสุดใน Firestore สำหรับงานที่ระบบเดิมไม่ได้บันทึกเวลา (แสดงพร้อม *)
+        const tech  = recorded || r.techDoneDateEstimate || null;
+        const techEstimated = !recorded && !!r.techDoneDateEstimate;
         const owner = r.ownerClosedDate || (isClosed ? r.completedDate : null) || null;
-        return { tech, owner };
+        return { tech, owner, techEstimated };
     }
 
     const fmtDateTime = iso => {
@@ -1862,13 +1866,13 @@
     };
 
     function renderTimeline(r) {
-        const { tech, owner } = getCloseDates(r);
+        const { tech, owner, techEstimated } = getCloseDates(r);
         const isDone   = r.status === 'Done' || r.status === 'Closed';
         const noTime   = 'ไม่ได้บันทึกเวลา';
         // แสดงเฉพาะขั้นตอนที่งานนี้ผ่านจริง (+ ขั้นถัดไปที่รอเจ้าของงานยืนยัน)
         const steps = [{ label: 'แจ้งซ่อม', date: r.requestDate, who: r.requesterName, reached: true }];
         if (r.acceptedDate) steps.push({ label: 'ช่างรับงาน', date: r.acceptedDate, who: r.technician, reached: true });
-        if (isDone) steps.push({ label: 'ช่างปิดงาน', date: tech, who: r.technician, reached: true, key: true, emptyText: noTime });
+        if (isDone) steps.push({ label: 'ช่างปิดงาน', date: tech, who: r.technician, reached: true, key: true, emptyText: noTime, mark: techEstimated ? ' <span title="เวลาอ้างอิงจากประวัติการแก้ไขในระบบ (เติมย้อนหลัง)" class="cursor-help">*</span>' : '' });
         if (r.status === 'Closed') steps.push({ label: 'เจ้าของงานยืนยันปิดงาน', date: owner, who: r.requesterName, reached: true, key: true, emptyText: noTime });
         else if (r.status === 'Done') steps.push({ label: 'เจ้าของงานยืนยันปิดงาน', reached: false, key: true, emptyText: 'รอยืนยัน' });
 
@@ -1884,7 +1888,7 @@
                 <span class="absolute left-0 top-1 h-[15px] w-[15px] rounded-full border-2 ${dot} flex items-center justify-center text-[9px] text-white">${s.reached ? '✓' : ''}</span>
                 <div class="flex justify-between items-start gap-2">
                     <span class="${lbl}">${s.label}</span>
-                    <span class="text-right text-xs ${txt ? 'text-slate-800 font-semibold' : (s.reached ? 'text-slate-500 italic' : 'text-amber-700 font-semibold')}">${txt || s.emptyText || '-'}</span>
+                    <span class="text-right text-xs ${txt ? 'text-slate-800 font-semibold' : (s.reached ? 'text-slate-500 italic' : 'text-amber-700 font-semibold')}">${txt ? txt + (s.mark || '') : (s.emptyText || '-')}</span>
                 </div>
                 ${s.reached && s.who ? `<div class="text-xs text-slate-500">${escHtml(s.who)}</div>` : ''}
             </li>`;
