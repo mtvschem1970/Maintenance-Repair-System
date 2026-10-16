@@ -13,7 +13,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Firebase V9 Compat SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -25,37 +25,38 @@
             theme: {
                 extend: {
                     colors: { corp: { blue: '#0f172a', lightBlue: '#f8fafc', accent: '#2563eb', gold: '#b45309' } },
-                    fontFamily: { sans: ['Sarabun', 'sans-serif'] }
+                    fontFamily: { sans: ['Sarabun', 'sans-serif'] },
+                    borderRadius: { lg: '4px', xl: '5px', '2xl': '6px' }
                 }
             }
         }
     </script>
     <style type="text/tailwindcss">
         @layer components {
-            .card        { @apply bg-white rounded-2xl border border-slate-200 shadow-sm; }
-            .card-head   { @apply px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-3; }
-            .card-title  { @apply text-base font-bold text-slate-800 flex items-center gap-2; }
+            .card        { @apply bg-white rounded-md border border-slate-200; }
+            .card-head   { @apply px-5 py-3 border-b border-slate-200 flex items-center justify-between gap-3; }
+            .card-title  { @apply text-[15px] font-semibold text-slate-800 flex items-center gap-2; }
             .lbl         { @apply block text-sm font-medium text-slate-600 mb-1; }
             .lbl-sm      { @apply block text-xs font-medium text-slate-500 mb-1; }
-            .field       { @apply w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/25 focus:border-blue-500 transition; }
-            .field-sm    { @apply w-full bg-white border border-slate-300 rounded-md px-2 py-1 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/25 focus:border-blue-500 transition; }
-            .btn         { @apply inline-flex items-center justify-center gap-1.5 rounded-lg font-semibold transition whitespace-nowrap disabled:opacity-50; }
-            .btn-primary { @apply btn bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white shadow-sm; }
-            .btn-success { @apply btn bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm; }
-            .btn-danger  { @apply btn bg-red-600 hover:bg-red-700 text-white shadow-sm; }
+            .field       { @apply w-full bg-white border border-slate-300 rounded px-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition; }
+            .field-sm    { @apply w-full bg-white border border-slate-300 rounded px-2 py-1 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition; }
+            .btn         { @apply inline-flex items-center justify-center gap-1.5 rounded font-medium transition whitespace-nowrap disabled:opacity-50; }
+            .btn-primary { @apply btn bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white; }
+            .btn-success { @apply btn bg-emerald-700 hover:bg-emerald-800 text-white; }
+            .btn-danger  { @apply btn bg-red-700 hover:bg-red-800 text-white; }
             .btn-soft    { @apply btn bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200; }
-            .sec-title   { @apply text-xs font-bold uppercase tracking-wide text-slate-500 flex items-center gap-1.5 mb-2; }
+            .sec-title   { @apply text-xs font-semibold uppercase tracking-wider text-slate-500 flex items-center gap-1.5 mb-2; }
             .kv-k        { @apply text-xs text-slate-500 block; }
             .kv-v        { @apply text-slate-800 font-medium; }
-            .tab-btn         { @apply px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition whitespace-nowrap; }
-            .tab-btn.active  { @apply text-blue-700 border-blue-600; }
+            .tab-btn         { @apply px-4 py-2.5 text-sm font-medium border-b-2 border-transparent text-slate-300 hover:text-white transition whitespace-nowrap; }
+            .tab-btn.active  { @apply text-white border-amber-400; }
         }
     </style>
     <style>
         html, body { height: 100vh; height: 100dvh; }
         #docFooter { padding-bottom: env(safe-area-inset-bottom); }
         body {
-            background: #d5dbe3;
+            background: #e1e5ea;
             font-family: 'Sarabun', sans-serif;
             -webkit-user-select: none; -moz-user-select: none; user-select: none;
         }
@@ -78,8 +79,8 @@
             0%, 100% { background-color: #edf0f4; box-shadow: inset 4px 0 0 #fca5a5; }
             50% { background-color: #fef2f2; box-shadow: inset 4px 0 0 #ef4444; }
         }
-        .urgency-medium-blink { animation: blink-bg-yellow 2.5s infinite ease-in-out; }
-        .urgency-high-blink   { animation: blink-bg-red   2.5s infinite ease-in-out; }
+        .urgency-medium-blink { box-shadow: inset 4px 0 0 #d97706; background-color: #f6f1e7; }
+        .urgency-high-blink   { box-shadow: inset 4px 0 0 #b91c1c; background-color: #f6eaea; }
 
         .img-preview { max-height: 150px; border-radius: 10px; margin-top: 10px; display: none; border: 1px solid #e2e8f0; }
 
@@ -94,10 +95,18 @@
         .fade-in { animation: fadeIn 0.18s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
-        /* โทนสว่างแบบนุ่มตา: ลดความขาวของพื้นผิวทั้งหมด */
-        html body .bg-white, html body .card { background-color: #edf0f4; }
-        html body .bg-slate-50, html body .bg-slate-50\/70 { background-color: #e3e8ee; }
-        html body .border-slate-200, html body .border-slate-100 { border-color: #cdd5df; }
+        /* โทนสุภาพแบบระบบงานองค์กร: พื้นเทา ไม่ใช้ขาวจัด สีหลักน้ำเงินเข้ม */
+        html body .bg-white, html body .card { background-color: #f3f4f6; }
+        html body .bg-slate-50, html body .bg-slate-50\/70 { background-color: #e9ecf0; }
+        html body .border-slate-200, html body .border-slate-100 { border-color: #cfd5dc; }
+        html body .bg-blue-600 { background-color: #1f4e79; }
+        html body .hover\:bg-blue-700:hover, html body .bg-blue-700 { background-color: #173c5e; }
+        html body .text-blue-700 { color: #1f4e79; }
+        html body .bg-indigo-600 { background-color: #3d4b5c; }
+        html body .hover\:bg-indigo-700:hover { background-color: #2f3a47; }
+        html body .shadow-2xl { box-shadow: 0 10px 30px rgba(15,23,42,.25); }
+        .app-header { background: #1c2b3d; }
+        .app-mark { background: #f3f4f6; color: #1c2b3d; }
         html body .divide-slate-100 > * + * { border-color: #d3dae3; }
         html body .field, html body .field-sm { background-color: #f6f7f9; border-color: #b9c3cf; }
         html body .btn-soft { background-color: #e3e8ee; border-color: #c4cdd8; }
@@ -106,8 +115,8 @@
         .swal2-popup { background: #edf0f4 !important; }
 
         /* SweetAlert2 ให้เข้ากับธีมสว่าง */
-        .swal2-popup { font-family: 'Sarabun', sans-serif !important; border-radius: 16px !important; }
-        .swal2-input { border-radius: 10px !important; }
+        .swal2-popup { font-family: 'Sarabun', sans-serif !important; border-radius: 6px !important; }
+        .swal2-input { border-radius: 4px !important; }
     </style>
 </head>
 <body class="text-slate-800 flex flex-col overflow-hidden">
@@ -115,34 +124,34 @@
     <!-- Image Viewer -->
     <div id="imageViewerModal" class="modal-overlay" onclick="closeImageViewer()" style="z-index:70;">
         <div class="modal-content-img" onclick="event.stopPropagation()">
-            <span class="modal-close-img" onclick="closeImageViewer()">✕ ปิด</span>
+            <span class="modal-close-img" onclick="closeImageViewer()">ปิด </span>
             <img id="imageViewerSrc" src="" class="rounded-xl shadow-2xl bg-white" style="max-height:85vh;max-width:100%;">
         </div>
     </div>
 
     <!-- Header + Nav -->
-    <header class="bg-white border-b border-slate-200 shadow-sm z-20 shrink-0">
+    <header class="app-header z-20 shrink-0 text-white">
         <div class="container mx-auto px-4 pt-3 flex justify-between items-center gap-3">
             <div class="flex items-center gap-3 min-w-0">
-                <div class="h-11 w-11 shrink-0 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 shadow-md flex items-center justify-center"><span class="text-xl">🛠️</span></div>
+                <div class="app-mark h-10 w-10 shrink-0 rounded flex items-center justify-center font-bold text-sm tracking-tight">MT</div>
                 <div class="min-w-0">
-                    <h1 class="text-base sm:text-lg md:text-xl font-bold text-slate-900 leading-tight truncate">MAINTENANCE SYSTEM</h1>
-                    <p class="text-xs text-slate-500 font-medium truncate">ระบบแจ้งซ่อม · Vschem1970 (Powered by Maddox)</p>
+                    <h1 class="text-base sm:text-lg font-semibold text-white leading-tight tracking-wide truncate">MAINTENANCE SYSTEM</h1>
+                    <p class="text-xs text-slate-300 truncate">ระบบแจ้งซ่อม · Vschem1970 (Powered by Maddox)</p>
                 </div>
             </div>
             <div class="flex items-center gap-2 shrink-0">
-                <button onclick="refreshData()" class="h-10 w-10 rounded-full hover:bg-slate-100 transition text-slate-500 flex items-center justify-center" title="Refresh">🔄</button>
-                <button id="btnLogin"  onclick="showLoginModal()" class="btn-primary px-4 py-2 text-sm">🔐 Admin</button>
-                <button id="btnLogout" onclick="logout()"         class="hidden btn-soft px-4 py-2 text-sm text-red-600">🚪 Logout</button>
+                <button onclick="refreshData()" class="h-9 w-9 rounded hover:bg-white/10 transition text-slate-300 hover:text-white flex items-center justify-center" title="Refresh"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg></button>
+                <button id="btnLogin"  onclick="showLoginModal()" class="btn px-4 py-1.5 text-sm border border-white/30 text-white hover:bg-white/10">Admin Login</button>
+                <button id="btnLogout" onclick="logout()"         class="hidden btn px-4 py-1.5 text-sm border border-white/30 text-white hover:bg-white/10">Logout</button>
             </div>
         </div>
         <nav class="container mx-auto px-4 mt-2">
             <div class="flex gap-1 overflow-x-auto -mb-px">
-                <button onclick="switchTab('request')"    id="tab-request"    class="tab-btn active">📝 แจ้งซ่อม</button>
-                <button onclick="switchTab('status')"     id="tab-status"     class="tab-btn">📂 ติดตามงาน</button>
-                <button onclick="switchTab('statistics')" id="tab-statistics" class="tab-btn hidden admin-only">📊 สถิติ</button>
-                <button onclick="switchTab('dashboard')"  id="tab-dashboard"  class="tab-btn hidden admin-only">📈 Admin</button>
-                <button onclick="switchTab('settings')"   id="tab-settings"   class="tab-btn hidden admin-only">⚙️ ตั้งค่า</button>
+                <button onclick="switchTab('request')"    id="tab-request"    class="tab-btn active">แจ้งซ่อม</button>
+                <button onclick="switchTab('status')"     id="tab-status"     class="tab-btn">ติดตามงาน</button>
+                <button onclick="switchTab('statistics')" id="tab-statistics" class="tab-btn hidden admin-only">สถิติ</button>
+                <button onclick="switchTab('dashboard')"  id="tab-dashboard"  class="tab-btn hidden admin-only">Admin</button>
+                <button onclick="switchTab('settings')"   id="tab-settings"   class="tab-btn hidden admin-only">ตั้งค่า</button>
             </div>
         </nav>
     </header>
@@ -160,20 +169,20 @@
                 <div class="p-5 md:p-6">
                     <form id="requestForm" onsubmit="submitRequest(event)" class="space-y-6">
                         <div>
-                            <div class="sec-title">👤 ข้อมูลผู้แจ้ง</div>
+                            <div class="sec-title">ข้อมูลผู้แจ้ง</div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div><label class="lbl">ชื่อผู้แจ้ง</label><input type="text" id="reqName" required class="field"></div>
                                 <div><label class="lbl">สถานที่/แผนก</label><select id="reqDept" required class="field"><option value="">-- กำลังโหลด... --</option></select></div>
                                 <div><label class="lbl">ข้อมูลติดต่อกลับ</label><input type="tel" id="reqPhone" required class="field"></div>
                                 <div class="bg-amber-50 p-3 rounded-xl border border-amber-200">
-                                    <label class="block text-sm text-amber-800 font-bold mb-1">🔑 รหัสยืนยัน (PIN)</label>
+                                    <label class="block text-sm text-amber-800 font-bold mb-1">รหัสยืนยัน (PIN)</label>
                                     <input type="tel" id="reqPin" required maxlength="6" class="field text-center tracking-[0.4em] text-lg font-bold text-amber-800 placeholder:tracking-normal placeholder:font-normal placeholder:text-sm border-amber-300 focus:border-amber-500 focus:ring-amber-500/25" placeholder="ตั้งรหัสยืนยันปิดงาน">
                                     <p class="text-xs text-amber-700 mt-1">* ใช้รหัสนี้เพื่อยืนยันจบงาน (ห้ามลืม)</p>
                                 </div>
                             </div>
                         </div>
                         <div>
-                            <div class="sec-title">⚙️ อุปกรณ์ & ปัญหา</div>
+                            <div class="sec-title">อุปกรณ์ & ปัญหา</div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div><label class="lbl">รหัสอุปกรณ์</label><input type="text" id="reqEquipId" oninput="lookupEquipId()" class="field" placeholder="ถ้ามี"><p id="reqEquipHint" class="text-xs mt-1"></p></div>
                                 <div><label class="lbl">ชื่ออุปกรณ์</label><input type="text" id="reqEquip" required class="field"></div>
@@ -182,7 +191,7 @@
                         </div>
                         <div class="border-2 border-dashed border-slate-300 rounded-xl p-5 text-center hover:border-blue-400 hover:bg-blue-50/50 transition cursor-pointer relative" onclick="document.getElementById('reqImg').click()">
                             <input type="file" id="reqImg" accept="image/*" class="hidden" onchange="previewImage(this,'reqPreview')">
-                            <div class="text-3xl mb-1">📷</div>
+                            <div class="mb-1 flex justify-center text-slate-400"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
                             <span class="text-blue-700 font-bold">แตะเพื่อแนบรูปภาพ (ก่อนซ่อม)</span>
                             <p class="text-xs text-slate-500 mt-1">อัปโหลดไปยัง Firebase Storage ทันที</p>
                             <img id="reqPreview" class="img-preview mx-auto">
@@ -206,20 +215,20 @@
             <h2 class="text-2xl font-bold text-slate-900 mb-4">ตั้งค่าระบบ</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div class="card">
-                    <div class="card-head"><h3 class="card-title">🔗 System Config (Firebase Cloud Sync)</h3></div>
+                    <div class="card-head"><h3 class="card-title">System Config (Firebase Cloud Sync)</h3></div>
                     <div class="p-5">
                         <div class="mb-4 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">การตั้งค่าทั้งหมดถูกเก็บไว้ใน Firebase อย่างปลอดภัยและซิงค์ตรงกันทุกอุปกรณ์</div>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div><label class="lbl-sm">คำนำหน้า (Prefix)</label><input id="setting-id-prefix" class="field-sm" placeholder="เช่น MTN"></div>
                             <div><label class="lbl-sm">เลขเริ่มต้น (Start)</label><input type="number" id="setting-id-start" class="field-sm" placeholder="เช่น 1"></div>
-                            <div><label class="lbl-sm text-amber-700 font-bold">🔑 รหัสผ่าน Admin</label><input type="text" id="setting-admin-pass" class="field-sm font-bold text-amber-800" placeholder="ตั้งรหัสใหม่"></div>
+                            <div><label class="lbl-sm text-amber-700 font-bold">รหัสผ่าน Admin</label><input type="text" id="setting-admin-pass" class="field-sm font-bold text-amber-800" placeholder="ตั้งรหัสใหม่"></div>
                         </div>
                         <p class="text-xs text-slate-500 mt-3">รูปแบบ Job ID ตัวอย่าง: <span id="id-preview" class="text-blue-700 font-mono font-semibold">MTN-2026-0001</span></p>
-                        <button onclick="saveSystemSettings()" class="btn-primary w-full py-2.5 text-sm mt-4">💾 บันทึกการตั้งค่าลงระบบ</button>
+                        <button onclick="saveSystemSettings()" class="btn-primary w-full py-2.5 text-sm mt-4">บันทึกการตั้งค่าลงระบบ</button>
                     </div>
                 </div>
                 <div class="card">
-                    <div class="card-head"><h3 class="card-title">📋 List Management</h3></div>
+                    <div class="card-head"><h3 class="card-title">List Management</h3></div>
                     <div class="p-5 space-y-5">
                         <div>
                             <label class="lbl-sm">Departments (แผนก)</label>
@@ -243,7 +252,7 @@
                     <h2 class="text-2xl font-bold text-slate-900">แฟ้มงานซ่อม</h2>
                     <p class="text-sm text-slate-500">แตะที่งานเพื่อดูรายละเอียดและยืนยันปิดงาน</p>
                 </div>
-                <input id="statusSearch" onkeyup="debouncedSearch(this.value)" placeholder="🔍 ค้นหา Job ID, ชื่อ, อุปกรณ์..." class="field rounded-full sm:w-72">
+                <input id="statusSearch" onkeyup="debouncedSearch(this.value)" placeholder="ค้นหา Job ID, ชื่อ, อุปกรณ์..." class="field rounded-full sm:w-72">
             </div>
             <div id="statusFolders" class="space-y-4 pb-10"></div>
         </div>
@@ -258,26 +267,26 @@
             </div>
             <div class="card overflow-hidden">
                 <div class="p-4 border-b border-slate-200 flex flex-col lg:flex-row justify-between lg:items-center gap-3">
-                    <h2 class="card-title text-lg">📋 จัดการงานซ่อม</h2>
+                    <h2 class="card-title text-lg">จัดการงานซ่อม</h2>
 
                     <!-- เมนูการกระทำของ Admin -->
                     <div class="flex gap-2 w-full lg:w-auto overflow-x-auto pb-1 lg:pb-0">
-                        <button onclick="exportSelectedJobsExcel()" class="btn bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 text-sm">🖨️ โหลดใบงานที่เลือก</button>
+                        <button onclick="exportSelectedJobsExcel()" class="btn bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 text-sm">โหลดใบงานที่เลือก</button>
 
                         <input type="file" id="importExcelFile" accept=".xlsx, .xls" class="hidden" onchange="handleImportExcel(event)">
-                        <button onclick="document.getElementById('importExcelFile').click()" class="btn-soft px-3 py-1.5 text-sm">📤 Import เก่า</button>
+                        <button onclick="document.getElementById('importExcelFile').click()" class="btn-soft px-3 py-1.5 text-sm">Import เก่า</button>
 
-                        <button onclick="exportToExcelAll()" class="btn-success px-3 py-1.5 text-sm">📥 โหลดรายงานรวม</button>
+                        <button onclick="exportToExcelAll()" class="btn-success px-3 py-1.5 text-sm">โหลดรายงานรวม</button>
 
                         <select id="adminStatusFilter" onchange="applyAdminFilters()" class="field-sm w-auto py-1.5">
                             <option value="All">แสดงทั้งหมด</option>
-                            <option value="Active">🚧 ยังไม่ปิดจบงาน (Active)</option>
+                            <option value="Active">ยังไม่ปิดจบงาน (Active)</option>
                             <option value="Waiting">- รอรับงาน (Waiting)</option>
                             <option value="Processing">- กำลังดำเนินการ (Processing)</option>
                             <option value="Done">- รอตรวจสอบ/รอปิด (Done)</option>
-                            <option value="Closed">✅ ปิดงานแล้ว (Closed)</option>
+                            <option value="Closed">ปิดงานแล้ว (Closed)</option>
                         </select>
-                        <input id="adminSearchInput" onkeyup="debouncedAdminSearch()" placeholder="🔍 ค้นหางาน..." class="field-sm py-1.5 min-w-[10rem] lg:w-48">
+                        <input id="adminSearchInput" onkeyup="debouncedAdminSearch()" placeholder="ค้นหางาน..." class="field-sm py-1.5 min-w-[10rem] lg:w-48">
                     </div>
                 </div>
                 <div class="overflow-x-auto">
@@ -301,7 +310,7 @@
         <!-- Statistics -->
         <div id="view-statistics" class="view-section hidden container mx-auto fade-in pb-10">
             <div class="card p-4 mb-6 flex flex-wrap gap-4 items-center justify-between">
-                <h2 class="card-title text-lg">📊 สถิติงานซ่อมบำรุง</h2>
+                <h2 class="card-title text-lg">สถิติงานซ่อมบำรุง</h2>
                 <div class="flex gap-2">
                     <select id="statYear"  onchange="renderStatistics()" class="field-sm w-auto"></select>
                     <select id="statMonth" onchange="renderStatistics()" class="field-sm w-auto">
@@ -333,14 +342,14 @@
     <div id="adminModal" class="fixed inset-0 bg-slate-900/50 hidden z-50 flex items-center justify-center backdrop-blur-sm">
         <div class="bg-white w-full max-w-2xl rounded-2xl border border-slate-200 shadow-2xl m-4 max-h-[90vh] flex flex-col animate-zoomIn">
             <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center gap-3">
-                <h3 class="text-lg font-bold text-slate-900">🔧 Manage Job (แก้ไขงาน)</h3>
+                <h3 class="text-lg font-bold text-slate-900">Manage Job (แก้ไขงาน)</h3>
                 <span id="modalJobDisplay" class="text-sm font-mono text-blue-700 bg-blue-50 px-2 py-0.5 rounded"></span>
             </div>
             <input type="hidden" id="modalJobId">
             <div class="p-6 overflow-y-auto space-y-4">
                 <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
                     <div class="flex justify-between items-center cursor-pointer" onclick="document.getElementById('editUserSection').classList.toggle('hidden')">
-                        <h4 class="text-sm font-bold text-blue-700">✏️ แก้ไขข้อมูลผู้แจ้ง / รูปก่อนซ่อม</h4>
+                        <h4 class="text-sm font-bold text-blue-700">แก้ไขข้อมูลผู้แจ้ง / รูปก่อนซ่อม</h4>
                         <span class="text-xs text-slate-500">▼ Show/Hide</span>
                     </div>
                     <div id="editUserSection" class="hidden space-y-3 mt-3 border-t border-slate-200 pt-3">
@@ -351,7 +360,7 @@
                         <div><label class="lbl-sm">ชื่ออุปกรณ์</label><textarea id="edit-equip"   class="field-sm"></textarea></div>
                         <div><label class="lbl-sm">อาการเสีย</label><textarea  id="edit-problem" rows="2" class="field-sm"></textarea></div>
                         <div class="border border-dashed border-slate-300 rounded-lg p-2 bg-white">
-                            <label class="text-xs text-amber-700 font-bold mb-1 block">📷 รูปก่อนซ่อม (Before Image)</label>
+                            <label class="text-xs text-amber-700 font-bold mb-1 block">รูปก่อนซ่อม (Before Image)</label>
                             <input type="file" id="edit-img-before" accept="image/*" class="text-xs text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300">
                         </div>
                     </div>
@@ -361,14 +370,14 @@
                     <div><label class="lbl-sm">Technician</label><select id="modalTech" class="field"></select></div>
                 </div>
                 <div class="border border-sky-200 rounded-xl p-3 bg-sky-50">
-                    <label class="text-xs text-sky-800 font-bold mb-1 block">🔗 รหัสอุปกรณ์ (เชื่อมกับทะเบียนอุปกรณ์ Asset Tracker)</label>
+                    <label class="text-xs text-sky-800 font-bold mb-1 block">รหัสอุปกรณ์ (เชื่อมกับทะเบียนอุปกรณ์ Asset Tracker)</label>
                     <input id="modalEquipId" oninput="debouncedModalAsset()" class="field-sm font-mono" placeholder="ใส่รหัสอุปกรณ์ เช่น PRD-001">
                     <p id="modalAssetInfo" class="text-xs mt-1 text-slate-500"></p>
                     <div id="sparePanel" class="mt-2"></div>
                 </div>
                 <div><label class="lbl-sm">Admin Remarks (บันทึกช่าง)</label><textarea id="modalRemark" class="field" rows="2"></textarea></div>
                 <div id="adminImageSection" class="hidden border border-slate-200 rounded-xl p-3 bg-slate-50">
-                    <label class="text-xs text-emerald-700 font-bold mb-2 block">📷 Evidence (After Repair)</label>
+                    <label class="text-xs text-emerald-700 font-bold mb-2 block">Evidence (After Repair)</label>
                     <div class="flex items-center gap-3">
                         <button onclick="document.getElementById('adminImg').click()" class="btn-soft text-xs px-3 py-2 bg-white">Choose Image</button>
                         <input type="file" id="adminImg" accept="image/*" class="hidden" onchange="previewImage(this,'adminPreview')">
@@ -377,7 +386,7 @@
                     <img id="adminPreview" class="img-preview mt-2 max-h-24">
                 </div>
                 <div id="costSection" class="hidden border border-slate-200 bg-slate-50 p-4 rounded-xl">
-                    <h4 class="text-emerald-700 font-bold mb-2 flex justify-between"><span>💰 Cost</span><span id="grandTotal">0.00 ฿</span></h4>
+                    <h4 class="text-emerald-700 font-bold mb-2 flex justify-between"><span>Cost</span><span id="grandTotal">0.00 ฿</span></h4>
                     <div class="grid grid-cols-6 gap-2 text-[11px] text-slate-500 px-0.5 mb-1"><span class="col-span-3">รายการ</span><span>จำนวน</span><span>ราคา/หน่วย</span><span></span></div>
                     <div id="itemsContainer" class="space-y-2 mb-2"></div>
                     <button onclick="addItemRow()" class="btn-soft text-xs px-2 py-1 bg-white">+ Item</button>
@@ -386,7 +395,7 @@
                 <div id="dateUpdateSection" class="hidden">
                     <label class="flex items-center gap-2 cursor-pointer bg-slate-50 p-3 rounded-xl border border-slate-200 hover:bg-slate-100 transition">
                         <input type="checkbox" id="modalUpdateDate" value="true" class="w-5 h-5 accent-blue-600">
-                        <span class="text-sm text-slate-700 font-medium">🕒 อัพเดทวันที่/เวลา ปิดจบงานเป็นปัจจุบัน <span class="text-slate-500 text-xs">(เว้นว่างไว้เพื่อใช้วันที่เดิม)</span></span>
+                        <span class="text-sm text-slate-700 font-medium">อัพเดทวันที่/เวลา ปิดจบงานเป็นปัจจุบัน <span class="text-slate-500 text-xs">(เว้นว่างไว้เพื่อใช้วันที่เดิม)</span></span>
                     </label>
                 </div>
             </div>
@@ -402,7 +411,7 @@
         <div class="bg-white w-full max-w-md rounded-2xl border border-slate-200 shadow-2xl overflow-hidden m-4 flex flex-col max-h-[90vh] animate-zoomIn" onclick="event.stopPropagation()">
             <div class="bg-white px-5 py-4 border-b border-slate-200 flex justify-between items-center sticky top-0 z-10">
                 <div>
-                    <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">📄 รายละเอียดงาน</h3>
+                    <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">รายละเอียดงาน</h3>
                     <p class="text-xs text-blue-700 font-mono flex flex-wrap items-center gap-x-2">
                         <span id="d-jobId"></span>
                     </p>
@@ -415,11 +424,11 @@
                     <div class="text-right"><span class="text-xs text-slate-500 block">วันที่แจ้ง</span><span id="d-date" class="text-slate-800 font-medium"></span></div>
                 </div>
                 <div>
-                    <h4 class="sec-title border-b border-slate-100 pb-1">📅 ไทม์ไลน์งาน</h4>
+                    <h4 class="sec-title border-b border-slate-100 pb-1">ไทม์ไลน์งาน</h4>
                     <ol id="d-timeline" class="relative ml-1"></ol>
                 </div>
                 <div>
-                    <h4 class="sec-title border-b border-slate-100 pb-1">👤 ผู้แจ้งซ่อม</h4>
+                    <h4 class="sec-title border-b border-slate-100 pb-1">ผู้แจ้งซ่อม</h4>
                     <div class="grid grid-cols-2 gap-y-3 gap-x-4">
                         <div><span class="kv-k">ชื่อ</span><span id="d-req"   class="kv-v"></span></div>
                         <div><span class="kv-k">แผนก</span><span id="d-dept" class="kv-v"></span></div>
@@ -427,7 +436,7 @@
                     </div>
                 </div>
                 <div>
-                    <h4 class="sec-title border-b border-slate-100 pb-1">⚙️ อุปกรณ์ & ปัญหา</h4>
+                    <h4 class="sec-title border-b border-slate-100 pb-1">อุปกรณ์ & ปัญหา</h4>
                     <div class="space-y-3">
                         <div class="grid grid-cols-2 gap-x-4">
                             <div><span class="kv-k">ชื่ออุปกรณ์</span><span id="d-equip" class="kv-v font-semibold"></span></div>
@@ -437,7 +446,7 @@
                     </div>
                 </div>
                 <div id="d-admin-sec" class="hidden">
-                    <h4 class="sec-title border-b border-slate-100 pb-1 text-blue-700">🛠️ การดำเนินการ</h4>
+                    <h4 class="sec-title border-b border-slate-100 pb-1 text-blue-700">การดำเนินการ</h4>
                     <div class="space-y-3">
                         <div><span class="kv-k">ช่าง</span><span id="d-tech" class="kv-v"></span></div>
                         <div class="bg-blue-50 p-3 rounded-xl border border-blue-100"><span class="kv-k mb-1">หมายเหตุช่าง (Admin Remark)</span><p id="d-remark" class="text-blue-900 italic"></p></div>
@@ -445,7 +454,7 @@
                     </div>
                 </div>
                 <div>
-                    <h4 class="sec-title border-b border-slate-100 pb-1">📷 รูปภาพ</h4>
+                    <h4 class="sec-title border-b border-slate-100 pb-1">รูปภาพ</h4>
                     <div class="grid grid-cols-2 gap-3">
                         <div class="text-center"><span class="text-[11px] text-slate-500 block mb-1">ก่อนซ่อม</span><div id="d-img-before" class="h-28 bg-slate-50 rounded-xl flex items-center justify-center border border-slate-200 text-slate-400 text-xs overflow-hidden">ไม่มีรูป</div></div>
                         <div class="text-center"><span class="text-[11px] text-slate-500 block mb-1">หลังซ่อม</span><div id="d-img-after"  class="h-28 bg-slate-50 rounded-xl flex items-center justify-center border border-slate-200 text-slate-400 text-xs overflow-hidden">ยังไม่ดำเนินการ</div></div>
@@ -692,13 +701,13 @@
         }
         const parts = a.data.spareParts || [];
         if (!parts.length) { box.innerHTML = `<p class="text-xs text-slate-500">อุปกรณ์นี้ยังไม่มีรายการ Spare Part ในสต๊อก</p>`; return; }
-        box.innerHTML = `<p class="text-xs text-sky-800 font-bold mb-1">📦 สต๊อกอะไหล่ของอุปกรณ์นี้</p>
+        box.innerHTML = `<p class="text-xs text-sky-800 font-bold mb-1">สต๊อกอะไหล่ของอุปกรณ์นี้</p>
             <div class="space-y-1 max-h-48 overflow-y-auto pr-1">${parts.map(sp => {
                 const low = Number(sp.stock) < Number(sp.minStock);
                 const out = Number(sp.stock) <= 0;
                 return `<div class="flex items-center gap-2 bg-white border border-sky-100 rounded-lg px-2 py-1 text-xs">
                     <div class="flex-1 min-w-0"><div class="text-slate-800 font-medium truncate">${escHtml(sp.name)}</div>
-                        <div class="text-slate-500">฿${fmtBaht(sp.price)} · คงเหลือ <b class="${low ? 'text-red-600' : 'text-emerald-700'}">${fmtBaht(sp.stock)}</b>${low ? ' ⚠️' : ''}</div></div>
+                        <div class="text-slate-500">฿${fmtBaht(sp.price)} · คงเหลือ <b class="${low ? 'text-red-600' : 'text-emerald-700'}">${fmtBaht(sp.stock)}</b>${low ? ' (ต่ำกว่าขั้นต่ำ)' : ''}</div></div>
                     <input type="number" min="1" value="1" id="spq-${escHtml(sp.id)}" class="w-14 bg-white border border-slate-300 rounded px-1 py-0.5 text-slate-800 text-center" ${out ? 'disabled' : ''}>
                     <button type="button" onclick="useSparePart('${escHtml(sp.id)}')" class="bg-sky-600 hover:bg-sky-700 disabled:opacity-40 text-white px-2.5 py-1 rounded-md font-semibold" ${out ? 'disabled' : ''}>ใช้</button>
                 </div>`;
@@ -1449,20 +1458,20 @@
                 <p class="text-sm text-emerald-700 mb-2">ข้อมูลของท่านได้รับการจัดส่งเข้าสู่ระบบเรียบร้อยแล้ว</p>
                 <p class="mb-1">หมายเลขงาน (Job ID): <b class="text-blue-700 font-mono">${newId}</b></p>
                 <p class="mb-3">รหัสยืนยันปิดงาน (PIN): <b class="text-amber-700 font-mono tracking-widest">${userPin}</b></p>
-                ${assetLink.linked ? `<p class="mb-3 text-xs text-emerald-700">🔗 บันทึกลงประวัติซ่อมของอุปกรณ์ <b>${assetLink.name}</b> ใน Asset Tracker แล้ว</p>`
-                  : assetLink.error ? `<p class="mb-3 text-xs text-orange-600">⚠️ บันทึกใบแจ้งซ่อมแล้ว แต่ส่งประวัติไป Asset Tracker ไม่สำเร็จ (จะลองใหม่เมื่อมีการอัปเดตงาน)</p>` : ''}
+                ${assetLink.linked ? `<p class="mb-3 text-xs text-emerald-700">บันทึกลงประวัติซ่อมของอุปกรณ์ <b>${assetLink.name}</b> ใน Asset Tracker แล้ว</p>`
+                  : assetLink.error ? `<p class="mb-3 text-xs text-orange-600">หมายเหตุ: บันทึกใบแจ้งซ่อมแล้ว แต่ส่งประวัติไป Asset Tracker ไม่สำเร็จ (จะลองใหม่เมื่อมีการอัปเดตงาน)</p>` : ''}
                 <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                    <p class="text-xs text-slate-600 leading-relaxed"><b>⚠️ ข้อกำหนดสำคัญ:</b><br>
+                    <p class="text-xs text-slate-600 leading-relaxed"><b>ข้อกำหนดสำคัญ:</b><br>
                     ใช้รหัส PIN เพื่อกดยืนยันการจบงานในเมนู <b class="text-blue-700">"ติดตามงาน"</b></p>
                 </div></div>`;
 
             let title = 'จัดส่งข้อมูลสำเร็จ', icon = 'success';
             if (urg === 'Medium') {
-                title = '⚠️ จัดส่งข้อมูลสำเร็จ (ระดับด่วน)'; icon = 'warning';
+                title = 'จัดส่งข้อมูลสำเร็จ (ระดับด่วน)'; icon = 'warning';
                 html += `<div class="mt-4 text-sm bg-amber-50 p-2 rounded-lg border border-amber-200 text-amber-900">ติดต่อประสานงาน: <b class="text-amber-700">098-279-9918</b></div>`;
             }
             if (urg === 'High') {
-                title = '🚨 จัดส่งข้อมูลสำเร็จ (ด่วนมาก)'; icon = 'warning';
+                title = 'จัดส่งข้อมูลสำเร็จ (ด่วนมาก)'; icon = 'warning';
                 html += `<div class="mt-4 text-sm bg-red-50 p-2 rounded-lg border border-red-200 text-red-800">ติดต่อเจ้าหน้าที่ทันที: <b class="text-red-700">098-279-9918</b></div>`;
             }
 
@@ -1727,11 +1736,11 @@
     }
 
     const STATUS_BADGE = {
-        Waiting:    `<span class="inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200 status-waiting">● Waiting</span>`,
-        Processing: `<span class="inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200">● Processing</span>`,
-        Done:       `<span class="inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-300 animate-pulse">● Wait Verify</span>`,
-        Closed:     `<span class="inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-600 text-white">✓ Closed</span>`,
-        _default:   `<span class="inline-flex items-center whitespace-nowrap px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">`
+        Waiting:    `<span class="inline-flex items-center gap-1 whitespace-nowrap px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200 ">Waiting</span>`,
+        Processing: `<span class="inline-flex items-center gap-1 whitespace-nowrap px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">Processing</span>`,
+        Done:       `<span class="inline-flex items-center gap-1 whitespace-nowrap px-2 py-0.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-300">Wait Verify</span>`,
+        Closed:     `<span class="inline-flex items-center gap-1 whitespace-nowrap px-2 py-0.5 rounded text-xs font-semibold bg-emerald-600 text-white">Closed</span>`,
+        _default:   `<span class="inline-flex items-center whitespace-nowrap px-2 py-0.5 rounded text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">`
     };
 
     function getBadge(status) { return STATUS_BADGE[status] || (STATUS_BADGE._default + status + '</span>'); }
@@ -1769,7 +1778,7 @@
         const html = sorted.map(([month, rows], idx) => {
             const rowsHtml = rows.map(r => {
                 const hasRemark  = r.adminRemarks?.trim();
-                const detail     = hasRemark ? `💬 Note: ${r.adminRemarks}` : r.problemDetails;
+                const detail     = hasRemark ? `หมายเหตุช่าง: ${r.adminRemarks}` : r.problemDetails;
                 const remarkCls  = hasRemark ? 'text-blue-800 italic border-blue-300' : 'text-slate-500 border-slate-200';
                 let dateStr = '-';
                 try { dateStr = new Date(r.requestDate).toLocaleString('th-TH', thLocale); } catch (_) {}
@@ -1782,9 +1791,9 @@
                     <div class="text-sm ${remarkCls} break-words leading-relaxed border-l-2 pl-2 mb-3">${detail}</div>
                     <div class="flex items-center gap-4 text-xs text-slate-500">
                         <div class="flex items-center gap-1 overflow-hidden whitespace-nowrap text-ellipsis max-w-[50%]">
-                            <span class="opacity-70">👤</span><span class="text-slate-700 font-medium truncate">${r.requesterName}</span>
+                            <span class="text-slate-400">ผู้แจ้ง</span><span class="text-slate-700 font-medium truncate">${r.requesterName}</span>
                         </div>
-                        <div class="flex items-center gap-1 whitespace-nowrap"><span class="opacity-70">🕒</span><span>${dateStr}</span></div>
+                        <div class="flex items-center gap-1 whitespace-nowrap"><span class="text-slate-400">วันที่</span><span>${dateStr}</span></div>
                         <span class="ml-auto text-slate-300 group-hover:text-blue-500 transition">›</span>
                     </div>
                 </div>`;
@@ -1793,8 +1802,8 @@
             const open = q || idx === 0 ? '' : 'hidden';
             return `<div class="card overflow-hidden">
                 <div onclick="this.nextElementSibling.classList.toggle('hidden')" class="px-4 py-3 font-bold cursor-pointer hover:bg-slate-50 flex justify-between items-center border-b border-slate-200 bg-slate-50/70">
-                    <span class="flex items-center gap-2 text-slate-800">📁 ${month}</span>
-                    <span class="text-xs bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded-full">${rows.length} งาน</span>
+                    <span class="flex items-center gap-2 text-slate-800 font-semibold">${month}</span>
+                    <span class="text-xs bg-slate-200 text-slate-700 px-2 py-0.5 rounded">${rows.length} งาน</span>
                 </div>
                 <div class="${open} divide-y divide-slate-100">${rowsHtml}</div>
             </div>`;
@@ -1911,10 +1920,10 @@
         const sEl = $('d-status');
         sEl.className = 'font-bold text-lg ';
         sEl.innerText = r.status;
-        if (r.status === 'Waiting')    sEl.classList.add('text-amber-600', 'status-waiting');
+        if (r.status === 'Waiting')    sEl.classList.add('text-amber-600');
         if (r.status === 'Processing') sEl.classList.add('text-blue-600');
         if (r.status === 'Done')       sEl.classList.add('text-emerald-600');
-        if (r.status === 'Closed')     { sEl.classList.add('text-emerald-700'); sEl.innerText = '✅ Closed (Completed)'; }
+        if (r.status === 'Closed')     { sEl.classList.add('text-emerald-700'); sEl.innerText = 'Closed (Completed)'; }
 
         renderTimeline(r);
 
@@ -1941,7 +1950,7 @@
 
         const vDiv = $('d-verify-area');
         vDiv.innerHTML = r.status === 'Done'
-            ? `<button onclick="closeDetailModal();verifyUserJob('${r.jobID}','${r.userPin||''}')" class="btn-success w-full py-3 text-base animate-pulse">🔒 ยืนยันจบงาน (Verify & Close)</button>`
+            ? `<button onclick="closeDetailModal();verifyUserJob('${r.jobID}','${r.userPin||''}')" class="btn-success w-full py-3 text-base">ยืนยันจบงาน (Verify & Close)</button>`
             : '';
 
         $('detailModal').style.display = 'flex';
