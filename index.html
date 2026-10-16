@@ -55,7 +55,7 @@
         html, body { height: 100vh; height: 100dvh; }
         #docFooter { padding-bottom: env(safe-area-inset-bottom); }
         body {
-            background: #f1f5f9;
+            background: #d5dbe3;
             font-family: 'Sarabun', sans-serif;
             -webkit-user-select: none; -moz-user-select: none; user-select: none;
         }
@@ -71,11 +71,11 @@
             50% { opacity: 0.55; }
         }
         @keyframes blink-bg-yellow {
-            0%, 100% { background-color: #ffffff; box-shadow: inset 4px 0 0 #fcd34d; }
+            0%, 100% { background-color: #edf0f4; box-shadow: inset 4px 0 0 #fcd34d; }
             50% { background-color: #fffbeb; box-shadow: inset 4px 0 0 #f59e0b; }
         }
         @keyframes blink-bg-red {
-            0%, 100% { background-color: #ffffff; box-shadow: inset 4px 0 0 #fca5a5; }
+            0%, 100% { background-color: #edf0f4; box-shadow: inset 4px 0 0 #fca5a5; }
             50% { background-color: #fef2f2; box-shadow: inset 4px 0 0 #ef4444; }
         }
         .urgency-medium-blink { animation: blink-bg-yellow 2.5s infinite ease-in-out; }
@@ -93,6 +93,17 @@
 
         .fade-in { animation: fadeIn 0.18s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+        /* โทนสว่างแบบนุ่มตา: ลดความขาวของพื้นผิวทั้งหมด */
+        html body .bg-white, html body .card { background-color: #edf0f4; }
+        html body .bg-slate-50, html body .bg-slate-50\/70 { background-color: #e3e8ee; }
+        html body .border-slate-200, html body .border-slate-100 { border-color: #cdd5df; }
+        html body .divide-slate-100 > * + * { border-color: #d3dae3; }
+        html body .field, html body .field-sm { background-color: #f6f7f9; border-color: #b9c3cf; }
+        html body .btn-soft { background-color: #e3e8ee; border-color: #c4cdd8; }
+        html body .btn-soft:hover { background-color: #d8dee6; }
+        html body .hover\:bg-slate-50:hover { background-color: #e3e8ee; }
+        .swal2-popup { background: #edf0f4 !important; }
 
         /* SweetAlert2 ให้เข้ากับธีมสว่าง */
         .swal2-popup { font-family: 'Sarabun', sans-serif !important; border-radius: 16px !important; }
