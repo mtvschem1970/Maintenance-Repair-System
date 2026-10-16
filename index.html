@@ -1863,27 +1863,30 @@
 
     function renderTimeline(r) {
         const { tech, owner } = getCloseDates(r);
-        const steps = [
-            { label: 'แจ้งซ่อม',                  date: r.requestDate,  who: r.requesterName },
-            { label: 'ช่างรับงาน',                 date: r.acceptedDate, who: r.technician },
-            { label: 'ช่างปิดงาน',                 date: tech,           who: r.technician,    key: true },
-            { label: 'เจ้าของงานยืนยันปิดงาน',     date: owner,          who: r.requesterName, key: true }
-        ];
+        const isDone   = r.status === 'Done' || r.status === 'Closed';
+        const noTime   = 'ไม่ได้บันทึกเวลา';
+        // แสดงเฉพาะขั้นตอนที่งานนี้ผ่านจริง (+ ขั้นถัดไปที่รอเจ้าของงานยืนยัน)
+        const steps = [{ label: 'แจ้งซ่อม', date: r.requestDate, who: r.requesterName, reached: true }];
+        if (r.acceptedDate) steps.push({ label: 'ช่างรับงาน', date: r.acceptedDate, who: r.technician, reached: true });
+        if (isDone) steps.push({ label: 'ช่างปิดงาน', date: tech, who: r.technician, reached: true, key: true, emptyText: noTime });
+        if (r.status === 'Closed') steps.push({ label: 'เจ้าของงานยืนยันปิดงาน', date: owner, who: r.requesterName, reached: true, key: true, emptyText: noTime });
+        else if (r.status === 'Done') steps.push({ label: 'เจ้าของงานยืนยันปิดงาน', reached: false, key: true, emptyText: 'รอยืนยัน' });
+
         $('d-timeline').innerHTML = steps.map((s, i) => {
             const txt  = fmtDateTime(s.date);
-            const done = !!txt;
             const last = i === steps.length - 1;
-            const dot  = done ? 'bg-emerald-500 border-emerald-500' : 'bg-white border-slate-300';
-            const line = last ? '' : `<span class="absolute left-[7px] top-5 bottom-0 w-px ${done ? 'bg-emerald-300' : 'bg-slate-200'}"></span>`;
+            const dot  = s.reached ? 'bg-emerald-500 border-emerald-500' : 'bg-white border-slate-300';
+            const next = steps[i + 1];
+            const line = last ? '' : `<span class="absolute left-[7px] top-5 bottom-0 w-px ${next?.reached ? 'bg-emerald-300' : 'bg-slate-300'}"></span>`;
             const lbl  = s.key ? 'font-bold text-slate-900' : 'font-medium text-slate-700';
             return `<li class="relative pl-7 ${last ? '' : 'pb-3'}">
                 ${line}
-                <span class="absolute left-0 top-1 h-[15px] w-[15px] rounded-full border-2 ${dot} flex items-center justify-center text-[9px] text-white">${done ? '✓' : ''}</span>
+                <span class="absolute left-0 top-1 h-[15px] w-[15px] rounded-full border-2 ${dot} flex items-center justify-center text-[9px] text-white">${s.reached ? '✓' : ''}</span>
                 <div class="flex justify-between items-start gap-2">
                     <span class="${lbl}">${s.label}</span>
-                    <span class="text-right text-xs ${done ? 'text-slate-800 font-semibold' : 'text-slate-400'}">${txt || 'ยังไม่มี'}</span>
+                    <span class="text-right text-xs ${txt ? 'text-slate-800 font-semibold' : (s.reached ? 'text-slate-500 italic' : 'text-amber-700 font-semibold')}">${txt || s.emptyText || '-'}</span>
                 </div>
-                ${done && s.who ? `<div class="text-xs text-slate-500">${escHtml(s.who)}</div>` : ''}
+                ${s.reached && s.who ? `<div class="text-xs text-slate-500">${escHtml(s.who)}</div>` : ''}
             </li>`;
         }).join('');
     }
