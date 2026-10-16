@@ -24,135 +24,167 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: { corp: { blue: '#0f172a', lightBlue: '#1e293b', accent: '#3b82f6', gold: '#f59e0b' } },
+                    colors: { corp: { blue: '#0f172a', lightBlue: '#f8fafc', accent: '#2563eb', gold: '#b45309' } },
                     fontFamily: { sans: ['Sarabun', 'sans-serif'] }
                 }
             }
         }
     </script>
+    <style type="text/tailwindcss">
+        @layer components {
+            .card        { @apply bg-white rounded-2xl border border-slate-200 shadow-sm; }
+            .card-head   { @apply px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-3; }
+            .card-title  { @apply text-base font-bold text-slate-800 flex items-center gap-2; }
+            .lbl         { @apply block text-sm font-medium text-slate-600 mb-1; }
+            .lbl-sm      { @apply block text-xs font-medium text-slate-500 mb-1; }
+            .field       { @apply w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/25 focus:border-blue-500 transition; }
+            .field-sm    { @apply w-full bg-white border border-slate-300 rounded-md px-2 py-1 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/25 focus:border-blue-500 transition; }
+            .btn         { @apply inline-flex items-center justify-center gap-1.5 rounded-lg font-semibold transition whitespace-nowrap disabled:opacity-50; }
+            .btn-primary { @apply btn bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white shadow-sm; }
+            .btn-success { @apply btn bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm; }
+            .btn-danger  { @apply btn bg-red-600 hover:bg-red-700 text-white shadow-sm; }
+            .btn-soft    { @apply btn bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200; }
+            .sec-title   { @apply text-xs font-bold uppercase tracking-wide text-slate-500 flex items-center gap-1.5 mb-2; }
+            .kv-k        { @apply text-xs text-slate-500 block; }
+            .kv-v        { @apply text-slate-800 font-medium; }
+            .tab-btn         { @apply px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition whitespace-nowrap; }
+            .tab-btn.active  { @apply text-blue-700 border-blue-600; }
+        }
+    </style>
     <style>
         html, body { height: 100vh; height: 100dvh; }
         #docFooter { padding-bottom: env(safe-area-inset-bottom); }
         body {
-            background-image: linear-gradient(rgba(15,23,42,0.95), rgba(15,23,42,0.95)),
-                url('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=2070&q=80');
-            background-size: cover; background-attachment: fixed;
+            background: #f1f5f9;
             font-family: 'Sarabun', sans-serif;
             -webkit-user-select: none; -moz-user-select: none; user-select: none;
         }
+        input, textarea, select { -webkit-user-select: text; user-select: text; }
         ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #1e293b; }
-        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        .status-waiting { animation: blink-yellow 2s infinite ease-in-out; font-weight: bold; color: #facc15; }
+        .status-waiting { animation: blink-yellow 2s infinite ease-in-out; font-weight: bold; }
         @keyframes blink-yellow {
-            0%, 100% { opacity: 1; color: #facc15; text-shadow: 0 0 5px rgba(250,204,21,0.3); }
-            50% { opacity: 0.6; color: #fde047; text-shadow: none; }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.55; }
         }
         @keyframes blink-bg-yellow {
-            0%, 100% { background-color: rgba(15,23,42,0.4); box-shadow: inset 0 0 0 transparent; }
-            50% { background-color: rgba(234,179,8,0.15); box-shadow: inset 4px 0 0 #eab308; }
+            0%, 100% { background-color: #ffffff; box-shadow: inset 4px 0 0 #fcd34d; }
+            50% { background-color: #fffbeb; box-shadow: inset 4px 0 0 #f59e0b; }
         }
         @keyframes blink-bg-red {
-            0%, 100% { background-color: rgba(15,23,42,0.4); box-shadow: inset 0 0 0 transparent; }
-            50% { background-color: rgba(239,68,68,0.2); box-shadow: inset 4px 0 0 #ef4444; }
+            0%, 100% { background-color: #ffffff; box-shadow: inset 4px 0 0 #fca5a5; }
+            50% { background-color: #fef2f2; box-shadow: inset 4px 0 0 #ef4444; }
         }
         .urgency-medium-blink { animation: blink-bg-yellow 2.5s infinite ease-in-out; }
         .urgency-high-blink   { animation: blink-bg-red   2.5s infinite ease-in-out; }
 
-        .img-preview { max-height: 150px; border-radius: 8px; margin-top: 10px; display: none; border: 2px solid #475569; }
+        .img-preview { max-height: 150px; border-radius: 10px; margin-top: 10px; display: none; border: 1px solid #e2e8f0; }
 
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 60; display: none; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.45); z-index: 60; display: none; justify-content: center; align-items: center; backdrop-filter: blur(3px); }
         .animate-zoomIn { animation: zoomIn 0.2s ease-out; }
-        @keyframes zoomIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes zoomIn { from { transform: scale(0.96); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
         .modal-content-img { max-width: 95%; max-height: 95%; position: relative; animation: zoomIn 0.3s ease; text-align: center; }
-        .modal-close-img { position: absolute; top: -40px; right: 0; color: white; font-size: 30px; cursor: pointer; font-weight: bold; text-shadow: 0 0 5px black; }
+        .modal-close-img { position: absolute; top: -40px; right: 0; color: white; font-size: 18px; cursor: pointer; font-weight: bold; text-shadow: 0 1px 4px rgba(0,0,0,.6); }
+        #imageViewerModal { background: rgba(15,23,42,0.85); }
 
         .fade-in { animation: fadeIn 0.18s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+        /* SweetAlert2 ให้เข้ากับธีมสว่าง */
+        .swal2-popup { font-family: 'Sarabun', sans-serif !important; border-radius: 16px !important; }
+        .swal2-input { border-radius: 10px !important; }
     </style>
 </head>
-<body class="text-slate-200 flex flex-col overflow-hidden">
+<body class="text-slate-800 flex flex-col overflow-hidden">
 
     <!-- Image Viewer -->
     <div id="imageViewerModal" class="modal-overlay" onclick="closeImageViewer()" style="z-index:70;">
         <div class="modal-content-img" onclick="event.stopPropagation()">
-            <span class="modal-close-img" onclick="closeImageViewer()">× ปิด</span>
-            <img id="imageViewerSrc" src="" class="rounded-lg shadow-2xl border-2 border-slate-700" style="max-height:85vh;max-width:100%;">
+            <span class="modal-close-img" onclick="closeImageViewer()">✕ ปิด</span>
+            <img id="imageViewerSrc" src="" class="rounded-xl shadow-2xl bg-white" style="max-height:85vh;max-width:100%;">
         </div>
     </div>
 
-    <!-- Header -->
-    <header class="bg-corp-blue border-b border-slate-700 shadow-lg z-20">
-        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <div class="bg-white rounded p-1 shadow-md h-12 w-12 flex items-center justify-center overflow-hidden"><span class="text-2xl">🛠️</span></div>
-                <div>
-                    <h1 class="text-xl font-bold text-white">MAINTENANCE SYSTEM</h1>
-                    <p class="text-xs text-corp-gold font-medium tracking-wider uppercase">Vschem1970 (Powered by Maddox)</p>
+    <!-- Header + Nav -->
+    <header class="bg-white border-b border-slate-200 shadow-sm z-20 shrink-0">
+        <div class="container mx-auto px-4 pt-3 flex justify-between items-center gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+                <div class="h-11 w-11 shrink-0 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 shadow-md flex items-center justify-center"><span class="text-xl">🛠️</span></div>
+                <div class="min-w-0">
+                    <h1 class="text-base sm:text-lg md:text-xl font-bold text-slate-900 leading-tight truncate">MAINTENANCE SYSTEM</h1>
+                    <p class="text-xs text-slate-500 font-medium truncate">ระบบแจ้งซ่อม · Vschem1970 (Powered by Maddox)</p>
                 </div>
             </div>
-            <div class="flex items-center space-x-3">
-                <button onclick="refreshData()" class="p-2 rounded-full hover:bg-slate-700 transition text-slate-400 hover:text-white" title="Refresh">🔄</button>
-                <button id="btnLogin"  onclick="showLoginModal()" class="bg-corp-gold text-corp-blue font-bold py-2 px-4 rounded-md shadow-md flex items-center gap-2">🔐 Admin</button>
-                <button id="btnLogout" onclick="logout()"         class="hidden bg-red-600 text-white font-bold py-2 px-4 rounded-md shadow-md flex items-center gap-2">🚪 Logout</button>
+            <div class="flex items-center gap-2 shrink-0">
+                <button onclick="refreshData()" class="h-10 w-10 rounded-full hover:bg-slate-100 transition text-slate-500 flex items-center justify-center" title="Refresh">🔄</button>
+                <button id="btnLogin"  onclick="showLoginModal()" class="btn-primary px-4 py-2 text-sm">🔐 Admin</button>
+                <button id="btnLogout" onclick="logout()"         class="hidden btn-soft px-4 py-2 text-sm text-red-600">🚪 Logout</button>
             </div>
         </div>
+        <nav class="container mx-auto px-4 mt-2">
+            <div class="flex gap-1 overflow-x-auto -mb-px">
+                <button onclick="switchTab('request')"    id="tab-request"    class="tab-btn active">📝 แจ้งซ่อม</button>
+                <button onclick="switchTab('status')"     id="tab-status"     class="tab-btn">📂 ติดตามงาน</button>
+                <button onclick="switchTab('statistics')" id="tab-statistics" class="tab-btn hidden admin-only">📊 สถิติ</button>
+                <button onclick="switchTab('dashboard')"  id="tab-dashboard"  class="tab-btn hidden admin-only">📈 Admin</button>
+                <button onclick="switchTab('settings')"   id="tab-settings"   class="tab-btn hidden admin-only">⚙️ ตั้งค่า</button>
+            </div>
+        </nav>
     </header>
 
-    <!-- Nav -->
-    <nav class="bg-corp-lightBlue border-b border-slate-700 shadow-md z-10">
-        <div class="container mx-auto px-4">
-            <div class="flex space-x-1 overflow-x-auto">
-                <button onclick="switchTab('request')"    id="tab-request"    class="tab-btn px-6 py-3 text-sm font-medium border-b-2 border-transparent hover:text-corp-gold transition text-corp-gold border-corp-gold">📝 แจ้งซ่อม</button>
-                <button onclick="switchTab('status')"     id="tab-status"     class="tab-btn px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition">📊 ติดตามงาน</button>
-                <button onclick="switchTab('statistics')" id="tab-statistics" class="tab-btn hidden admin-only px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition">📊 สถิติ</button>
-                <button onclick="switchTab('dashboard')"  id="tab-dashboard"  class="tab-btn hidden admin-only px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition">📈 Admin</button>
-                <button onclick="switchTab('settings')"   id="tab-settings"   class="tab-btn hidden admin-only px-6 py-3 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-white transition">⚙️ ตั้งค่า</button>
-            </div>
-        </div>
-    </nav>
-
     <!-- Main -->
-    <main class="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-900/50 relative">
+    <main class="flex-1 overflow-y-auto p-4 md:p-6 relative">
 
         <!-- Request Form -->
         <div id="view-request" class="view-section max-w-3xl mx-auto fade-in">
-            <div class="bg-corp-lightBlue rounded-xl shadow-2xl border border-slate-700 overflow-hidden">
-                <div class="bg-gradient-to-r from-corp-blue to-corp-lightBlue p-4 border-b border-slate-700">
-                    <h2 class="text-xl font-bold text-white">📝 แบบฟอร์มแจ้งซ่อม</h2>
-                </div>
-                <div class="p-6">
+            <div class="mb-4">
+                <h2 class="text-2xl font-bold text-slate-900">แบบฟอร์มแจ้งซ่อม</h2>
+                <p class="text-sm text-slate-500">กรอกข้อมูลให้ครบ แล้วจดรหัส PIN ไว้สำหรับยืนยันปิดงาน</p>
+            </div>
+            <div class="card">
+                <div class="p-5 md:p-6">
                     <form id="requestForm" onsubmit="submitRequest(event)" class="space-y-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div><label class="block text-sm text-slate-400 mb-1">ชื่อผู้แจ้ง</label><input type="text" id="reqName" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"></div>
-                            <div><label class="block text-sm text-slate-400 mb-1">สถานที่/แผนก</label><select id="reqDept" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"><option value="">-- กำลังโหลด... --</option></select></div>
-                            <div><label class="block text-sm text-slate-400 mb-1">ข้อมูลติดต่อกลับ</label><input type="tel" id="reqPhone" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"></div>
-                            <div class="bg-slate-800/50 p-2 rounded border border-yellow-500/30">
-                                <label class="block text-sm text-yellow-400 font-bold mb-1">🔑 รหัสยืนยัน (PIN)</label>
-                                <input type="tel" id="reqPin" required maxlength="6" class="w-full bg-slate-900 border border-yellow-500/50 rounded px-4 py-2 text-center tracking-widest text-lg font-bold text-yellow-400" placeholder="ตั้งรหัสยืนยันปิดงาน">
-                                <p class="text-[15px] text-slate-500 mt-1">* ใช้รหัสนี้เพื่อยืนยันจบงาน (ห้ามลืม)</p>
+                        <div>
+                            <div class="sec-title">👤 ข้อมูลผู้แจ้ง</div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div><label class="lbl">ชื่อผู้แจ้ง</label><input type="text" id="reqName" required class="field"></div>
+                                <div><label class="lbl">สถานที่/แผนก</label><select id="reqDept" required class="field"><option value="">-- กำลังโหลด... --</option></select></div>
+                                <div><label class="lbl">ข้อมูลติดต่อกลับ</label><input type="tel" id="reqPhone" required class="field"></div>
+                                <div class="bg-amber-50 p-3 rounded-xl border border-amber-200">
+                                    <label class="block text-sm text-amber-800 font-bold mb-1">🔑 รหัสยืนยัน (PIN)</label>
+                                    <input type="tel" id="reqPin" required maxlength="6" class="field text-center tracking-[0.4em] text-lg font-bold text-amber-800 placeholder:tracking-normal placeholder:font-normal placeholder:text-sm border-amber-300 focus:border-amber-500 focus:ring-amber-500/25" placeholder="ตั้งรหัสยืนยันปิดงาน">
+                                    <p class="text-xs text-amber-700 mt-1">* ใช้รหัสนี้เพื่อยืนยันจบงาน (ห้ามลืม)</p>
+                                </div>
                             </div>
-                            <div><label class="block text-sm text-slate-400 mb-1">รหัสอุปกรณ์</label><input type="text" id="reqEquipId" oninput="lookupEquipId()" class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2" placeholder="ถ้ามี"><p id="reqEquipHint" class="text-xs mt-1"></p></div>
-                            <div class="md:col-span-2"><label class="block text-sm text-slate-400 mb-1">ชื่ออุปกรณ์</label><input type="text" id="reqEquip" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"></div>
                         </div>
-                        <div class="border border-dashed border-slate-600 rounded-lg p-4 text-center hover:bg-slate-800 transition cursor-pointer relative" onclick="document.getElementById('reqImg').click()">
+                        <div>
+                            <div class="sec-title">⚙️ อุปกรณ์ & ปัญหา</div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div><label class="lbl">รหัสอุปกรณ์</label><input type="text" id="reqEquipId" oninput="lookupEquipId()" class="field" placeholder="ถ้ามี"><p id="reqEquipHint" class="text-xs mt-1"></p></div>
+                                <div><label class="lbl">ชื่ออุปกรณ์</label><input type="text" id="reqEquip" required class="field"></div>
+                                <div class="md:col-span-2"><label class="lbl">รายละเอียดปัญหา</label><textarea id="reqDetail" rows="4" required class="field"></textarea></div>
+                            </div>
+                        </div>
+                        <div class="border-2 border-dashed border-slate-300 rounded-xl p-5 text-center hover:border-blue-400 hover:bg-blue-50/50 transition cursor-pointer relative" onclick="document.getElementById('reqImg').click()">
                             <input type="file" id="reqImg" accept="image/*" class="hidden" onchange="previewImage(this,'reqPreview')">
-                            <span class="text-corp-gold font-bold">📷 แตะเพื่อแนบรูปภาพ (ก่อนซ่อม)</span>
+                            <div class="text-3xl mb-1">📷</div>
+                            <span class="text-blue-700 font-bold">แตะเพื่อแนบรูปภาพ (ก่อนซ่อม)</span>
                             <p class="text-xs text-slate-500 mt-1">อัปโหลดไปยัง Firebase Storage ทันที</p>
                             <img id="reqPreview" class="img-preview mx-auto">
                         </div>
-                        <div><label class="block text-sm text-slate-400 mb-1">รายละเอียดปัญหา</label><textarea id="reqDetail" rows="4" required class="w-full bg-slate-900 border border-slate-600 rounded px-4 py-2"></textarea></div>
                         <div>
-                            <label class="block text-sm text-slate-400 mb-3">ระดับความเร่งด่วน</label>
-                            <div class="flex gap-4">
-                                <label class="flex items-center gap-2 p-3 rounded border border-slate-600 w-full justify-center has-[:checked]:bg-green-500/10 has-[:checked]:border-green-500"><input type="radio" name="urgency" value="Low"    class="accent-green-500" checked><span class="text-green-400">ปกติ</span></label>
-                                <label class="flex items-center gap-2 p-3 rounded border border-slate-600 w-full justify-center has-[:checked]:bg-yellow-500/10 has-[:checked]:border-yellow-500"><input type="radio" name="urgency" value="Medium" class="accent-yellow-500"><span class="text-yellow-400">ด่วน</span></label>
-                                <label class="flex items-center gap-2 p-3 rounded border border-slate-600 w-full justify-center has-[:checked]:bg-red-500/10 has-[:checked]:border-red-500"><input type="radio" name="urgency" value="High"   class="accent-red-500"><span class="text-red-400">ด่วนมาก</span></label>
+                            <label class="lbl mb-2">ระดับความเร่งด่วน</label>
+                            <div class="grid grid-cols-3 gap-3">
+                                <label class="flex items-center gap-2 p-3 rounded-xl border border-slate-300 justify-center cursor-pointer transition has-[:checked]:bg-emerald-50 has-[:checked]:border-emerald-500 has-[:checked]:ring-2 has-[:checked]:ring-emerald-500/20"><input type="radio" name="urgency" value="Low"    class="accent-emerald-600" checked><span class="text-emerald-700 font-semibold">ปกติ</span></label>
+                                <label class="flex items-center gap-2 p-3 rounded-xl border border-slate-300 justify-center cursor-pointer transition has-[:checked]:bg-amber-50 has-[:checked]:border-amber-500 has-[:checked]:ring-2 has-[:checked]:ring-amber-500/20"><input type="radio" name="urgency" value="Medium" class="accent-amber-500"><span class="text-amber-700 font-semibold">ด่วน</span></label>
+                                <label class="flex items-center gap-2 p-3 rounded-xl border border-slate-300 justify-center cursor-pointer transition has-[:checked]:bg-red-50 has-[:checked]:border-red-500 has-[:checked]:ring-2 has-[:checked]:ring-red-500/20"><input type="radio" name="urgency" value="High"   class="accent-red-600"><span class="text-red-700 font-semibold">ด่วนมาก</span></label>
                             </div>
                         </div>
-                        <button type="submit" class="w-full bg-gradient-to-r from-corp-gold to-yellow-600 hover:from-yellow-500 text-corp-blue font-bold py-3 rounded shadow-lg">ส่งข้อมูล</button>
+                        <button type="submit" class="btn-primary w-full py-3 text-base">ส่งข้อมูลแจ้งซ่อม</button>
                     </form>
                 </div>
             </div>
@@ -160,43 +192,47 @@
 
         <!-- Settings -->
         <div id="view-settings" class="view-section hidden max-w-5xl mx-auto fade-in">
+            <h2 class="text-2xl font-bold text-slate-900 mb-4">ตั้งค่าระบบ</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div class="bg-corp-lightBlue rounded-xl border border-slate-700 p-6 shadow-lg">
-                    <h3 class="text-lg font-bold text-corp-gold mb-4 border-b border-slate-700 pb-2">🔗 System Config (Firebase Cloud Sync)</h3>
-                    <div class="mb-4 text-xs text-green-400">การตั้งค่าทั้งหมดถูกเก็บไว้ใน Firebase อย่างปลอดภัยและซิงค์ตรงกันทุกอุปกรณ์</div>
-                    <div class="border-t border-slate-700 pt-4 mt-4">
+                <div class="card">
+                    <div class="card-head"><h3 class="card-title">🔗 System Config (Firebase Cloud Sync)</h3></div>
+                    <div class="p-5">
+                        <div class="mb-4 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">การตั้งค่าทั้งหมดถูกเก็บไว้ใน Firebase อย่างปลอดภัยและซิงค์ตรงกันทุกอุปกรณ์</div>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div><label class="block text-xs text-slate-400 mb-1">คำนำหน้า (Prefix)</label><input id="setting-id-prefix" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-slate-300" placeholder="เช่น MTN"></div>
-                            <div><label class="block text-xs text-slate-400 mb-1">เลขเริ่มต้น (Start)</label><input type="number" id="setting-id-start" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-slate-300" placeholder="เช่น 1"></div>
-                            <div><label class="block text-xs text-yellow-500 mb-1 font-bold">🔑 รหัสผ่าน Admin</label><input type="text" id="setting-admin-pass" class="w-full bg-slate-900 border border-slate-600 rounded px-3 py-2 text-xs text-yellow-400 font-bold" placeholder="ตั้งรหัสใหม่"></div>
+                            <div><label class="lbl-sm">คำนำหน้า (Prefix)</label><input id="setting-id-prefix" class="field-sm" placeholder="เช่น MTN"></div>
+                            <div><label class="lbl-sm">เลขเริ่มต้น (Start)</label><input type="number" id="setting-id-start" class="field-sm" placeholder="เช่น 1"></div>
+                            <div><label class="lbl-sm text-amber-700 font-bold">🔑 รหัสผ่าน Admin</label><input type="text" id="setting-admin-pass" class="field-sm font-bold text-amber-800" placeholder="ตั้งรหัสใหม่"></div>
                         </div>
-                        <p class="text-xs text-slate-500 mt-3">รูปแบบ Job ID ตัวอย่าง: <span id="id-preview" class="text-corp-gold font-mono">MTN-2026-0001</span></p>
-                    </div>
-                    <div class="flex gap-2 mt-4">
-                        <button onclick="saveSystemSettings()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded text-sm font-bold shadow-lg">💾 บันทึกการตั้งค่าลงระบบ</button>
+                        <p class="text-xs text-slate-500 mt-3">รูปแบบ Job ID ตัวอย่าง: <span id="id-preview" class="text-blue-700 font-mono font-semibold">MTN-2026-0001</span></p>
+                        <button onclick="saveSystemSettings()" class="btn-primary w-full py-2.5 text-sm mt-4">💾 บันทึกการตั้งค่าลงระบบ</button>
                     </div>
                 </div>
-                <div class="bg-corp-lightBlue rounded-xl border border-slate-700 p-6 shadow-lg">
-                    <h3 class="text-lg font-bold text-corp-gold mb-4 border-b border-slate-700 pb-2">📋 List Management</h3>
-                    <div class="mb-4">
-                        <label class="text-xs text-slate-400 block mb-1">Departments</label>
-                        <div class="flex gap-2 mb-2"><input id="new-dept" class="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs" placeholder="เพิ่มแผนก..."><button onclick="modifyList('depts','add','new-dept')" class="bg-green-600 px-3 rounded text-xs font-bold">Add</button></div>
-                        <ul id="list-depts" class="h-24 overflow-y-auto bg-slate-900 border border-slate-700 p-1 text-xs text-slate-300 rounded"><li class="text-center pt-8 text-slate-500">กำลังโหลด...</li></ul>
-                    </div>
-                    <div>
-                        <label class="text-xs text-slate-400 block mb-1">Technicians</label>
-                        <div class="flex gap-2 mb-2"><input id="new-tech" class="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs" placeholder="เพิ่มช่าง..."><button onclick="modifyList('techs','add','new-tech')" class="bg-green-600 px-3 rounded text-xs font-bold">Add</button></div>
-                        <ul id="list-techs" class="h-24 overflow-y-auto bg-slate-900 border border-slate-700 p-1 text-xs text-slate-300 rounded"><li class="text-center pt-8 text-slate-500">กำลังโหลด...</li></ul>
+                <div class="card">
+                    <div class="card-head"><h3 class="card-title">📋 List Management</h3></div>
+                    <div class="p-5 space-y-5">
+                        <div>
+                            <label class="lbl-sm">Departments (แผนก)</label>
+                            <div class="flex gap-2 mb-2"><input id="new-dept" class="field-sm flex-1" placeholder="เพิ่มแผนก..."><button onclick="modifyList('depts','add','new-dept')" class="btn-success px-4 text-sm">Add</button></div>
+                            <ul id="list-depts" class="h-32 overflow-y-auto bg-slate-50 border border-slate-200 p-1 text-sm text-slate-700 rounded-lg"><li class="text-center pt-10 text-slate-400">กำลังโหลด...</li></ul>
+                        </div>
+                        <div>
+                            <label class="lbl-sm">Technicians (ช่าง)</label>
+                            <div class="flex gap-2 mb-2"><input id="new-tech" class="field-sm flex-1" placeholder="เพิ่มช่าง..."><button onclick="modifyList('techs','add','new-tech')" class="btn-success px-4 text-sm">Add</button></div>
+                            <ul id="list-techs" class="h-32 overflow-y-auto bg-slate-50 border border-slate-200 p-1 text-sm text-slate-700 rounded-lg"><li class="text-center pt-10 text-slate-400">กำลังโหลด...</li></ul>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Status -->
-        <div id="view-status" class="view-section hidden container mx-auto fade-in">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-white">📂 แฟ้มงานซ่อม</h2>
-                <input id="statusSearch" onkeyup="debouncedSearch(this.value)" placeholder="🔍 ค้นหา..." class="bg-slate-900 border border-slate-600 rounded-full px-4 py-2 text-sm w-64 focus:outline-none focus:border-corp-gold">
+        <div id="view-status" class="view-section hidden max-w-4xl mx-auto fade-in">
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-5">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900">แฟ้มงานซ่อม</h2>
+                    <p class="text-sm text-slate-500">แตะที่งานเพื่อดูรายละเอียดและยืนยันปิดงาน</p>
+                </div>
+                <input id="statusSearch" onkeyup="debouncedSearch(this.value)" placeholder="🔍 ค้นหา Job ID, ชื่อ, อุปกรณ์..." class="field rounded-full sm:w-72">
             </div>
             <div id="statusFolders" class="space-y-4 pb-10"></div>
         </div>
@@ -204,26 +240,25 @@
         <!-- Dashboard -->
         <div id="view-dashboard" class="view-section hidden container mx-auto fade-in">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div class="bg-corp-lightBlue p-4 rounded-xl border border-slate-700 shadow-lg"><div class="text-slate-400 text-xs font-bold">TOTAL JOBS</div><div class="text-3xl font-bold text-white mt-1"    id="kpi-total">0</div></div>
-                <div class="bg-corp-lightBlue p-4 rounded-xl border-l-4 border-yellow-500 shadow-lg"><div class="text-slate-400 text-xs font-bold">WAITING</div><div class="text-3xl font-bold text-yellow-400 mt-1" id="kpi-waiting">0</div></div>
-                <div class="bg-corp-lightBlue p-4 rounded-xl border-l-4 border-blue-500 shadow-lg"><div class="text-slate-400 text-xs font-bold">PROCESSING</div><div class="text-3xl font-bold text-blue-400 mt-1"  id="kpi-processing">0</div></div>
-                <div class="bg-corp-lightBlue p-4 rounded-xl border-l-4 border-green-500 shadow-lg"><div class="text-slate-400 text-xs font-bold">DONE</div><div class="text-3xl font-bold text-green-400 mt-1"     id="kpi-done">0</div></div>
+                <div class="card p-4"><div class="text-slate-500 text-xs font-bold tracking-wide">TOTAL JOBS</div><div class="text-3xl font-bold text-slate-900 mt-1" id="kpi-total">0</div></div>
+                <div class="card p-4 border-l-4 border-l-amber-400"><div class="text-slate-500 text-xs font-bold tracking-wide">WAITING</div><div class="text-3xl font-bold text-amber-600 mt-1" id="kpi-waiting">0</div></div>
+                <div class="card p-4 border-l-4 border-l-blue-500"><div class="text-slate-500 text-xs font-bold tracking-wide">PROCESSING</div><div class="text-3xl font-bold text-blue-600 mt-1" id="kpi-processing">0</div></div>
+                <div class="card p-4 border-l-4 border-l-emerald-500"><div class="text-slate-500 text-xs font-bold tracking-wide">DONE</div><div class="text-3xl font-bold text-emerald-600 mt-1" id="kpi-done">0</div></div>
             </div>
-            <div class="bg-corp-lightBlue rounded-xl shadow-2xl border border-slate-700 overflow-hidden">
-                <div class="p-4 border-b border-slate-700 bg-slate-800 flex flex-col md:flex-row justify-between items-center gap-3">
-                    <h2 class="text-xl font-bold text-corp-gold">📋 จัดการงานซ่อม</h2>
-                    
-                    <!-- เมนูการกระทำชุดใหม่ของ Admin -->
-                    <div class="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
-                        <!-- ปุ่มโหลดใบงานที่เลือก (แบบมีรูป) -->
-                        <button onclick="exportSelectedJobsExcel()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1 rounded-lg text-sm font-bold flex items-center gap-1 transition whitespace-nowrap">🖨️ โหลดใบงานที่เลือก</button>
-                        
+            <div class="card overflow-hidden">
+                <div class="p-4 border-b border-slate-200 flex flex-col lg:flex-row justify-between lg:items-center gap-3">
+                    <h2 class="card-title text-lg">📋 จัดการงานซ่อม</h2>
+
+                    <!-- เมนูการกระทำของ Admin -->
+                    <div class="flex gap-2 w-full lg:w-auto overflow-x-auto pb-1 lg:pb-0">
+                        <button onclick="exportSelectedJobsExcel()" class="btn bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 text-sm">🖨️ โหลดใบงานที่เลือก</button>
+
                         <input type="file" id="importExcelFile" accept=".xlsx, .xls" class="hidden" onchange="handleImportExcel(event)">
-                        <button onclick="document.getElementById('importExcelFile').click()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded-lg text-sm font-bold flex items-center gap-1 transition whitespace-nowrap">📤 Import เก่า</button>
-                        
-                        <button onclick="exportToExcelAll()" class="bg-green-600 hover:bg-green-500 text-white px-3 py-1 rounded-lg text-sm font-bold flex items-center gap-1 transition whitespace-nowrap">📥 โหลดรายงานรวม</button>
-                        
-                        <select id="adminStatusFilter" onchange="applyAdminFilters()" class="bg-slate-900 border border-slate-600 rounded-lg px-3 py-1 text-sm focus:outline-none focus:border-corp-gold text-slate-300">
+                        <button onclick="document.getElementById('importExcelFile').click()" class="btn-soft px-3 py-1.5 text-sm">📤 Import เก่า</button>
+
+                        <button onclick="exportToExcelAll()" class="btn-success px-3 py-1.5 text-sm">📥 โหลดรายงานรวม</button>
+
+                        <select id="adminStatusFilter" onchange="applyAdminFilters()" class="field-sm w-auto py-1.5">
                             <option value="All">แสดงทั้งหมด</option>
                             <option value="Active">🚧 ยังไม่ปิดจบงาน (Active)</option>
                             <option value="Waiting">- รอรับงาน (Waiting)</option>
@@ -231,23 +266,22 @@
                             <option value="Done">- รอตรวจสอบ/รอปิด (Done)</option>
                             <option value="Closed">✅ ปิดงานแล้ว (Closed)</option>
                         </select>
-                        <input id="adminSearchInput" onkeyup="debouncedAdminSearch()" placeholder="🔍 ค้นหางาน..." class="bg-slate-900 border border-slate-600 rounded-lg px-3 py-1 text-sm focus:outline-none focus:border-corp-gold w-full md:w-48">
+                        <input id="adminSearchInput" onkeyup="debouncedAdminSearch()" placeholder="🔍 ค้นหางาน..." class="field-sm py-1.5 min-w-[10rem] lg:w-48">
                     </div>
                 </div>
                 <div class="overflow-x-auto">
-                    <!-- ตารางจัดเรียงใหม่ตามคำขอ -->
                     <table class="w-full text-left border-collapse" id="adminTable">
-                        <thead class="bg-slate-900 text-slate-400 uppercase text-xs">
+                        <thead class="bg-slate-50 text-slate-500 uppercase text-xs border-b border-slate-200">
                             <tr>
-                                <th class="p-4 w-10 text-center"><input type="checkbox" id="chkAll" onchange="toggleSelectAll(this)" class="accent-corp-gold w-4 h-4 cursor-pointer"></th>
-                                <th class="p-4 w-24">Status</th>
-                                <th class="p-4">ID</th>
-                                <th class="p-4">User</th>
-                                <th class="p-4">Equipment</th>
-                                <th class="p-4 text-right">Action</th>
+                                <th class="p-3 w-10 text-center"><input type="checkbox" id="chkAll" onchange="toggleSelectAll(this)" class="accent-blue-600 w-4 h-4 cursor-pointer"></th>
+                                <th class="p-3 w-28">Status</th>
+                                <th class="p-3">ID</th>
+                                <th class="p-3">User</th>
+                                <th class="p-3">Equipment</th>
+                                <th class="p-3 text-right">Action</th>
                             </tr>
                         </thead>
-                        <tbody id="adminTableBody" class="text-sm divide-y divide-slate-700"></tbody>
+                        <tbody id="adminTableBody" class="text-sm divide-y divide-slate-100"></tbody>
                     </table>
                 </div>
             </div>
@@ -255,11 +289,11 @@
 
         <!-- Statistics -->
         <div id="view-statistics" class="view-section hidden container mx-auto fade-in pb-10">
-            <div class="bg-corp-lightBlue p-4 rounded-xl border border-slate-700 shadow-lg mb-6 flex flex-wrap gap-4 items-center justify-between">
-                <h2 class="text-xl font-bold text-corp-gold">📊 สถิติงานซ่อมบำรุง</h2>
+            <div class="card p-4 mb-6 flex flex-wrap gap-4 items-center justify-between">
+                <h2 class="card-title text-lg">📊 สถิติงานซ่อมบำรุง</h2>
                 <div class="flex gap-2">
-                    <select id="statYear"  onchange="renderStatistics()" class="bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-corp-gold"></select>
-                    <select id="statMonth" onchange="renderStatistics()" class="bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-corp-gold">
+                    <select id="statYear"  onchange="renderStatistics()" class="field-sm w-auto"></select>
+                    <select id="statMonth" onchange="renderStatistics()" class="field-sm w-auto">
                         <option value="all">ตลอดทั้งปี (ทั้งหมด)</option>
                         <option value="01">มกราคม</option><option value="02">กุมภาพันธ์</option><option value="03">มีนาคม</option>
                         <option value="04">เมษายน</option><option value="05">พฤษภาคม</option><option value="06">มิถุนายน</option>
@@ -269,139 +303,148 @@
                 </div>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-corp-lightBlue p-5 rounded-xl border border-slate-700 shadow-lg"><h3 class="text-center font-bold text-white mb-4">จำนวนงานซ่อมแยกตามแผนก (งาน)</h3><canvas id="chartCount"></canvas></div>
-                <div class="bg-corp-lightBlue p-5 rounded-xl border border-slate-700 shadow-lg"><h3 class="text-center font-bold text-white mb-4">ค่าใช้จ่ายรวมแยกตามแผนก (บาท)</h3><canvas id="chartCost"></canvas></div>
+                <div class="card p-5"><h3 class="text-center font-bold text-slate-800 mb-4">จำนวนงานซ่อมแยกตามแผนก (งาน)</h3><canvas id="chartCount"></canvas></div>
+                <div class="card p-5"><h3 class="text-center font-bold text-slate-800 mb-4">ค่าใช้จ่ายรวมแยกตามแผนก (บาท)</h3><canvas id="chartCost"></canvas></div>
             </div>
         </div>
 
     </main>
-        <!-- Footer -->
-    <footer id="docFooter" class="bg-corp-blue border-t border-slate-700 shrink-0">
-        <div class="container mx-auto px-4 py-1 flex flex-wrap justify-center items-center gap-x-2 text-[10px] text-slate-500 font-mono">
+    <!-- Footer -->
+    <footer id="docFooter" class="bg-white border-t border-slate-200 shrink-0">
+        <div class="container mx-auto px-4 py-1 flex flex-wrap justify-center items-center gap-x-2 text-[10px] text-slate-400 font-mono">
             <span>F-MTN-01-04 Rev.04</span>
-            <span class="text-slate-600">|</span>
+            <span class="text-slate-300">|</span>
             <span>Effective date: 06/04/2569</span>
         </div>
     </footer>
 
     <!-- Admin Edit Modal -->
-    <div id="adminModal" class="fixed inset-0 bg-black/80 hidden z-50 flex items-center justify-center backdrop-blur-sm">
-        <div class="bg-corp-lightBlue w-full max-w-2xl rounded-xl border border-slate-600 shadow-2xl p-6 m-4 max-h-[90vh] overflow-y-auto">
-            <h3 class="text-xl font-bold text-corp-gold mb-4 flex justify-between items-center">
-                <span>🔧 Manage Job (แก้ไขงาน)</span>
-                <span id="modalJobDisplay" class="text-sm font-mono text-slate-400"></span>
-            </h3>
+    <div id="adminModal" class="fixed inset-0 bg-slate-900/50 hidden z-50 flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white w-full max-w-2xl rounded-2xl border border-slate-200 shadow-2xl m-4 max-h-[90vh] flex flex-col animate-zoomIn">
+            <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center gap-3">
+                <h3 class="text-lg font-bold text-slate-900">🔧 Manage Job (แก้ไขงาน)</h3>
+                <span id="modalJobDisplay" class="text-sm font-mono text-blue-700 bg-blue-50 px-2 py-0.5 rounded"></span>
+            </div>
             <input type="hidden" id="modalJobId">
-            <div class="bg-slate-900/50 border border-slate-700 rounded-lg p-4 mb-4">
-                <div class="flex justify-between items-center mb-2 cursor-pointer" onclick="document.getElementById('editUserSection').classList.toggle('hidden')">
-                    <h4 class="text-sm font-bold text-blue-400">✏️ แก้ไขข้อมูลผู้แจ้ง / รูปก่อนซ่อม</h4>
-                    <span class="text-xs text-slate-500">▼ Show/Hide</span>
-                </div>
-                <div id="editUserSection" class="hidden space-y-3 mt-3 border-t border-slate-700 pt-3">
-                    <div class="grid grid-cols-2 gap-3">
-                        <div><label class="text-xs text-slate-400">ผู้แจ้ง</label><input id="edit-reqName" class="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200"></div>
-                        <div><label class="text-xs text-slate-400">แผนก</label><input id="edit-reqDept"  class="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200"></div>
+            <div class="p-6 overflow-y-auto space-y-4">
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                    <div class="flex justify-between items-center cursor-pointer" onclick="document.getElementById('editUserSection').classList.toggle('hidden')">
+                        <h4 class="text-sm font-bold text-blue-700">✏️ แก้ไขข้อมูลผู้แจ้ง / รูปก่อนซ่อม</h4>
+                        <span class="text-xs text-slate-500">▼ Show/Hide</span>
                     </div>
-                    <div><label class="text-xs text-slate-400">ชื่ออุปกรณ์</label><textarea id="edit-equip"   class="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200"></textarea></div>
-                    <div><label class="text-xs text-slate-400">อาการเสีย</label><textarea  id="edit-problem" rows="2" class="w-full bg-slate-800 border border-slate-600 rounded px-2 py-1 text-sm text-slate-200"></textarea></div>
-                    <div class="border border-dashed border-slate-600 rounded p-2 bg-slate-800/30">
-                        <label class="text-xs text-yellow-500 font-bold mb-1 block">📷 รูปก่อนซ่อม (Before Image)</label>
-                        <input type="file" id="edit-img-before" accept="image/*" class="text-xs text-slate-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-slate-700 file:text-white hover:file:bg-slate-600">
+                    <div id="editUserSection" class="hidden space-y-3 mt-3 border-t border-slate-200 pt-3">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div><label class="lbl-sm">ผู้แจ้ง</label><input id="edit-reqName" class="field-sm"></div>
+                            <div><label class="lbl-sm">แผนก</label><input id="edit-reqDept"  class="field-sm"></div>
+                        </div>
+                        <div><label class="lbl-sm">ชื่ออุปกรณ์</label><textarea id="edit-equip"   class="field-sm"></textarea></div>
+                        <div><label class="lbl-sm">อาการเสีย</label><textarea  id="edit-problem" rows="2" class="field-sm"></textarea></div>
+                        <div class="border border-dashed border-slate-300 rounded-lg p-2 bg-white">
+                            <label class="text-xs text-amber-700 font-bold mb-1 block">📷 รูปก่อนซ่อม (Before Image)</label>
+                            <input type="file" id="edit-img-before" accept="image/*" class="text-xs text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300">
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="grid grid-cols-2 gap-4 mb-4">
-                <div><label class="text-xs text-slate-400">Status</label><select id="modalStatus" onchange="toggleAdminFields()" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white"><option>Waiting</option><option>Processing</option><option>Done</option><option>Closed</option></select></div>
-                <div><label class="text-xs text-slate-400">Technician</label><select id="modalTech" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white"></select></div>
-            </div>
-            <div class="mb-4 border border-sky-700/60 rounded-lg p-3 bg-sky-950/20">
-                <label class="text-xs text-sky-400 font-bold mb-1 block">🔗 รหัสอุปกรณ์ (เชื่อมกับทะเบียนอุปกรณ์ Asset Tracker)</label>
-                <input id="modalEquipId" oninput="debouncedModalAsset()" class="w-full bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-white font-mono" placeholder="ใส่รหัสอุปกรณ์ เช่น PRD-001">
-                <p id="modalAssetInfo" class="text-xs mt-1 text-slate-500"></p>
-                <div id="sparePanel" class="mt-2"></div>
-            </div>
-            <div class="mb-4"><label class="text-xs text-slate-400">Admin Remarks (บันทึกช่าง)</label><textarea id="modalRemark" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-white" rows="2"></textarea></div>
-            <div id="adminImageSection" class="hidden mb-4 border border-slate-600 rounded p-3 bg-slate-800/30">
-                <label class="text-xs text-green-400 font-bold mb-2 block">📷 Evidence (After Repair)</label>
-                <div class="flex items-center gap-3">
-                    <button onclick="document.getElementById('adminImg').click()" class="text-xs bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded">Choose Image</button>
-                    <input type="file" id="adminImg" accept="image/*" class="hidden" onchange="previewImage(this,'adminPreview')">
-                    <div class="text-xs text-slate-500">Upload to Storage (After)</div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="lbl-sm">Status</label><select id="modalStatus" onchange="toggleAdminFields()" class="field"><option>Waiting</option><option>Processing</option><option>Done</option><option>Closed</option></select></div>
+                    <div><label class="lbl-sm">Technician</label><select id="modalTech" class="field"></select></div>
                 </div>
-                <img id="adminPreview" class="img-preview mt-2 max-h-24 border-slate-600">
+                <div class="border border-sky-200 rounded-xl p-3 bg-sky-50">
+                    <label class="text-xs text-sky-800 font-bold mb-1 block">🔗 รหัสอุปกรณ์ (เชื่อมกับทะเบียนอุปกรณ์ Asset Tracker)</label>
+                    <input id="modalEquipId" oninput="debouncedModalAsset()" class="field-sm font-mono" placeholder="ใส่รหัสอุปกรณ์ เช่น PRD-001">
+                    <p id="modalAssetInfo" class="text-xs mt-1 text-slate-500"></p>
+                    <div id="sparePanel" class="mt-2"></div>
+                </div>
+                <div><label class="lbl-sm">Admin Remarks (บันทึกช่าง)</label><textarea id="modalRemark" class="field" rows="2"></textarea></div>
+                <div id="adminImageSection" class="hidden border border-slate-200 rounded-xl p-3 bg-slate-50">
+                    <label class="text-xs text-emerald-700 font-bold mb-2 block">📷 Evidence (After Repair)</label>
+                    <div class="flex items-center gap-3">
+                        <button onclick="document.getElementById('adminImg').click()" class="btn-soft text-xs px-3 py-2 bg-white">Choose Image</button>
+                        <input type="file" id="adminImg" accept="image/*" class="hidden" onchange="previewImage(this,'adminPreview')">
+                        <div class="text-xs text-slate-500">Upload to Storage (After)</div>
+                    </div>
+                    <img id="adminPreview" class="img-preview mt-2 max-h-24">
+                </div>
+                <div id="costSection" class="hidden border border-slate-200 bg-slate-50 p-4 rounded-xl">
+                    <h4 class="text-emerald-700 font-bold mb-2 flex justify-between"><span>💰 Cost</span><span id="grandTotal">0.00 ฿</span></h4>
+                    <div class="grid grid-cols-6 gap-2 text-[11px] text-slate-500 px-0.5 mb-1"><span class="col-span-3">รายการ</span><span>จำนวน</span><span>ราคา/หน่วย</span><span></span></div>
+                    <div id="itemsContainer" class="space-y-2 mb-2"></div>
+                    <button onclick="addItemRow()" class="btn-soft text-xs px-2 py-1 bg-white">+ Item</button>
+                    <div class="mt-3"><label class="lbl-sm">Notes (รายละเอียดอะไหล่)</label><textarea id="modalNotes" class="field-sm text-xs"></textarea></div>
+                </div>
+                <div id="dateUpdateSection" class="hidden">
+                    <label class="flex items-center gap-2 cursor-pointer bg-slate-50 p-3 rounded-xl border border-slate-200 hover:bg-slate-100 transition">
+                        <input type="checkbox" id="modalUpdateDate" value="true" class="w-5 h-5 accent-blue-600">
+                        <span class="text-sm text-slate-700 font-medium">🕒 อัพเดทวันที่/เวลา ปิดจบงานเป็นปัจจุบัน <span class="text-slate-500 text-xs">(เว้นว่างไว้เพื่อใช้วันที่เดิม)</span></span>
+                    </label>
+                </div>
             </div>
-            <div id="costSection" class="hidden border-t border-slate-600 pt-4 bg-slate-800/50 p-4 rounded-lg mb-4">
-                <h4 class="text-green-400 font-bold mb-2 flex justify-between"><span>💰 Cost</span><span id="grandTotal">0.00 ฿</span></h4>
-                <div id="itemsContainer" class="space-y-2 mb-2"></div>
-                <button onclick="addItemRow()" class="text-xs bg-slate-700 hover:bg-slate-600 text-white px-2 py-1 rounded">+ Item</button>
-                <div class="mt-2"><label class="text-xs text-slate-400">Notes (รายละเอียดอะไหล่)</label><textarea id="modalNotes" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-xs text-white"></textarea></div>
-            </div>
-            <div id="dateUpdateSection" class="hidden border-t border-slate-600 pt-3 mb-4">
-                <label class="flex items-center gap-2 cursor-pointer bg-slate-800/50 p-3 rounded-lg border border-slate-600 hover:bg-slate-700 transition">
-                    <input type="checkbox" id="modalUpdateDate" value="true" class="w-5 h-5 accent-corp-gold">
-                    <span class="text-sm text-slate-300 font-medium">🕒 อัพเดทวันที่/เวลา ปิดจบงานเป็นปัจจุบัน <span class="text-slate-500 text-xs">(เว้นว่างไว้เพื่อใช้วันที่เดิม)</span></span>
-                </label>
-            </div>
-            <div class="flex justify-end gap-2 pt-4 border-t border-slate-700">
-                <button onclick="closeModal()"  class="px-4 py-2 rounded text-slate-300 hover:bg-slate-700">Cancel</button>
-                <button onclick="saveJob()"     class="bg-gradient-to-r from-corp-gold to-yellow-600 hover:from-yellow-500 text-corp-blue font-bold px-6 py-2 rounded shadow-lg">บันทึก (Save)</button>
+            <div class="flex justify-end gap-2 px-6 py-4 border-t border-slate-200 bg-slate-50 rounded-b-2xl">
+                <button onclick="closeModal()"  class="btn-soft px-4 py-2 bg-white">Cancel</button>
+                <button onclick="saveJob()"     class="btn-primary px-6 py-2">บันทึก (Save)</button>
             </div>
         </div>
     </div>
 
     <!-- Detail Modal -->
     <div id="detailModal" class="modal-overlay" onclick="closeDetailModal()">
-        <div class="bg-corp-lightBlue w-full max-w-md rounded-xl border border-slate-600 shadow-2xl overflow-hidden m-4 flex flex-col max-h-[90vh] animate-zoomIn" onclick="event.stopPropagation()">
-            <div class="bg-slate-800 p-4 border-b border-slate-600 flex justify-between items-center sticky top-0 z-10">
+        <div class="bg-white w-full max-w-md rounded-2xl border border-slate-200 shadow-2xl overflow-hidden m-4 flex flex-col max-h-[90vh] animate-zoomIn" onclick="event.stopPropagation()">
+            <div class="bg-white px-5 py-4 border-b border-slate-200 flex justify-between items-center sticky top-0 z-10">
                 <div>
-                    <h3 class="text-lg font-bold text-corp-gold flex items-center gap-2">📄 รายละเอียดงาน</h3>
-                    <p class="text-xs text-slate-400 font-mono flex flex-wrap items-center gap-x-2">
-                    <span id="d-jobId"></span>
-                </p>
+                    <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">📄 รายละเอียดงาน</h3>
+                    <p class="text-xs text-blue-700 font-mono flex flex-wrap items-center gap-x-2">
+                        <span id="d-jobId"></span>
+                    </p>
                 </div>
-                <button onclick="closeDetailModal()" class="text-slate-400 hover:text-white text-2xl font-bold px-2">×</button>
+                <button onclick="closeDetailModal()" class="h-9 w-9 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-800 text-xl font-bold flex items-center justify-center">×</button>
             </div>
-            <div class="p-5 overflow-y-auto space-y-4 text-sm">
-                <div class="flex justify-between items-center bg-slate-900/50 p-3 rounded-lg border border-slate-700">
+            <div class="p-5 overflow-y-auto space-y-5 text-sm">
+                <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-200">
                     <div class="flex flex-col"><span class="text-xs text-slate-500">สถานะ (Status)</span><span id="d-status" class="font-bold text-lg"></span></div>
-                    <div class="text-right"><span class="text-xs text-slate-500 block">วันที่แจ้ง</span><span id="d-date" class="text-white font-medium"></span></div>
+                    <div class="text-right"><span class="text-xs text-slate-500 block">วันที่แจ้ง</span><span id="d-date" class="text-slate-800 font-medium"></span></div>
                 </div>
                 <div>
-                    <h4 class="text-corp-gold text-xs uppercase font-bold border-b border-slate-700 pb-1 mb-2">👤 ผู้แจ้งซ่อม</h4>
-                    <div class="grid grid-cols-2 gap-y-2">
-                        <div><span class="text-slate-500 text-xs block">ชื่อ</span><span id="d-req"   class="text-slate-200"></span></div>
-                        <div><span class="text-slate-500 text-xs block">แผนก</span><span id="d-dept" class="text-slate-200"></span></div>
-                        <div class="col-span-2"><span class="text-slate-500 text-xs block">ข้อมูลติดต่อกลับ</span><span id="d-phone" class="text-slate-200"></span></div>
+                    <h4 class="sec-title border-b border-slate-100 pb-1">📅 ไทม์ไลน์งาน</h4>
+                    <ol id="d-timeline" class="relative ml-1"></ol>
+                </div>
+                <div>
+                    <h4 class="sec-title border-b border-slate-100 pb-1">👤 ผู้แจ้งซ่อม</h4>
+                    <div class="grid grid-cols-2 gap-y-3 gap-x-4">
+                        <div><span class="kv-k">ชื่อ</span><span id="d-req"   class="kv-v"></span></div>
+                        <div><span class="kv-k">แผนก</span><span id="d-dept" class="kv-v"></span></div>
+                        <div class="col-span-2"><span class="kv-k">ข้อมูลติดต่อกลับ</span><span id="d-phone" class="kv-v"></span></div>
                     </div>
                 </div>
                 <div>
-                    <h4 class="text-corp-gold text-xs uppercase font-bold border-b border-slate-700 pb-1 mb-2">⚙️ อุปกรณ์ & ปัญหา</h4>
-                    <div class="space-y-2">
-                        <div><span class="text-slate-500 text-xs block">ชื่ออุปกรณ์</span><span id="d-equip" class="text-white font-medium"></span></div>
-                        <div><span class="text-slate-500 text-xs block">รหัส</span><span id="d-equipId" class="text-slate-200"></span></div>
-                        <div class="bg-slate-800 p-3 rounded border border-slate-700 mt-2"><span class="text-slate-500 text-xs block mb-1">อาการเสีย</span><p id="d-prob" class="text-slate-200"></p></div>
+                    <h4 class="sec-title border-b border-slate-100 pb-1">⚙️ อุปกรณ์ & ปัญหา</h4>
+                    <div class="space-y-3">
+                        <div class="grid grid-cols-2 gap-x-4">
+                            <div><span class="kv-k">ชื่ออุปกรณ์</span><span id="d-equip" class="kv-v font-semibold"></span></div>
+                            <div><span class="kv-k">รหัส</span><span id="d-equipId" class="kv-v font-mono"></span></div>
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200"><span class="kv-k mb-1">อาการเสีย</span><p id="d-prob" class="text-slate-800"></p></div>
                     </div>
                 </div>
                 <div id="d-admin-sec" class="hidden">
-                    <h4 class="text-blue-400 text-xs uppercase font-bold border-b border-blue-900/50 pb-1 mb-2">🛠️ การดำเนินการ</h4>
-                    <div class="space-y-2">
-                        <div><span class="text-slate-500 text-xs block">ช่าง</span><span id="d-tech" class="text-slate-200"></span></div>
-                        <div class="bg-blue-900/20 p-3 rounded border border-blue-900/50"><span class="text-slate-500 text-xs block mb-1">หมายเหตุช่าง (Admin Remark)</span><p id="d-remark" class="text-blue-200 italic"></p></div>
-                        <div id="d-cost-box" class="flex justify-between items-center mt-2 border-t border-slate-700 pt-2"><span class="text-slate-400">ค่าใช้จ่าย:</span><span id="d-cost" class="text-green-400 font-bold text-lg"></span></div>
+                    <h4 class="sec-title border-b border-slate-100 pb-1 text-blue-700">🛠️ การดำเนินการ</h4>
+                    <div class="space-y-3">
+                        <div><span class="kv-k">ช่าง</span><span id="d-tech" class="kv-v"></span></div>
+                        <div class="bg-blue-50 p-3 rounded-xl border border-blue-100"><span class="kv-k mb-1">หมายเหตุช่าง (Admin Remark)</span><p id="d-remark" class="text-blue-900 italic"></p></div>
+                        <div id="d-cost-box" class="flex justify-between items-center border-t border-slate-100 pt-2"><span class="text-slate-500">ค่าใช้จ่าย:</span><span id="d-cost" class="text-emerald-700 font-bold text-lg"></span></div>
                     </div>
                 </div>
                 <div>
-                    <h4 class="text-corp-gold text-xs uppercase font-bold border-b border-slate-700 pb-1 mb-2">📷 รูปภาพ</h4>
+                    <h4 class="sec-title border-b border-slate-100 pb-1">📷 รูปภาพ</h4>
                     <div class="grid grid-cols-2 gap-3">
-                        <div class="text-center"><span class="text-[10px] text-slate-500 block mb-1">ก่อนซ่อม</span><div id="d-img-before" class="h-24 bg-slate-800 rounded flex items-center justify-center border border-slate-700 text-slate-600 text-xs">ไม่มีรูป</div></div>
-                        <div class="text-center"><span class="text-[10px] text-slate-500 block mb-1">หลังซ่อม</span><div id="d-img-after"  class="h-24 bg-slate-800 rounded flex items-center justify-center border border-slate-700 text-slate-600 text-xs">ยังไม่ดำเนินการ</div></div>
+                        <div class="text-center"><span class="text-[11px] text-slate-500 block mb-1">ก่อนซ่อม</span><div id="d-img-before" class="h-28 bg-slate-50 rounded-xl flex items-center justify-center border border-slate-200 text-slate-400 text-xs overflow-hidden">ไม่มีรูป</div></div>
+                        <div class="text-center"><span class="text-[11px] text-slate-500 block mb-1">หลังซ่อม</span><div id="d-img-after"  class="h-28 bg-slate-50 rounded-xl flex items-center justify-center border border-slate-200 text-slate-400 text-xs overflow-hidden">ยังไม่ดำเนินการ</div></div>
                     </div>
                 </div>
-                <div id="d-verify-area" class="pt-2"></div>
-                <p class="text-right text-[10px] text-slate-500 font-mono pt-1">F-MTN-01-04 Rev.04 Effective date: 06/04/2569</p>
+                <div id="d-verify-area"></div>
+                <p class="text-right text-[10px] text-slate-400 font-mono">F-MTN-01-04 Rev.04 Effective date: 06/04/2569</p>
             </div>
-            <div class="p-4 bg-slate-800 border-t border-slate-600">
-                <button onclick="closeDetailModal()" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 rounded transition">ปิดหน้าต่าง</button>
+            <div class="p-4 bg-slate-50 border-t border-slate-200">
+                <button onclick="closeDetailModal()" class="btn-soft w-full py-2.5 bg-white">ปิดหน้าต่าง</button>
             </div>
         </div>
     </div>
@@ -538,7 +581,7 @@
             if ($('reqEquipId').value.trim() !== v) return;
             if (snap) {
                 const a = snap.data();
-                hint.className = 'text-xs mt-1 text-green-400';
+                hint.className = 'text-xs mt-1 text-emerald-700';
                 hint.textContent = `✓ พบในทะเบียนอุปกรณ์: ${a.name || a.id}${a.location ? ' (' + a.location + ')' : ''} — ประวัติซ่อมจะถูกบันทึกให้อัตโนมัติ`;
                 if (!$('reqEquip').value.trim() && a.name) $('reqEquip').value = a.name;
             } else {
@@ -612,15 +655,15 @@
         if (!v) { info.className = 'text-xs mt-1 text-slate-500'; info.textContent = 'ยังไม่ได้ระบุรหัสอุปกรณ์'; renderSparePanel(); return; }
         info.className = 'text-xs mt-1 text-slate-400'; info.textContent = 'กำลังตรวจสอบรหัส...';
         let snap = null;
-        try { snap = await findAsset(v); } catch (e) { info.className = 'text-xs mt-1 text-orange-400'; info.textContent = 'เชื่อมต่อ Asset Tracker ไม่ได้'; renderSparePanel(); return; }
+        try { snap = await findAsset(v); } catch (e) { info.className = 'text-xs mt-1 text-orange-600'; info.textContent = 'เชื่อมต่อ Asset Tracker ไม่ได้'; renderSparePanel(); return; }
         if ($('modalEquipId').value.trim() !== v) return;
         if (!snap) {
-            info.className = 'text-xs mt-1 text-orange-400';
+            info.className = 'text-xs mt-1 text-orange-600';
             info.textContent = 'ไม่พบรหัสนี้ในทะเบียนอุปกรณ์ (ประวัติซ่อมจะไม่ถูกบันทึกลงอุปกรณ์)';
         } else {
             const a = snap.data();
             appData.modalAsset = { id: snap.id, data: a };
-            info.className = 'text-xs mt-1 text-green-400';
+            info.className = 'text-xs mt-1 text-emerald-700';
             info.textContent = `✓ ${a.name || snap.id}${a.location ? ' (' + a.location + ')' : ''}`;
             if (!$('edit-equip').value.trim() && a.name) $('edit-equip').value = a.name;
         }
@@ -638,15 +681,15 @@
         }
         const parts = a.data.spareParts || [];
         if (!parts.length) { box.innerHTML = `<p class="text-xs text-slate-500">อุปกรณ์นี้ยังไม่มีรายการ Spare Part ในสต๊อก</p>`; return; }
-        box.innerHTML = `<p class="text-xs text-sky-300 font-bold mb-1">📦 สต๊อกอะไหล่ของอุปกรณ์นี้</p>
+        box.innerHTML = `<p class="text-xs text-sky-800 font-bold mb-1">📦 สต๊อกอะไหล่ของอุปกรณ์นี้</p>
             <div class="space-y-1 max-h-48 overflow-y-auto pr-1">${parts.map(sp => {
                 const low = Number(sp.stock) < Number(sp.minStock);
                 const out = Number(sp.stock) <= 0;
-                return `<div class="flex items-center gap-2 bg-slate-900/70 border border-slate-700 rounded px-2 py-1 text-xs">
-                    <div class="flex-1 min-w-0"><div class="text-white truncate">${escHtml(sp.name)}</div>
-                        <div class="text-slate-400">฿${fmtBaht(sp.price)} · คงเหลือ <b class="${low ? 'text-red-400' : 'text-green-400'}">${fmtBaht(sp.stock)}</b>${low ? ' ⚠️' : ''}</div></div>
-                    <input type="number" min="1" value="1" id="spq-${escHtml(sp.id)}" class="w-14 bg-slate-800 border border-slate-600 rounded px-1 py-0.5 text-white text-center" ${out ? 'disabled' : ''}>
-                    <button type="button" onclick="useSparePart('${escHtml(sp.id)}')" class="bg-sky-600 hover:bg-sky-500 disabled:opacity-40 text-white px-2 py-1 rounded" ${out ? 'disabled' : ''}>ใช้</button>
+                return `<div class="flex items-center gap-2 bg-white border border-sky-100 rounded-lg px-2 py-1 text-xs">
+                    <div class="flex-1 min-w-0"><div class="text-slate-800 font-medium truncate">${escHtml(sp.name)}</div>
+                        <div class="text-slate-500">฿${fmtBaht(sp.price)} · คงเหลือ <b class="${low ? 'text-red-600' : 'text-emerald-700'}">${fmtBaht(sp.stock)}</b>${low ? ' ⚠️' : ''}</div></div>
+                    <input type="number" min="1" value="1" id="spq-${escHtml(sp.id)}" class="w-14 bg-white border border-slate-300 rounded px-1 py-0.5 text-slate-800 text-center" ${out ? 'disabled' : ''}>
+                    <button type="button" onclick="useSparePart('${escHtml(sp.id)}')" class="bg-sky-600 hover:bg-sky-700 disabled:opacity-40 text-white px-2.5 py-1 rounded-md font-semibold" ${out ? 'disabled' : ''}>ใช้</button>
                 </div>`;
             }).join('')}</div>
             <p class="text-[11px] text-slate-500 mt-1">สต๊อกจะถูกตัดเมื่อกด "บันทึก (Save)"</p>`;
@@ -867,7 +910,8 @@
 
         sheet.mergeCells('B27:C29');
         const sigReq = sheet.getCell('B27');
-        sigReq.value = `✅ VERIFIED via PIN\n( ${r.requesterName} )\nDate: ${r.completedDate ? new Date(r.completedDate).toLocaleString('th-TH') : '-'}`;
+        const closeDates = getCloseDates(r);
+        sigReq.value = `✅ VERIFIED via PIN\n( ${r.requesterName} )\nDate: ${closeDates.owner ? new Date(closeDates.owner).toLocaleString('th-TH') : '-'}`;
         sigReq.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
         setBorder(sheet.getCell('B27')); setBorder(sheet.getCell('C27'));
         setBorder(sheet.getCell('B28')); setBorder(sheet.getCell('C28'));
@@ -875,7 +919,7 @@
 
         sheet.mergeCells('E27:F29');
         const sigTech = sheet.getCell('E27');
-        sigTech.value = `🛠️ JOB COMPLETED\n( ${r.technician || '-'} )\nDate: ${r.completedDate ? new Date(r.completedDate).toLocaleString('th-TH') : '-'}`;
+        sigTech.value = `🛠️ JOB COMPLETED\n( ${r.technician || '-'} )\nDate: ${closeDates.tech ? new Date(closeDates.tech).toLocaleString('th-TH') : '-'}`;
         sigTech.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
         setBorder(sheet.getCell('E27')); setBorder(sheet.getCell('F27'));
         setBorder(sheet.getCell('E28')); setBorder(sheet.getCell('F28'));
@@ -1315,7 +1359,7 @@
             return Swal.fire({
                 icon: 'warning', title: 'ข้อมูลไม่ครบถ้วน',
                 text: 'กรุณาแนบรูปภาพของอุปกรณ์',
-                background: '#1e293b', color: '#fff', confirmButtonColor: '#f59e0b'
+                confirmButtonColor: '#2563eb'
             });
         }
 
@@ -1327,7 +1371,7 @@
                 icon: 'warning', showCancelButton: true,
                 confirmButtonColor: '#ef4444', cancelButtonColor: '#475569',
                 confirmButtonText: 'ใช่, ขอยืนยัน', cancelButtonText: 'ยกเลิก',
-                background: '#1e293b', color: '#fff'
+                
             });
             if (!isConfirmed) return;
         }
@@ -1337,7 +1381,7 @@
             return Swal.fire('ข้อผิดพลาด', 'กรุณาตั้งรหัสยืนยันอย่างน้อย 4 หลัก', 'warning');
         }
 
-        Swal.fire({ title: 'กำลังประมวลผล...', allowOutsideClick: false, didOpen: () => Swal.showLoading(), background: '#1e293b', color: '#fff' });
+        Swal.fire({ title: 'กำลังประมวลผล...', allowOutsideClick: false, didOpen: () => Swal.showLoading(),  });
 
         try {
             // Generate Job ID
@@ -1390,27 +1434,27 @@
             if ($('reqEquipHint')) $('reqEquipHint').textContent = '';
 
             let html = `<div class="text-left mt-2">
-                <p class="text-sm text-green-400 mb-2">ข้อมูลของท่านได้รับการจัดส่งเข้าสู่ระบบเรียบร้อยแล้ว</p>
-                <p class="mb-1">หมายเลขงาน (Job ID): <b class="text-corp-gold font-mono">${newId}</b></p>
-                <p class="mb-3">รหัสยืนยันปิดงาน (PIN): <b class="text-yellow-400 font-mono tracking-widest">${userPin}</b></p>
-                ${assetLink.linked ? `<p class="mb-3 text-xs text-green-400">🔗 บันทึกลงประวัติซ่อมของอุปกรณ์ <b>${assetLink.name}</b> ใน Asset Tracker แล้ว</p>`
-                  : assetLink.error ? `<p class="mb-3 text-xs text-orange-400">⚠️ บันทึกใบแจ้งซ่อมแล้ว แต่ส่งประวัติไป Asset Tracker ไม่สำเร็จ (จะลองใหม่เมื่อมีการอัปเดตงาน)</p>` : ''}
-                <div class="bg-slate-800 p-3 rounded border border-slate-600">
-                    <p class="text-xs text-slate-300 leading-relaxed"><b>⚠️ ข้อกำหนดสำคัญ:</b><br>
-                    ใช้รหัส PIN เพื่อกดยืนยันการจบงานในเมนู <b class="text-corp-gold">"ติดตามงาน"</b></p>
+                <p class="text-sm text-emerald-700 mb-2">ข้อมูลของท่านได้รับการจัดส่งเข้าสู่ระบบเรียบร้อยแล้ว</p>
+                <p class="mb-1">หมายเลขงาน (Job ID): <b class="text-blue-700 font-mono">${newId}</b></p>
+                <p class="mb-3">รหัสยืนยันปิดงาน (PIN): <b class="text-amber-700 font-mono tracking-widest">${userPin}</b></p>
+                ${assetLink.linked ? `<p class="mb-3 text-xs text-emerald-700">🔗 บันทึกลงประวัติซ่อมของอุปกรณ์ <b>${assetLink.name}</b> ใน Asset Tracker แล้ว</p>`
+                  : assetLink.error ? `<p class="mb-3 text-xs text-orange-600">⚠️ บันทึกใบแจ้งซ่อมแล้ว แต่ส่งประวัติไป Asset Tracker ไม่สำเร็จ (จะลองใหม่เมื่อมีการอัปเดตงาน)</p>` : ''}
+                <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                    <p class="text-xs text-slate-600 leading-relaxed"><b>⚠️ ข้อกำหนดสำคัญ:</b><br>
+                    ใช้รหัส PIN เพื่อกดยืนยันการจบงานในเมนู <b class="text-blue-700">"ติดตามงาน"</b></p>
                 </div></div>`;
 
             let title = 'จัดส่งข้อมูลสำเร็จ', icon = 'success';
             if (urg === 'Medium') {
                 title = '⚠️ จัดส่งข้อมูลสำเร็จ (ระดับด่วน)'; icon = 'warning';
-                html += `<div class="mt-4 text-sm bg-yellow-900/30 p-2 rounded border border-yellow-700">ติดต่อประสานงาน: <b class="text-yellow-400">098-279-9918</b></div>`;
+                html += `<div class="mt-4 text-sm bg-amber-50 p-2 rounded-lg border border-amber-200 text-amber-900">ติดต่อประสานงาน: <b class="text-amber-700">098-279-9918</b></div>`;
             }
             if (urg === 'High') {
                 title = '🚨 จัดส่งข้อมูลสำเร็จ (ด่วนมาก)'; icon = 'warning';
-                html += `<div class="mt-4 text-sm bg-red-900/30 p-2 rounded border border-red-700 text-red-300">ติดต่อเจ้าหน้าที่ทันที: <b class="text-white">098-279-9918</b></div>`;
+                html += `<div class="mt-4 text-sm bg-red-50 p-2 rounded-lg border border-red-200 text-red-800">ติดต่อเจ้าหน้าที่ทันที: <b class="text-red-700">098-279-9918</b></div>`;
             }
 
-            await Swal.fire({ icon, title, html, background: '#1e293b', color: '#fff', confirmButtonColor: '#f59e0b' });
+            await Swal.fire({ icon, title, html, confirmButtonColor: '#2563eb' });
             refreshData(true);
             switchTab('status');
         } catch (err) {
@@ -1425,7 +1469,7 @@
         const { value: enteredPin } = await Swal.fire({
             title: 'ยืนยันการจบงาน', text: 'กรุณาใส่รหัส PIN ที่คุณตั้งไว้ตอนแจ้งซ่อม',
             input: 'password', inputPlaceholder: 'Enter PIN',
-            background: '#1e293b', color: '#fff', confirmButtonColor: '#22c55e', showCancelButton: true
+            confirmButtonColor: '#22c55e', showCancelButton: true
         });
         if (!enteredPin) return;
         if (String(enteredPin) !== String(correctPin)) return Swal.fire('รหัสไม่ถูกต้อง', 'กรุณาลองใหม่อีกครั้ง', 'error');
@@ -1434,7 +1478,8 @@
         try {
             await db.collection('requests').doc(jobId).update({
                 status: 'Closed',
-                completedDate: new Date().toISOString()
+                completedDate: new Date().toISOString(),
+                ownerClosedDate: new Date().toISOString()   // วันที่เจ้าของงานยืนยันปิดงาน
             });
             await syncJobById(jobId);
             refreshData(true);
@@ -1548,7 +1593,12 @@
             }
 
             if (st === 'Done' || st === 'Closed') {
-                if ($('modalUpdateDate')?.checked) updateData.completedDate = new Date().toISOString();
+                const prev = appData.reqs.find(x => x.jobID === jobId) || {};
+                const wasDone = prev.status === 'Done' || prev.status === 'Closed';
+                const now = new Date().toISOString();
+                if ($('modalUpdateDate')?.checked) updateData.completedDate = now;
+                // วันที่ช่างปิดงาน: บันทึกตอนเปลี่ยนเป็น Done/Closed ครั้งแรก หรือเมื่อติ๊กอัพเดทวันที่
+                if (!wasDone || $('modalUpdateDate')?.checked) updateData.techDoneDate = now;
 
                 // After Image Upload
                 if ($('adminImg').files.length > 0) {
@@ -1604,7 +1654,7 @@
             title: 'ยืนยันการลบงาน (1/2)',
             text: `กรุณาใส่รหัส PIN ของผู้แจ้งซ่อมสำหรับงาน ${jobId}`,
             input: 'password',
-            background: '#1e293b', color: '#fff', confirmButtonColor: '#ef4444', showCancelButton: true
+            confirmButtonColor: '#ef4444', showCancelButton: true
         });
         if (!enteredUserPin) return;
         if (String(enteredUserPin) !== String(r.userPin)) return Swal.fire('รหัสไม่ถูกต้อง', 'รหัส PIN ผู้แจ้งไม่ตรงกัน', 'error');
@@ -1613,7 +1663,7 @@
             title: 'ยืนยันการลบงาน (2/2)',
             text: 'กรุณาใส่รหัสผ่าน Admin เพื่อยืนยันสิทธิ์',
             input: 'password',
-            background: '#1e293b', color: '#fff', confirmButtonColor: '#ef4444', showCancelButton: true
+            confirmButtonColor: '#ef4444', showCancelButton: true
         });
         if (!enteredAdminPass) return;
         if (enteredAdminPass !== appData.adminPass) return Swal.fire('รหัสไม่ถูกต้อง', 'รหัส Admin ไม่ถูกต้อง', 'error');
@@ -1626,7 +1676,7 @@
             confirmButtonColor: '#ef4444',
             cancelButtonColor: '#475569',
             confirmButtonText: 'ใช่, ลบเลย!',
-            background: '#1e293b', color: '#fff',
+            
             ...(r.stockUsage?.length ? { input: 'checkbox', inputValue: 1, inputPlaceholder: 'คืนอะไหล่ที่เบิกไปกลับเข้าสต๊อก' } : {})
         });
         const returnStock = !!(r.stockUsage?.length && returnStockChecked);
@@ -1653,8 +1703,8 @@
             const list = appData.lists[k] || [];
             const el   = $('list-' + k);
             el.innerHTML = list.length
-                ? list.map(x => `<li class="flex justify-between border-b border-slate-700 p-1"><span>${x}</span><button onclick="modifyList('${k}','del','${x}')" class="text-red-400 font-bold px-2">×</button></li>`).join('')
-                : `<li class="text-center pt-8 text-slate-500">Empty</li>`;
+                ? list.map(x => `<li class="flex justify-between items-center border-b border-slate-200 last:border-0 px-2 py-1.5 hover:bg-white rounded"><span>${x}</span><button onclick="modifyList('${k}','del','${x}')" class="text-red-500 hover:text-red-700 font-bold px-2">×</button></li>`).join('')
+                : `<li class="text-center pt-10 text-slate-400">Empty</li>`;
         });
     }
 
@@ -1665,20 +1715,20 @@
     }
 
     const STATUS_BADGE = {
-        Waiting:    `<span class="inline-block px-2 py-1 rounded text-xs font-bold bg-yellow-900/30 text-yellow-400 border border-yellow-500/50 status-waiting">Waiting</span>`,
-        Processing: `<span class="inline-block px-2 py-1 rounded text-xs font-bold bg-blue-900/30 text-blue-400 border border-blue-500/50">Processing</span>`,
-        Done:       `<span class="inline-block px-2 py-1 rounded text-xs font-bold bg-green-900/30 text-green-400 border border-green-500/50 animate-pulse">Wait Verify</span>`,
-        Closed:     `<span class="inline-block px-2 py-1 rounded text-xs font-bold bg-green-500 text-slate-900">✅ Closed</span>`,
-        _default:   `<span class="inline-block px-2 py-1 rounded text-xs font-bold bg-slate-700 text-slate-400 border border-slate-600">`
+        Waiting:    `<span class="inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200 status-waiting">● Waiting</span>`,
+        Processing: `<span class="inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200">● Processing</span>`,
+        Done:       `<span class="inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-300 animate-pulse">● Wait Verify</span>`,
+        Closed:     `<span class="inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-600 text-white">✓ Closed</span>`,
+        _default:   `<span class="inline-flex items-center whitespace-nowrap px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">`
     };
 
     function getBadge(status) { return STATUS_BADGE[status] || (STATUS_BADGE._default + status + '</span>'); }
 
     function getUrgClass(r) {
-        if (r.status === 'Done' || r.status === 'Closed') return 'bg-green-900/20 border-b border-green-800/50';
-        if (r.urgency === 'High')   return 'urgency-high-blink border-b border-slate-700';
-        if (r.urgency === 'Medium') return 'urgency-medium-blink border-b border-slate-700';
-        return 'bg-slate-900/40 border-b border-slate-800';
+        if (r.status === 'Done' || r.status === 'Closed') return 'bg-emerald-50/40';
+        if (r.urgency === 'High')   return 'urgency-high-blink';
+        if (r.urgency === 'Medium') return 'urgency-medium-blink';
+        return 'bg-white';
     }
 
     const thLocale = { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' };
@@ -1691,7 +1741,7 @@
             : appData.reqs;
 
         if (!filtered.length) {
-            container.innerHTML = '<div class="text-center text-slate-500 py-10">ไม่พบข้อมูล (No Data)</div>';
+            container.innerHTML = '<div class="card text-center text-slate-400 py-12">ไม่พบข้อมูล (No Data)</div>';
             return;
         }
 
@@ -1708,32 +1758,33 @@
             const rowsHtml = rows.map(r => {
                 const hasRemark  = r.adminRemarks?.trim();
                 const detail     = hasRemark ? `💬 Note: ${r.adminRemarks}` : r.problemDetails;
-                const remarkCls  = hasRemark ? 'text-corp-gold italic border-corp-gold' : 'text-slate-400 border-slate-700';
+                const remarkCls  = hasRemark ? 'text-blue-800 italic border-blue-300' : 'text-slate-500 border-slate-200';
                 let dateStr = '-';
                 try { dateStr = new Date(r.requestDate).toLocaleString('th-TH', thLocale); } catch (_) {}
-                return `<div onclick="openDetailModal('${r.jobID}')" class="p-4 hover:bg-slate-800/80 cursor-pointer transition active:bg-slate-700 group ${getUrgClass(r)}">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-corp-gold font-mono text-xs tracking-wider opacity-80">${r.jobID}</span>
+                return `<div onclick="openDetailModal('${r.jobID}')" class="p-4 hover:bg-slate-50 cursor-pointer transition active:bg-slate-100 group ${getUrgClass(r)}">
+                    <div class="flex justify-between items-center gap-2 mb-1.5">
+                        <span class="text-blue-700 font-mono text-xs font-semibold tracking-wide">${r.jobID}</span>
                         ${getBadge(r.status)}
                     </div>
-                    <div class="mb-2"><span class="text-white font-bold text-sm block leading-relaxed break-words">${r.equipmentLocation}</span></div>
-                    <div class="text-xs ${remarkCls} break-words leading-relaxed border-l-2 pl-2 mb-3">${detail}</div>
-                    <div class="flex items-center gap-4 text-[11px] text-slate-500 border-t border-slate-800 pt-2 mt-2">
+                    <div class="mb-2"><span class="text-slate-900 font-bold text-[15px] block leading-relaxed break-words">${r.equipmentLocation}</span></div>
+                    <div class="text-sm ${remarkCls} break-words leading-relaxed border-l-2 pl-2 mb-3">${detail}</div>
+                    <div class="flex items-center gap-4 text-xs text-slate-500">
                         <div class="flex items-center gap-1 overflow-hidden whitespace-nowrap text-ellipsis max-w-[50%]">
-                            <span class="opacity-70">👤</span><span class="text-slate-300 font-medium truncate">${r.requesterName}</span>
+                            <span class="opacity-70">👤</span><span class="text-slate-700 font-medium truncate">${r.requesterName}</span>
                         </div>
-                        <div class="flex items-center gap-1 whitespace-nowrap"><span class="opacity-70">🕒</span><span class="text-slate-400">${dateStr}</span></div>
+                        <div class="flex items-center gap-1 whitespace-nowrap"><span class="opacity-70">🕒</span><span>${dateStr}</span></div>
+                        <span class="ml-auto text-slate-300 group-hover:text-blue-500 transition">›</span>
                     </div>
                 </div>`;
             }).join('');
 
             const open = q || idx === 0 ? '' : 'hidden';
-            return `<div class="bg-slate-800 rounded-xl mb-4 border border-slate-700 overflow-hidden shadow-lg">
-                <div onclick="this.nextElementSibling.classList.toggle('hidden')" class="p-3 font-bold cursor-pointer hover:bg-slate-700 flex justify-between items-center bg-gradient-to-r from-slate-800 to-slate-900 border-b border-slate-700">
-                    <span class="flex items-center gap-2 text-white">📁 ${month}</span>
-                    <span class="text-xs bg-slate-600 px-2 py-1 rounded-full text-white">${rows.length} งาน</span>
+            return `<div class="card overflow-hidden">
+                <div onclick="this.nextElementSibling.classList.toggle('hidden')" class="px-4 py-3 font-bold cursor-pointer hover:bg-slate-50 flex justify-between items-center border-b border-slate-200 bg-slate-50/70">
+                    <span class="flex items-center gap-2 text-slate-800">📁 ${month}</span>
+                    <span class="text-xs bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded-full">${rows.length} งาน</span>
                 </div>
-                <div class="${open} bg-transparent">${rowsHtml}</div>
+                <div class="${open} divide-y divide-slate-100">${rowsHtml}</div>
             </div>`;
         }).join('');
 
@@ -1743,26 +1794,20 @@
     function renderAdmin() {
         const tbody = $('adminTableBody');
         const rows  = appData.reqs.map(r => {
-            let sCls = 'text-slate-400';
-            if (r.status === 'Done')    sCls = 'text-green-400 font-bold';
-            if (r.status === 'Closed')  sCls = 'text-green-500 font-bold underline';
-            if (r.status === 'Waiting') sCls = 'status-waiting';
-            if (r.status === 'Processing') sCls = 'text-blue-400 font-bold';
-
-            let trCls = 'border-b border-slate-700 hover:bg-slate-800';
-            if (r.status === 'Done' || r.status === 'Closed') trCls = 'border-b border-green-900 bg-green-900/10 hover:bg-green-900/20';
+            let trCls = 'hover:bg-slate-50';
+            if (r.status === 'Done' || r.status === 'Closed') trCls = 'bg-emerald-50/40 hover:bg-emerald-50';
             else if (r.urgency === 'High')   trCls += ' urgency-high-blink';
             else if (r.urgency === 'Medium') trCls += ' urgency-medium-blink';
 
             return `<tr class="${trCls}" data-status="${r.status}">
-                <td class="p-3 text-center"><input type="checkbox" class="chk-job accent-corp-gold w-4 h-4 cursor-pointer" value="${r.jobID}"></td>
-                <td class="p-3 text-xs ${sCls}">${r.status}</td>
-                <td class="p-3 font-mono text-xs">${r.jobID}</td>
-                <td class="p-3 text-sm">${r.requesterName}</td>
-                <td class="p-3 text-sm max-w-[200px] truncate" title="${r.equipmentLocation}">${r.equipmentLocation}</td>
+                <td class="p-3 text-center"><input type="checkbox" class="chk-job accent-blue-600 w-4 h-4 cursor-pointer" value="${r.jobID}"></td>
+                <td class="p-3 text-xs">${getBadge(r.status)}</td>
+                <td class="p-3 font-mono text-xs text-blue-700 font-semibold whitespace-nowrap">${r.jobID}</td>
+                <td class="p-3 text-sm text-slate-700">${r.requesterName}</td>
+                <td class="p-3 text-sm text-slate-700 max-w-[220px] truncate" title="${r.equipmentLocation}">${r.equipmentLocation}</td>
                 <td class="p-3 text-right whitespace-nowrap">
-                    <button onclick="openModal('${r.jobID}')" class="bg-blue-600 px-2 py-1 rounded text-xs hover:bg-blue-500 transition mr-1 mb-1 md:mb-0">Edit</button>
-                    <button onclick="deleteJobPrompt('${r.jobID}')" class="bg-red-600 px-2 py-1 rounded text-xs hover:bg-red-500 transition">Del</button>
+                    <button onclick="openModal('${r.jobID}')" class="btn bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 px-2.5 py-1 text-xs mr-1 mb-1 md:mb-0">Edit</button>
+                    <button onclick="deleteJobPrompt('${r.jobID}')" class="btn bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 px-2.5 py-1 text-xs">Del</button>
                 </td>
             </tr>`;
         });
@@ -1790,6 +1835,48 @@
         });
     }
 
+    // วันที่ช่างปิดงาน / วันที่เจ้าของงานยืนยันปิดงาน (รองรับงานเก่าที่มีแค่ completedDate)
+    function getCloseDates(r) {
+        const isClosed = r.status === 'Closed';
+        const isDone   = r.status === 'Done';
+        const tech  = r.techDoneDate || (isDone ? r.completedDate : null) || null;
+        const owner = r.ownerClosedDate || (isClosed ? r.completedDate : null) || null;
+        return { tech, owner };
+    }
+
+    const fmtDateTime = iso => {
+        if (!iso) return null;
+        const d = new Date(iso);
+        return isNaN(d) ? null : d.toLocaleString('th-TH', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    };
+
+    function renderTimeline(r) {
+        const { tech, owner } = getCloseDates(r);
+        const steps = [
+            { label: 'แจ้งซ่อม',                  date: r.requestDate,  who: r.requesterName },
+            { label: 'ช่างรับงาน',                 date: r.acceptedDate, who: r.technician },
+            { label: 'ช่างปิดงาน',                 date: tech,           who: r.technician,    key: true },
+            { label: 'เจ้าของงานยืนยันปิดงาน',     date: owner,          who: r.requesterName, key: true }
+        ];
+        $('d-timeline').innerHTML = steps.map((s, i) => {
+            const txt  = fmtDateTime(s.date);
+            const done = !!txt;
+            const last = i === steps.length - 1;
+            const dot  = done ? 'bg-emerald-500 border-emerald-500' : 'bg-white border-slate-300';
+            const line = last ? '' : `<span class="absolute left-[7px] top-5 bottom-0 w-px ${done ? 'bg-emerald-300' : 'bg-slate-200'}"></span>`;
+            const lbl  = s.key ? 'font-bold text-slate-900' : 'font-medium text-slate-700';
+            return `<li class="relative pl-7 ${last ? '' : 'pb-3'}">
+                ${line}
+                <span class="absolute left-0 top-1 h-[15px] w-[15px] rounded-full border-2 ${dot} flex items-center justify-center text-[9px] text-white">${done ? '✓' : ''}</span>
+                <div class="flex justify-between items-start gap-2">
+                    <span class="${lbl}">${s.label}</span>
+                    <span class="text-right text-xs ${done ? 'text-slate-800 font-semibold' : 'text-slate-400'}">${txt || 'ยังไม่มี'}</span>
+                </div>
+                ${done && s.who ? `<div class="text-xs text-slate-500">${escHtml(s.who)}</div>` : ''}
+            </li>`;
+        }).join('');
+    }
+
     function openDetailModal(jobId) {
         const r = appData.reqs.find(x => x.jobID === jobId);
         if (!r) return;
@@ -1806,10 +1893,12 @@
         const sEl = $('d-status');
         sEl.className = 'font-bold text-lg ';
         sEl.innerText = r.status;
-        if (r.status === 'Waiting')    sEl.classList.add('text-yellow-400', 'status-waiting');
-        if (r.status === 'Processing') sEl.classList.add('text-blue-400');
-        if (r.status === 'Done')       sEl.classList.add('text-green-400');
-        if (r.status === 'Closed')     { sEl.classList.add('text-green-500'); sEl.innerText = '✅ Closed (Completed)'; }
+        if (r.status === 'Waiting')    sEl.classList.add('text-amber-600', 'status-waiting');
+        if (r.status === 'Processing') sEl.classList.add('text-blue-600');
+        if (r.status === 'Done')       sEl.classList.add('text-emerald-600');
+        if (r.status === 'Closed')     { sEl.classList.add('text-emerald-700'); sEl.innerText = '✅ Closed (Completed)'; }
+
+        renderTimeline(r);
 
         const admSec = $('d-admin-sec');
         if (r.status !== 'Waiting') {
@@ -1826,15 +1915,15 @@
         const setImg = (id, url, placeholder) => {
             const div = $(id);
             div.innerHTML = url
-                ? `<img src="${url}" class="h-full w-full object-cover rounded cursor-pointer hover:scale-105 transition" onclick="openImageViewer('${url}')">`
-                : `<span class="text-slate-600 text-xs">${placeholder}</span>`;
+                ? `<img src="${url}" class="h-full w-full object-cover cursor-pointer hover:scale-105 transition" onclick="openImageViewer('${url}')">`
+                : `<span class="text-slate-400 text-xs">${placeholder}</span>`;
         };
         setImg('d-img-before', r.imageBefore, 'ไม่มีรูป');
         setImg('d-img-after',  r.imageAfter,  'ไม่มีรูป');
 
         const vDiv = $('d-verify-area');
         vDiv.innerHTML = r.status === 'Done'
-            ? `<button onclick="closeDetailModal();verifyUserJob('${r.jobID}','${r.userPin||''}')" class="w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 text-white font-bold py-3 rounded shadow-lg border border-green-400 mt-2 animate-pulse">🔒 ยืนยันจบงาน (Verify & Close)</button>`
+            ? `<button onclick="closeDetailModal();verifyUserJob('${r.jobID}','${r.userPin||''}')" class="btn-success w-full py-3 text-base animate-pulse">🔒 ยืนยันจบงาน (Verify & Close)</button>`
             : '';
 
         $('detailModal').style.display = 'flex';
@@ -1848,8 +1937,7 @@
         const { value: enteredPass } = await Swal.fire({ 
             title: 'Admin Login', 
             input: 'password', 
-            background: '#1e293b', 
-            color: '#fff' 
+             
         });
         if (!enteredPass) return;
 
@@ -1882,15 +1970,9 @@
 
     function switchTab(id) {
         document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
-        document.querySelectorAll('.tab-btn').forEach(el => {
-            el.classList.remove('text-corp-gold', 'border-corp-gold');
-            el.classList.add('text-slate-400');
-            el.style.borderBottomColor = '';
-        });
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
         $('view-' + id).classList.remove('hidden');
-        const btn = $('tab-' + id);
-        btn.classList.remove('text-slate-400');
-        btn.classList.add('text-corp-gold', 'border-corp-gold');
+        $('tab-' + id).classList.add('active');
         if (id === 'dashboard')  { refreshData(true); }
         if (id === 'statistics') { renderStatistics(); }
     }
@@ -1909,10 +1991,10 @@
         const div = document.createElement('div');
         div.className = 'grid grid-cols-6 gap-2 item-row';
         if (stock) { div.dataset.assetId = stock.assetId; div.dataset.partId = String(stock.partId); div.title = `เบิกจากสต๊อกของ ${stock.assetId}`; }
-        div.innerHTML = `<input class="col-span-3 bg-slate-900 border ${stock ? 'border-sky-500 text-sky-200' : 'border-slate-600'} rounded px-1 i-n" value="${escHtml(n)}" ${stock ? 'readonly' : ''}>
-            <input type="number" class="col-span-1 bg-slate-900 border border-slate-600 rounded px-1 i-q" value="${q}" oninput="calcTotal()">
-            <input type="number" class="col-span-1 bg-slate-900 border border-slate-600 rounded px-1 i-p" value="${p}" oninput="calcTotal()">
-            <button onclick="this.parentElement.remove();calcTotal()" class="text-red-400">×</button>`;
+        div.innerHTML = `<input class="col-span-3 field-sm ${stock ? 'border-sky-400 bg-sky-50 text-sky-900' : ''} i-n" value="${escHtml(n)}" ${stock ? 'readonly' : ''}>
+            <input type="number" class="col-span-1 field-sm i-q" value="${q}" oninput="calcTotal()">
+            <input type="number" class="col-span-1 field-sm i-p" value="${p}" oninput="calcTotal()">
+            <button onclick="this.parentElement.remove();calcTotal()" class="text-red-500 hover:text-red-700 font-bold">×</button>`;
         $('itemsContainer').appendChild(div);
         calcTotal();
     }
@@ -1947,8 +2029,8 @@
         responsive: true,
         plugins: { legend: { display: false } },
         scales: {
-            y: { beginAtZero: true, ticks: { color: '#94a3b8' }, grid: { color: '#334155' } },
-            x: { ticks: { color: '#e2e8f0', font: { family: 'Sarabun' } }, grid: { display: false } }
+            y: { beginAtZero: true, ticks: { color: '#64748b' }, grid: { color: '#e2e8f0' } },
+            x: { ticks: { color: '#334155', font: { family: 'Sarabun' } }, grid: { display: false } }
         }
     };
 
@@ -1986,7 +2068,7 @@
 
         chartCostInstance = new Chart($('chartCost').getContext('2d'), {
             type: 'bar',
-            data: { labels: byCost, datasets: [{ label: 'ค่าใช้จ่าย (บาท)', data: byCost.map(l => deptStats[l].cost), backgroundColor: 'rgba(245,158,11,0.8)', borderColor: 'rgb(217,119,6)', borderWidth: 1, borderRadius: 4 }] },
+            data: { labels: byCost, datasets: [{ label: 'ค่าใช้จ่าย (บาท)', data: byCost.map(l => deptStats[l].cost), backgroundColor: 'rgba(16,185,129,0.8)', borderColor: 'rgb(5,150,105)', borderWidth: 1, borderRadius: 4 }] },
             options: CHART_OPTS
         });
     }
