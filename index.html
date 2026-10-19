@@ -259,11 +259,13 @@
 
         <!-- Dashboard -->
         <div id="view-dashboard" class="view-section hidden container mx-auto fade-in">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div class="card p-4"><div class="text-slate-500 text-xs font-bold tracking-wide">TOTAL JOBS</div><div class="text-3xl font-bold text-slate-900 mt-1" id="kpi-total">0</div></div>
+            <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+                <div class="card p-4"><div class="text-slate-500 text-xs font-bold tracking-wide">TOTAL JOBS</div><div class="text-3xl font-bold text-slate-900 mt-1" id="kpi-total">0</div><div class="text-[11px] text-slate-500">ไม่นับใบที่ยกเลิก</div></div>
                 <div class="card p-4 border-l-4 border-l-amber-400"><div class="text-slate-500 text-xs font-bold tracking-wide">WAITING</div><div class="text-3xl font-bold text-amber-600 mt-1" id="kpi-waiting">0</div></div>
                 <div class="card p-4 border-l-4 border-l-blue-500"><div class="text-slate-500 text-xs font-bold tracking-wide">PROCESSING</div><div class="text-3xl font-bold text-blue-600 mt-1" id="kpi-processing">0</div></div>
                 <div class="card p-4 border-l-4 border-l-emerald-500"><div class="text-slate-500 text-xs font-bold tracking-wide">DONE</div><div class="text-3xl font-bold text-emerald-600 mt-1" id="kpi-done">0</div></div>
+                <div class="card p-4 border-l-4 border-l-orange-500"><div class="text-slate-500 text-xs font-bold tracking-wide">UNREPAIRABLE</div><div class="text-3xl font-bold text-orange-700 mt-1" id="kpi-unrepairable">0</div><div class="text-[11px] text-slate-500">ซ่อมไม่ได้</div></div>
+                <div class="card p-4 border-l-4 border-l-slate-400"><div class="text-slate-500 text-xs font-bold tracking-wide">CANCELLED</div><div class="text-3xl font-bold text-slate-600 mt-1" id="kpi-cancelled">0</div><div class="text-[11px] text-slate-500" id="kpi-cancel-pending">ยกเลิก</div></div>
             </div>
             <div class="card overflow-hidden">
                 <div class="p-4 border-b border-slate-200 flex flex-col lg:flex-row justify-between lg:items-center gap-3">
@@ -284,7 +286,10 @@
                             <option value="Waiting">- รอรับงาน (Waiting)</option>
                             <option value="Processing">- กำลังดำเนินการ (Processing)</option>
                             <option value="Done">- รอตรวจสอบ/รอปิด (Done)</option>
+                            <option value="CancelRequest">- รอยืนยันยกเลิก</option>
                             <option value="Closed">ปิดงานแล้ว (Closed)</option>
+                            <option value="Unrepairable">ซ่อมไม่ได้ (Unrepairable)</option>
+                            <option value="Cancelled">ยกเลิก (Cancelled)</option>
                         </select>
                         <input id="adminSearchInput" onkeyup="debouncedAdminSearch()" placeholder="ค้นหางาน..." class="field-sm py-1.5 min-w-[10rem] lg:w-48">
                     </div>
@@ -322,9 +327,10 @@
                     </select>
                 </div>
             </div>
+            <div id="statSummary" class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6"></div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="card p-5"><h3 class="text-center font-bold text-slate-800 mb-4">จำนวนงานซ่อมแยกตามแผนก (งาน)</h3><canvas id="chartCount"></canvas></div>
-                <div class="card p-5"><h3 class="text-center font-bold text-slate-800 mb-4">ค่าใช้จ่ายรวมแยกตามแผนก (บาท)</h3><canvas id="chartCost"></canvas></div>
+                <div class="card p-5"><h3 class="text-center font-bold text-slate-800 mb-1">จำนวนงานซ่อมแยกตามแผนก (งาน)</h3><p class="text-center text-xs text-slate-500 mb-3">ไม่นับใบที่ยกเลิก</p><canvas id="chartCount"></canvas></div>
+                <div class="card p-5"><h3 class="text-center font-bold text-slate-800 mb-1">ค่าใช้จ่ายรวมแยกตามแผนก (บาท)</h3><p class="text-center text-xs text-slate-500 mb-3">ไม่นับใบที่ยกเลิก</p><canvas id="chartCost"></canvas></div>
             </div>
         </div>
 
@@ -366,9 +372,22 @@
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
-                    <div><label class="lbl-sm">Status</label><select id="modalStatus" onchange="toggleAdminFields()" class="field"><option>Waiting</option><option>Processing</option><option>Done</option><option>Closed</option></select></div>
+                    <div><label class="lbl-sm">Status</label><select id="modalStatus" onchange="toggleAdminFields()" class="field"><option>Waiting</option><option>Processing</option><option>Done</option><option>Closed</option><option value="Unrepairable">Unrepairable (ซ่อมไม่ได้)</option><option value="Cancelled" disabled>Cancelled (ยกเลิก)</option></select></div>
                     <div><label class="lbl-sm">Technician</label><select id="modalTech" class="field"></select></div>
                 </div>
+                <div id="unrepairSection" class="hidden border border-orange-300 rounded-xl p-3 bg-orange-50 space-y-2">
+                    <label class="text-xs text-orange-800 font-bold block">เหตุผลที่ซ่อมไม่ได้ (ผู้แจ้งต้องกรอก PIN ยืนยันรับทราบอีกครั้ง)</label>
+                    <select id="modalUnrepairReason" class="field-sm">
+                        <option value="">-- เลือกเหตุผล --</option>
+                        <option>ซื้อใหม่ทดแทน</option>
+                        <option>ไม่คุ้มค่าซ่อม</option>
+                        <option>ไม่มีอะไหล่ / อะไหล่เลิกผลิต</option>
+                        <option>ส่งซ่อมภายนอก</option>
+                        <option>อื่นๆ</option>
+                    </select>
+                    <textarea id="modalUnrepairDetail" rows="2" class="field-sm" placeholder="รายละเอียดเพิ่มเติม เช่น ใบขอซื้อเลขที่ / รุ่นที่จะซื้อใหม่"></textarea>
+                </div>
+                <div id="cancelInfoSection" class="hidden border border-slate-300 rounded-xl p-3 bg-slate-100 text-sm text-slate-700"></div>
                 <div class="border border-sky-200 rounded-xl p-3 bg-sky-50">
                     <label class="text-xs text-sky-800 font-bold mb-1 block">รหัสอุปกรณ์ (เชื่อมกับทะเบียนอุปกรณ์ Asset Tracker)</label>
                     <input id="modalEquipId" oninput="debouncedModalAsset()" class="field-sm font-mono" placeholder="ใส่รหัสอุปกรณ์ เช่น PRD-001">
@@ -423,6 +442,7 @@
                     <div class="flex flex-col"><span class="text-xs text-slate-500">สถานะ (Status)</span><span id="d-status" class="font-bold text-lg"></span></div>
                     <div class="text-right"><span class="text-xs text-slate-500 block">วันที่แจ้ง</span><span id="d-date" class="text-slate-800 font-medium"></span></div>
                 </div>
+                <div id="d-outcome" class="hidden"></div>
                 <div>
                     <h4 class="sec-title border-b border-slate-100 pb-1">ไทม์ไลน์งาน</h4>
                     <ol id="d-timeline" class="relative ml-1"></ol>
@@ -505,7 +525,11 @@
     const assetApp = firebase.apps.find(a => a.name === 'asset-tracker') || firebase.initializeApp(assetFirebaseConfig, 'asset-tracker');
     const assetDb  = assetApp.firestore();
 
-    const STATUS_TH = { Waiting: 'รอดำเนินการ', Processing: 'กำลังดำเนินการ', Done: 'ซ่อมเสร็จ', Closed: 'ปิดงานแล้ว', Cancelled: 'ยกเลิก' };
+    const STATUS_TH = { Waiting: 'รอดำเนินการ', Processing: 'กำลังดำเนินการ', Done: 'ซ่อมเสร็จ', Closed: 'ปิดงานแล้ว', Cancelled: 'ยกเลิก', Unrepairable: 'ซ่อมไม่ได้' };
+    // ยกเลิกได้เฉพาะงานที่ยังไม่ซ่อมเสร็จ; cancelRequest = ผู้แจ้งยืนยัน PIN แล้ว รอแอดมินยืนยัน
+    const canCancel        = r => r.status === 'Waiting' || r.status === 'Processing';
+    const hasCancelRequest = r => !!r.cancelRequest && canCancel(r);
+    const unrepairText     = r => [r.unrepairableReason, r.unrepairableDetail].filter(Boolean).join(' - ');
     // ต้องตรงกับ docId() ใน firebase-api.js ของ Asset Tracker
     const assetDocId = v => String(v).trim().replace(/\//g, '_');
 
@@ -524,6 +548,8 @@
     // คืนค่า { linked: true, name } ถ้าบันทึกสำเร็จ, { linked: false } ถ้าไม่พบอุปกรณ์
     async function syncRepairToAsset(job) {
         if (!job || !job.equipId) return { linked: false };
+        // ใบที่ยกเลิกไม่ใช่การซ่อมจริง -> เอาออกจากประวัติซ่อมของอุปกรณ์
+        if (job.status === 'Cancelled') { await removeRepairFromAsset(job); return { linked: false }; }
         const snap = await findAsset(job.equipId);
         if (!snap) return { linked: false };
 
@@ -534,10 +560,11 @@
             price: Number(it.total) || 0, image: '', pdf: ''
         }));
         const finished = job.status === 'Done' || job.status === 'Closed';
-        const dateIso = (finished && job.completedDate) || job.requestDate || new Date().toISOString();
+        const dateIso = (finished && job.completedDate) || (job.status === 'Unrepairable' && job.unrepairableDate) || job.requestDate || new Date().toISOString();
         const desc = [
             `[${job.jobID}] ${job.problemDetails || ''}`.trim(),
             `สถานะ: ${STATUS_TH[job.status] || job.status || '-'}`,
+            job.status === 'Unrepairable' && unrepairText(job) ? `เหตุผล: ${unrepairText(job)}` : '',
             job.technician ? `ช่าง: ${job.technician}` : '',
             job.adminRemarks ? `หมายเหตุ: ${job.adminRemarks}` : ''
         ].filter(Boolean).join(' | ');
@@ -852,7 +879,7 @@
         sheet.getCell('C5').value = r.requesterName || '-';
         sheet.getCell('D5').value = 'สถานะงาน:'; sheet.getCell('D5').font = boldFont;
         sheet.mergeCells('E5:F5');
-        sheet.getCell('E5').value = r.status || '-';
+        sheet.getCell('E5').value = statusLabel(r);
         
         sheet.getCell('B6').value = 'แผนก:'; sheet.getCell('B6').font = boldFont;
         sheet.getCell('C6').value = r.positionDept || '-';
@@ -914,6 +941,17 @@
         sheet.mergeCells('C21:F21');
         sheet.getCell('C21').value = r.additionalNotes || '-';
 
+        // เหตุผลยกเลิก / ซ่อมไม่ได้
+        const outcome = outcomeLines(r);
+        if (outcome) {
+            sheet.getCell('B22').value = outcome.label; sheet.getCell('B22').font = boldFont;
+            sheet.mergeCells('C22:F23');
+            const oc = sheet.getCell('C22');
+            oc.value = outcome.lines.join('\n');
+            oc.alignment = { vertical: 'top', wrapText: true };
+            ['B22','C22','D22','E22','F22','B23','C23','D23','E23','F23'].forEach(c => setBorder(sheet.getCell(c)));
+        }
+
         ['B16','C16','D16','E16','F16','B17','C17','D17','E17','F17',
          'B18','C18','D18','E18','F18','B19','C19','D19','E19','F19',
          'B20','C20','D20','E20','F20','B21','C21','D21','E21','F21'].forEach(c => setBorder(sheet.getCell(c)));
@@ -931,7 +969,9 @@
         sheet.mergeCells('B27:C29');
         const sigReq = sheet.getCell('B27');
         const closeDates = getCloseDates(r);
-        sigReq.value = `✅ VERIFIED via PIN\n( ${r.requesterName} )\nDate: ${closeDates.owner ? new Date(closeDates.owner).toLocaleString('th-TH') : '-'}`;
+        const ownerDate = r.status === 'Cancelled' ? r.cancelRequestedDate : r.status === 'Unrepairable' ? r.unrepairableConfirmedDate : closeDates.owner;
+        const ownerHead = r.status === 'Cancelled' ? 'CANCEL CONFIRMED via PIN' : r.status === 'Unrepairable' ? (ownerDate ? 'ACKNOWLEDGED via PIN' : 'รอผู้แจ้งยืนยัน') : 'VERIFIED via PIN';
+        sigReq.value = `${ownerHead}\n( ${r.requesterName} )\nDate: ${ownerDate ? new Date(ownerDate).toLocaleString('th-TH') : '-'}`;
         sigReq.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
         setBorder(sheet.getCell('B27')); setBorder(sheet.getCell('C27'));
         setBorder(sheet.getCell('B28')); setBorder(sheet.getCell('C28'));
@@ -939,7 +979,11 @@
 
         sheet.mergeCells('E27:F29');
         const sigTech = sheet.getCell('E27');
-        sigTech.value = `🛠️ JOB COMPLETED\n( ${r.technician || '-'} )\nDate: ${closeDates.tech ? new Date(closeDates.tech).toLocaleString('th-TH') + (closeDates.techEstimated ? ' *' : '') : '-'}`;
+        sigTech.value = r.status === 'Cancelled'
+            ? `CANCELLED\n( Admin )\nDate: ${r.cancelledDate ? new Date(r.cancelledDate).toLocaleString('th-TH') : '-'}`
+            : r.status === 'Unrepairable'
+            ? `UNREPAIRABLE\n( ${r.technician || '-'} )\nDate: ${r.unrepairableDate ? new Date(r.unrepairableDate).toLocaleString('th-TH') : '-'}`
+            : `🛠️ JOB COMPLETED\n( ${r.technician || '-'} )\nDate: ${closeDates.tech ? new Date(closeDates.tech).toLocaleString('th-TH') + (closeDates.techEstimated ? ' *' : '') : '-'}`;
         if (closeDates.techEstimated) sigTech.note = '* เวลาอ้างอิงจากประวัติการแก้ไขในระบบ (เติมย้อนหลัง)';
         sigTech.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
         setBorder(sheet.getCell('E27')); setBorder(sheet.getCell('F27'));
@@ -1107,11 +1151,15 @@
             "ชื่ออุปกรณ์/สถานที่": r.equipmentLocation || "-",
             "อาการเสีย": r.problemDetails || "-",
             "ความเร่งด่วน": r.urgency === 'High' ? 'ด่วนมาก' : (r.urgency === 'Medium' ? 'ด่วน' : 'ปกติ'),
-            "สถานะงาน": r.status === 'Waiting' ? 'รอรับงาน' : (r.status === 'Processing' ? 'กำลังดำเนินการ' : (r.status === 'Done' ? 'รอตรวจสอบ' : 'ปิดงานแล้ว')),
+            "สถานะงาน": statusLabel(r),
             "ช่างผู้รับผิดชอบ": r.technician || "-",
             "บันทึกช่าง (หมายเหตุ)": r.adminRemarks || "-",
             "ค่าใช้จ่าย (บาท)": r.cost || 0,
-            "วันที่ปิดงาน": r.completedDate ? new Date(r.completedDate).toLocaleString('th-TH') : "-"
+            "วันที่ปิดงาน": r.completedDate ? new Date(r.completedDate).toLocaleString('th-TH') : "-",
+            "เหตุผลยกเลิก / ซ่อมไม่ได้": r.status === 'Cancelled' ? (r.cancelReason || "-") : r.status === 'Unrepairable' ? (unrepairText(r) || "-") : "-",
+            "อ้างอิงใบแจ้งซ่อม": r.status === 'Cancelled' && r.cancelRefJobId ? `ใบใหม่: ${r.cancelRefJobId}` : (replacedJobs(r.jobID).length ? `แทนใบที่ยกเลิก: ${replacedJobs(r.jobID).join(', ')}` : "-"),
+            "วันที่ยกเลิก / แจ้งซ่อมไม่ได้": r.status === 'Cancelled' ? fmtDateTime(r.cancelledDate) || "-" : r.status === 'Unrepairable' ? fmtDateTime(r.unrepairableDate) || "-" : "-",
+            "ผู้แจ้งยืนยัน (ซ่อมไม่ได้)": r.status === 'Unrepairable' ? (fmtDateTime(r.unrepairableConfirmedDate) || "รอยืนยัน") : "-"
         }));
 
         const worksheet = XLSX.utils.json_to_sheet(reportData);
@@ -1509,6 +1557,145 @@
     }
 
     // ----------------------------------------------------------------
+    // 7.1 ยกเลิกใบแจ้งซ่อม
+    //     ผู้แจ้งยืนยันด้วย PIN (ส่งคำขอ) -> แอดมินยืนยันด้วยรหัส Admin -> สถานะ Cancelled
+    //     เลือกเชื่อมกับใบแจ้งซ่อมใบใหม่ได้ (cancelRefJobId) หรือยกเลิกเฉยๆ พร้อมเหตุผล
+    // ----------------------------------------------------------------
+    function cancelFormHtml(r, pre = {}, { userPin = false, adminPin = false, stock = false } = {}) {
+        const others = appData.reqs.filter(x => x.jobID !== r.jobID && x.status !== 'Cancelled');
+        const same   = others.filter(x => (x.requesterName || '').trim() === (r.requesterName || '').trim());
+        const rest   = others.filter(x => !same.includes(x));
+        const opt = x => `<option value="${escHtml(x.jobID)}"${x.jobID === pre.refJobId ? ' selected' : ''}>${escHtml(x.jobID)} · ${escHtml(String(x.equipmentLocation || '').slice(0, 40))} · ${escHtml(x.requesterName || '')}</option>`;
+        const hasRef = pre.refJobId !== undefined ? !!pre.refJobId : true;
+        return `<div class="text-left text-sm space-y-3">
+            <div class="bg-slate-50 border border-slate-200 rounded p-2 text-xs text-slate-600">ใบที่จะยกเลิก: <b class="font-mono text-blue-700">${escHtml(r.jobID)}</b> · ${escHtml(r.equipmentLocation || '')}</div>
+            <label class="flex items-start gap-2 cursor-pointer"><input type="radio" name="cx-type" value="ref" class="mt-1 accent-blue-600" ${hasRef ? 'checked' : ''} onchange="document.getElementById('cx-ref').disabled=false">
+                <span><b>แจ้งผิด / แจ้งใหม่แล้ว</b><br><span class="text-xs text-slate-500">เชื่อมใบนี้กับใบแจ้งซ่อมใบใหม่</span></span></label>
+            <select id="cx-ref" class="field-sm" ${hasRef ? '' : 'disabled'}>
+                <option value="">-- เลือกหมายเลขใบใหม่ --</option>
+                ${same.length ? `<optgroup label="ใบของผู้แจ้งคนเดียวกัน">${same.map(opt).join('')}</optgroup>` : ''}
+                ${rest.length ? `<optgroup label="ใบอื่นๆ">${rest.map(opt).join('')}</optgroup>` : ''}
+            </select>
+            <label class="flex items-start gap-2 cursor-pointer"><input type="radio" name="cx-type" value="none" class="mt-1 accent-blue-600" ${hasRef ? '' : 'checked'} onchange="document.getElementById('cx-ref').disabled=true">
+                <span><b>ยกเลิกเฉยๆ</b><br><span class="text-xs text-slate-500">ไม่มีใบใหม่ ต้องใส่เหตุผล</span></span></label>
+            <div><label class="lbl-sm">เหตุผลการยกเลิก</label><textarea id="cx-reason" rows="2" class="field-sm" placeholder="เช่น แจ้งซ้ำ, กรอกข้อมูลผิด, อุปกรณ์กลับมาใช้ได้แล้ว">${escHtml(pre.reason || '')}</textarea></div>
+            ${userPin  ? `<div><label class="lbl-sm">รหัส PIN ผู้แจ้งซ่อม</label><input id="cx-pin" type="password" inputmode="numeric" class="field-sm" autocomplete="off"></div>` : ''}
+            ${adminPin ? `<div><label class="lbl-sm">รหัสผ่าน Admin</label><input id="cx-admin" type="password" class="field-sm" autocomplete="off"></div>` : ''}
+            ${stock    ? `<label class="flex items-center gap-2 text-xs text-slate-700"><input id="cx-stock" type="checkbox" checked class="accent-blue-600"> คืนอะไหล่ที่เบิกไปกลับเข้าสต๊อก</label>` : ''}
+        </div>`;
+    }
+
+    // อ่านค่าจากฟอร์มยกเลิก (ใช้ใน preConfirm) คืน false ถ้าไม่ผ่าน
+    function readCancelForm(r, { userPin = false, adminPin = false } = {}) {
+        const type   = document.querySelector('input[name="cx-type"]:checked')?.value;
+        const refId  = type === 'ref' ? $('cx-ref').value : '';
+        const reason = $('cx-reason').value.trim();
+        if (type === 'ref' && !refId) return Swal.showValidationMessage('กรุณาเลือกหมายเลขใบแจ้งซ่อมใบใหม่'), false;
+        if (type !== 'ref' && !reason) return Swal.showValidationMessage('กรุณาใส่เหตุผลการยกเลิก'), false;
+        if (userPin && String($('cx-pin').value) !== String(r.userPin)) return Swal.showValidationMessage('รหัส PIN ผู้แจ้งไม่ถูกต้อง'), false;
+        if (adminPin && $('cx-admin').value !== appData.adminPass) return Swal.showValidationMessage('รหัสผ่าน Admin ไม่ถูกต้อง'), false;
+        return { refJobId: refId, reason: reason || `แจ้งใหม่เป็นใบ ${refId}`, returnStock: !!$('cx-stock')?.checked };
+    }
+
+    // ผู้แจ้งขอยกเลิก (หน้า ติดตามงาน)
+    async function requestCancelJob(jobId) {
+        const r = appData.reqs.find(x => x.jobID === jobId);
+        if (!r || !canCancel(r)) return;
+        const { value: v } = await Swal.fire({
+            title: 'ขอยกเลิกใบแจ้งซ่อม',
+            html: cancelFormHtml(r, {}, { userPin: true }) + '<p class="text-xs text-slate-500 text-left mt-3">หลังส่งคำขอ แอดมินจะยืนยันการยกเลิกอีกครั้ง</p>',
+            showCancelButton: true, confirmButtonText: 'ส่งคำขอยกเลิก', cancelButtonText: 'ปิด', confirmButtonColor: '#b91c1c',
+            focusConfirm: false, preConfirm: () => readCancelForm(r, { userPin: true })
+        });
+        if (!v) return;
+        Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
+        try {
+            await db.collection('requests').doc(jobId).update({
+                cancelRequest: { requestedDate: new Date().toISOString(), reason: v.reason, refJobId: v.refJobId }
+            });
+            await refreshData(true);
+            Swal.fire('ส่งคำขอแล้ว', `ใบ ${jobId} รอแอดมินยืนยันการยกเลิก`, 'success');
+        } catch (e) { Swal.fire('Error', String(e), 'error'); }
+    }
+
+    // แอดมินยืนยันการยกเลิก (ถ้าผู้แจ้งยังไม่ได้ส่งคำขอ ต้องใส่ PIN ผู้แจ้งด้วย)
+    async function adminCancelJob(jobId) {
+        const r = appData.reqs.find(x => x.jobID === jobId);
+        if (!r || !canCancel(r)) return;
+        const req = hasCancelRequest(r) ? r.cancelRequest : null;
+        const opts = { userPin: !req, adminPin: true, stock: !!r.stockUsage?.length };
+        const intro = req
+            ? `<div class="text-left text-xs bg-amber-50 border border-amber-200 text-amber-900 rounded p-2 mb-3">ผู้แจ้งยืนยัน PIN ขอยกเลิกแล้วเมื่อ ${escHtml(fmtDateTime(req.requestedDate) || '-')}</div>`
+            : `<div class="text-left text-xs bg-slate-50 border border-slate-200 text-slate-600 rounded p-2 mb-3">ต้องใส่ PIN ผู้แจ้งซ่อม และรหัสผ่าน Admin</div>`;
+        const res = await Swal.fire({
+            title: req ? 'ยืนยันการยกเลิกใบแจ้งซ่อม' : 'ยกเลิกใบแจ้งซ่อม',
+            html: intro + cancelFormHtml(r, req ? { refJobId: req.refJobId || '', reason: req.reason } : {}, opts),
+            showCancelButton: true, cancelButtonText: 'ปิด', confirmButtonText: 'ยืนยันยกเลิก', confirmButtonColor: '#b91c1c',
+            showDenyButton: !!req, denyButtonText: 'ปฏิเสธคำขอ', denyButtonColor: '#475569',
+            focusConfirm: false, preConfirm: () => readCancelForm(r, opts)
+        });
+        if (res.isDenied) {
+            try {
+                await db.collection('requests').doc(jobId).update({ cancelRequest: null });
+                await refreshData(true);
+                Swal.fire('ปฏิเสธแล้ว', `ใบ ${jobId} ดำเนินการต่อตามปกติ`, 'info');
+            } catch (e) { Swal.fire('Error', String(e), 'error'); }
+            return;
+        }
+        const v = res.value;
+        if (!v) return;
+        Swal.fire({ title: 'กำลังยกเลิก...', didOpen: () => Swal.showLoading() });
+        try {
+            const now = new Date().toISOString();
+            const update = {
+                status: 'Cancelled',
+                statusBeforeCancel: r.status,
+                cancelReason: v.reason,
+                cancelRefJobId: v.refJobId || '',
+                cancelRequestedDate: req?.requestedDate || now,
+                cancelledDate: now,
+                cancelRequest: null
+            };
+            if (v.returnStock) {
+                await applyStockDelta(r.stockUsage, []);   // คืนสต๊อกก่อน ถ้าคืนไม่ได้จะไม่ยกเลิก
+                let items = [];
+                try { items = JSON.parse(r.itemsData || '[]'); } catch (e) {}
+                items = items.filter(i => !i.partId);
+                update.itemsData = JSON.stringify(items);
+                update.cost = items.reduce((t, i) => t + (Number(i.total) || 0), 0);
+                update.stockUsage = [];
+            }
+            await db.collection('requests').doc(jobId).update(update);
+            await syncJobById(jobId);
+            await refreshData(true);
+            Swal.fire('ยกเลิกแล้ว', v.refJobId ? `ใบ ${jobId} ถูกยกเลิก และเชื่อมกับใบ ${v.refJobId}` : `ใบ ${jobId} ถูกยกเลิก`, 'success');
+        } catch (e) { Swal.fire('Error', String(e), 'error'); }
+    }
+
+    // ----------------------------------------------------------------
+    // 7.2 ซ่อมไม่ได้: แอดมินตั้งสถานะ + เหตุผลในหน้าต่างจัดการงาน -> ผู้แจ้งยืนยันรับทราบด้วย PIN
+    // ----------------------------------------------------------------
+    async function confirmUnrepairable(jobId) {
+        const r = appData.reqs.find(x => x.jobID === jobId);
+        if (!r || r.status !== 'Unrepairable') return;
+        const { value: pin } = await Swal.fire({
+            title: 'ยืนยันรับทราบ: ซ่อมไม่ได้',
+            html: `<div class="text-left text-sm bg-orange-50 border border-orange-200 rounded p-3 mb-2"><div class="text-xs text-orange-800 font-bold mb-1">เหตุผลจากช่าง</div>${escHtml(unrepairText(r) || '-')}</div>
+                   <p class="text-xs text-slate-500 text-left">ใส่รหัส PIN ที่ตั้งไว้ตอนแจ้งซ่อมเพื่อยืนยัน</p>`,
+            input: 'password', inputPlaceholder: 'PIN', showCancelButton: true, confirmButtonText: 'ยืนยัน', confirmButtonColor: '#c2410c',
+            preConfirm: v => String(v) === String(r.userPin) ? v : (Swal.showValidationMessage('รหัส PIN ไม่ถูกต้อง'), false)
+        });
+        if (!pin) return;
+        Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
+        try {
+            await db.collection('requests').doc(jobId).update({ unrepairableConfirmedDate: new Date().toISOString() });
+            await syncJobById(jobId);
+            await refreshData(true);
+            Swal.fire('สำเร็จ', 'ยืนยันรับทราบเรียบร้อยแล้ว', 'success');
+        } catch (e) { Swal.fire('Error', String(e), 'error'); }
+    }
+
+    // ----------------------------------------------------------------
     // 8. FETCH DATA (Firebase)
     // ----------------------------------------------------------------
     async function refreshData(silent = false) {
@@ -1544,6 +1731,11 @@
         setVal('modalTech',   r.technician);
         setVal('modalRemark', r.adminRemarks);
         setVal('modalNotes',  r.additionalNotes);
+        setVal('modalUnrepairReason', r.unrepairableReason);
+        setVal('modalUnrepairDetail', r.unrepairableDetail);
+        $('cancelInfoSection').innerHTML = r.status === 'Cancelled'
+            ? `<b>ใบนี้ถูกยกเลิก</b> เมื่อ ${escHtml(fmtDateTime(r.cancelledDate) || '-')}<br>เหตุผล: ${escHtml(r.cancelReason || '-')}${r.cancelRefJobId ? `<br>แจ้งใหม่เป็นใบ: <b class="font-mono">${escHtml(r.cancelRefJobId)}</b>` : ''}`
+            : '';
 
         $('adminImg').value = '';
         $('adminPreview').style.display = 'none';
@@ -1570,7 +1762,10 @@
         const st = $('modalStatus').value;
         let items = [], cost = 0;
 
-        const withCost = st !== 'Waiting';   // รับงานแล้ว (Processing/Done/Closed) บันทึกค่าใช้จ่ายได้
+        const withCost = st !== 'Waiting';   // รับงานแล้ว (Processing/Done/Closed/Unrepairable) บันทึกค่าใช้จ่ายได้
+        const unrepReason = $('modalUnrepairReason').value, unrepDetail = $('modalUnrepairDetail').value.trim();
+        if (st === 'Unrepairable' && !unrepReason) return Swal.fire('กรุณาระบุเหตุผล', 'เลือกเหตุผลที่ซ่อมไม่ได้', 'warning');
+        if (st === 'Unrepairable' && unrepReason === 'อื่นๆ' && !unrepDetail) return Swal.fire('กรุณาระบุเหตุผล', 'ใส่รายละเอียดเหตุผลที่ซ่อมไม่ได้', 'warning');
         if (withCost) {
             document.querySelectorAll('.item-row').forEach(row => {
                 const n = row.querySelector('.i-n').value;
@@ -1613,7 +1808,23 @@
                 updateData.itemsData = JSON.stringify(items);
             }
 
-            if (st === 'Done' || st === 'Closed') {
+            if (st === 'Unrepairable') {
+                const prev = appData.reqs.find(x => x.jobID === jobId) || {};
+                updateData.unrepairableReason = unrepReason;
+                updateData.unrepairableDetail = unrepDetail;
+                // ครั้งแรกที่ตั้งเป็นซ่อมไม่ได้: บันทึกเวลา และรอผู้แจ้งยืนยันด้วย PIN
+                if (prev.status !== 'Unrepairable') {
+                    updateData.unrepairableDate = new Date().toISOString();
+                    updateData.unrepairableConfirmedDate = null;
+                }
+                if (!prev.acceptedDate) updateData.acceptedDate = new Date().toISOString();
+                if ($('adminImg').files.length > 0) {
+                    const b64After = await fileToBase64($('adminImg').files[0]);
+                    const refAfter = storage.ref(`jobs/${jobId}_AFTER.jpg`);
+                    await refAfter.putString(b64After, 'data_url');
+                    updateData.imageAfter = await refAfter.getDownloadURL();
+                }
+            } else if (st === 'Done' || st === 'Closed') {
                 const prev = appData.reqs.find(x => x.jobID === jobId) || {};
                 const wasDone = prev.status === 'Done' || prev.status === 'Closed';
                 const now = new Date().toISOString();
@@ -1740,12 +1951,41 @@
         Processing: `<span class="inline-flex items-center gap-1 whitespace-nowrap px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">Processing</span>`,
         Done:       `<span class="inline-flex items-center gap-1 whitespace-nowrap px-2 py-0.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-300">Wait Verify</span>`,
         Closed:     `<span class="inline-flex items-center gap-1 whitespace-nowrap px-2 py-0.5 rounded text-xs font-semibold bg-emerald-600 text-white">Closed</span>`,
+        Unrepairable: `<span class="inline-flex items-center gap-1 whitespace-nowrap px-2 py-0.5 rounded text-xs font-semibold bg-orange-100 text-orange-800 border border-orange-300">ซ่อมไม่ได้</span>`,
+        Cancelled:  `<span class="inline-flex items-center gap-1 whitespace-nowrap px-2 py-0.5 rounded text-xs font-semibold bg-slate-200 text-slate-600 border border-slate-300 line-through decoration-slate-400">Cancelled</span>`,
         _default:   `<span class="inline-flex items-center whitespace-nowrap px-2 py-0.5 rounded text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">`
     };
 
     function getBadge(status) { return STATUS_BADGE[status] || (STATUS_BADGE._default + status + '</span>'); }
 
+    // badge + ป้ายงานที่รอการยืนยัน (ขอยกเลิก / ซ่อมไม่ได้รอผู้แจ้งยืนยัน)
+    function badgeFor(r) {
+        const tag = (txt, cls) => `<span class="inline-flex items-center whitespace-nowrap px-1.5 py-0.5 rounded text-[11px] font-semibold ${cls}">${txt}</span>`;
+        let extra = '';
+        if (hasCancelRequest(r)) extra = tag('รอยืนยันยกเลิก', 'bg-red-50 text-red-700 border border-red-200');
+        else if (r.status === 'Unrepairable' && !r.unrepairableConfirmedDate) extra = tag('รอผู้แจ้งยืนยัน', 'bg-white text-orange-700 border border-orange-300');
+        return `<span class="inline-flex flex-wrap items-center justify-end gap-1">${getBadge(r.status)}${extra}</span>`;
+    }
+
+    function statusLabel(r) {
+        const base = { Waiting: 'รอรับงาน', Processing: 'กำลังดำเนินการ', Done: 'รอตรวจสอบ', Closed: 'ปิดงานแล้ว', Cancelled: 'ยกเลิก', Unrepairable: 'ซ่อมไม่ได้' }[r.status] || r.status || '-';
+        if (hasCancelRequest(r)) return base + ' (รอยืนยันยกเลิก)';
+        if (r.status === 'Unrepairable' && !r.unrepairableConfirmedDate) return base + ' (รอผู้แจ้งยืนยัน)';
+        return base;
+    }
+
+    // ใบที่ถูกยกเลิกแล้วอ้างอิงมาที่ใบนี้ (ใบนี้คือใบใหม่ที่แจ้งแทน)
+    const replacedJobs = jobId => appData.reqs.filter(x => x.status === 'Cancelled' && x.cancelRefJobId === jobId).map(x => x.jobID);
+
+    function outcomeLines(r) {
+        if (r.status === 'Cancelled') return { label: 'เหตุผลยกเลิก:', lines: [r.cancelReason || '-', r.cancelRefJobId ? `แจ้งใหม่เป็นใบ ${r.cancelRefJobId}` : ''].filter(Boolean) };
+        if (r.status === 'Unrepairable') return { label: 'เหตุผลซ่อมไม่ได้:', lines: [unrepairText(r) || '-'] };
+        return null;
+    }
+
     function getUrgClass(r) {
+        if (r.status === 'Cancelled') return 'bg-slate-100/70';
+        if (r.status === 'Unrepairable') return 'bg-orange-50/50';
         if (r.status === 'Done' || r.status === 'Closed') return 'bg-emerald-50/40';
         if (r.urgency === 'High')   return 'urgency-high-blink';
         if (r.urgency === 'Medium') return 'urgency-medium-blink';
@@ -1778,16 +2018,18 @@
         const html = sorted.map(([month, rows], idx) => {
             const rowsHtml = rows.map(r => {
                 const hasRemark  = r.adminRemarks?.trim();
-                const detail     = hasRemark ? `หมายเหตุช่าง: ${r.adminRemarks}` : r.problemDetails;
-                const remarkCls  = hasRemark ? 'text-blue-800 italic border-blue-300' : 'text-slate-500 border-slate-200';
+                let detail       = hasRemark ? `หมายเหตุช่าง: ${r.adminRemarks}` : r.problemDetails;
+                let remarkCls    = hasRemark ? 'text-blue-800 italic border-blue-300' : 'text-slate-500 border-slate-200';
+                if (r.status === 'Cancelled') { detail = `ยกเลิก: ${escHtml(r.cancelReason || '-')}${r.cancelRefJobId ? ` · แจ้งใหม่เป็นใบ ${escHtml(r.cancelRefJobId)}` : ''}`; remarkCls = 'text-slate-600 border-slate-400'; }
+                else if (r.status === 'Unrepairable') { detail = `ซ่อมไม่ได้: ${escHtml(unrepairText(r) || '-')}`; remarkCls = 'text-orange-800 border-orange-400'; }
                 let dateStr = '-';
                 try { dateStr = new Date(r.requestDate).toLocaleString('th-TH', thLocale); } catch (_) {}
                 return `<div onclick="openDetailModal('${r.jobID}')" class="p-4 hover:bg-slate-50 cursor-pointer transition active:bg-slate-100 group ${getUrgClass(r)}">
                     <div class="flex justify-between items-center gap-2 mb-1.5">
                         <span class="text-blue-700 font-mono text-xs font-semibold tracking-wide">${r.jobID}</span>
-                        ${getBadge(r.status)}
+                        ${badgeFor(r)}
                     </div>
-                    <div class="mb-2"><span class="text-slate-900 font-bold text-[15px] block leading-relaxed break-words">${r.equipmentLocation}</span></div>
+                    <div class="mb-2"><span class="${r.status === 'Cancelled' ? 'text-slate-500 line-through' : 'text-slate-900'} font-bold text-[15px] block leading-relaxed break-words">${r.equipmentLocation}</span></div>
                     <div class="text-sm ${remarkCls} break-words leading-relaxed border-l-2 pl-2 mb-3">${detail}</div>
                     <div class="flex items-center gap-4 text-xs text-slate-500">
                         <div class="flex items-center gap-1 overflow-hidden whitespace-nowrap text-ellipsis max-w-[50%]">
@@ -1816,17 +2058,26 @@
         const tbody = $('adminTableBody');
         const rows  = appData.reqs.map(r => {
             let trCls = 'hover:bg-slate-50';
-            if (r.status === 'Done' || r.status === 'Closed') trCls = 'bg-emerald-50/40 hover:bg-emerald-50';
+            if (r.status === 'Cancelled') trCls = 'bg-slate-100/70 text-slate-500 hover:bg-slate-100';
+            else if (r.status === 'Unrepairable') trCls = 'bg-orange-50/50 hover:bg-orange-50';
+            else if (hasCancelRequest(r)) trCls = 'bg-red-50/40 hover:bg-red-50';
+            else if (r.status === 'Done' || r.status === 'Closed') trCls = 'bg-emerald-50/40 hover:bg-emerald-50';
             else if (r.urgency === 'High')   trCls += ' urgency-high-blink';
             else if (r.urgency === 'Medium') trCls += ' urgency-medium-blink';
 
-            return `<tr class="${trCls}" data-status="${r.status}">
+            const pendingOwner = r.status === 'Unrepairable' && !r.unrepairableConfirmedDate;
+            const cancelBtn = !canCancel(r) ? ''
+                : hasCancelRequest(r)
+                ? `<button onclick="adminCancelJob('${r.jobID}')" class="btn bg-red-700 hover:bg-red-800 text-white px-2.5 py-1 text-xs mr-1 mb-1 md:mb-0">ยืนยันยกเลิก</button>`
+                : `<button onclick="adminCancelJob('${r.jobID}')" class="btn bg-white text-slate-600 hover:bg-slate-100 border border-slate-300 px-2.5 py-1 text-xs mr-1 mb-1 md:mb-0">ยกเลิก</button>`;
+            return `<tr class="${trCls}" data-status="${r.status}" data-cancelreq="${hasCancelRequest(r) ? 1 : 0}" data-pending="${pendingOwner ? 1 : 0}">
                 <td class="p-3 text-center"><input type="checkbox" class="chk-job accent-blue-600 w-4 h-4 cursor-pointer" value="${r.jobID}"></td>
-                <td class="p-3 text-xs">${getBadge(r.status)}</td>
+                <td class="p-3 text-xs">${badgeFor(r).replace('justify-end', 'justify-start')}</td>
                 <td class="p-3 font-mono text-xs text-blue-700 font-semibold whitespace-nowrap">${r.jobID}</td>
                 <td class="p-3 text-sm text-slate-700">${r.requesterName}</td>
                 <td class="p-3 text-sm text-slate-700 max-w-[220px] truncate" title="${r.equipmentLocation}">${r.equipmentLocation}</td>
                 <td class="p-3 text-right whitespace-nowrap">
+                    ${cancelBtn}
                     <button onclick="openModal('${r.jobID}')" class="btn bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 px-2.5 py-1 text-xs mr-1 mb-1 md:mb-0">Edit</button>
                     <button onclick="deleteJobPrompt('${r.jobID}')" class="btn bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 px-2.5 py-1 text-xs">Del</button>
                 </td>
@@ -1839,10 +2090,14 @@
 
     function updateDashboard() {
         const reqs = appData.reqs;
-        $('kpi-total').innerText      = reqs.length;
+        const pendingCancel = reqs.filter(hasCancelRequest).length;
+        $('kpi-total').innerText      = reqs.filter(x => x.status !== 'Cancelled').length;
         $('kpi-waiting').innerText    = reqs.filter(x => x.status === 'Waiting').length;
         $('kpi-processing').innerText = reqs.filter(x => x.status === 'Processing').length;
         $('kpi-done').innerText       = reqs.filter(x => x.status === 'Done' || x.status === 'Closed').length;
+        $('kpi-unrepairable').innerText = reqs.filter(x => x.status === 'Unrepairable').length;
+        $('kpi-cancelled').innerText  = reqs.filter(x => x.status === 'Cancelled').length;
+        $('kpi-cancel-pending').innerHTML = pendingCancel ? `<span class="text-red-700 font-semibold">รอยืนยันยกเลิก ${pendingCancel} ใบ</span>` : 'ยกเลิก';
     }
 
     function applyAdminFilters() {
@@ -1850,7 +2105,8 @@
         const tf  = $('adminSearchInput').value.toLowerCase();
         document.querySelectorAll('#adminTableBody tr').forEach(row => {
             const s = row.dataset.status;
-            const statusOk = sf === 'All' ? true : sf === 'Active' ? s !== 'Closed' : s === sf;
+            const active = !['Closed', 'Cancelled', 'Unrepairable'].includes(s) || row.dataset.pending === '1';
+            const statusOk = sf === 'All' ? true : sf === 'Active' ? active : sf === 'CancelRequest' ? row.dataset.cancelreq === '1' : s === sf;
             const textOk = !tf || row.innerText.toLowerCase().includes(tf);
             row.style.display = statusOk && textOk ? '' : 'none';
         });
@@ -1884,13 +2140,27 @@
         if (isDone) steps.push({ label: 'ช่างปิดงาน', date: tech, who: r.technician, reached: true, key: true, emptyText: noTime, mark: techEstimated ? ' <span title="เวลาอ้างอิงจากประวัติการแก้ไขในระบบ (เติมย้อนหลัง)" class="cursor-help">*</span>' : '' });
         if (r.status === 'Closed') steps.push({ label: 'เจ้าของงานยืนยันปิดงาน', date: owner, who: r.requesterName, reached: true, key: true, emptyText: noTime });
         else if (r.status === 'Done') steps.push({ label: 'เจ้าของงานยืนยันปิดงาน', reached: false, key: true, emptyText: 'รอยืนยัน' });
+        if (r.status === 'Unrepairable') {
+            steps.push({ label: 'ช่างแจ้งซ่อมไม่ได้', date: r.unrepairableDate, who: r.technician, reached: true, key: true, emptyText: noTime, tone: 'orange' });
+            steps.push(r.unrepairableConfirmedDate
+                ? { label: 'ผู้แจ้งยืนยันรับทราบ', date: r.unrepairableConfirmedDate, who: r.requesterName, reached: true, key: true, tone: 'orange' }
+                : { label: 'ผู้แจ้งยืนยันรับทราบ', reached: false, key: true, emptyText: 'รอยืนยัน' });
+        }
+        const cx = r.status === 'Cancelled' ? { requestedDate: r.cancelRequestedDate } : hasCancelRequest(r) ? r.cancelRequest : null;
+        if (cx) {
+            steps.push({ label: 'ผู้แจ้งยืนยันขอยกเลิก', date: cx.requestedDate, who: r.requesterName, reached: true, key: true, emptyText: noTime, tone: 'slate' });
+            steps.push(r.status === 'Cancelled'
+                ? { label: 'แอดมินยืนยันยกเลิก', date: r.cancelledDate, who: 'Admin', reached: true, key: true, emptyText: noTime, tone: 'slate' }
+                : { label: 'แอดมินยืนยันยกเลิก', reached: false, key: true, emptyText: 'รอยืนยัน' });
+        }
 
         $('d-timeline').innerHTML = steps.map((s, i) => {
             const txt  = fmtDateTime(s.date);
             const last = i === steps.length - 1;
-            const dot  = s.reached ? 'bg-emerald-500 border-emerald-500' : 'bg-white border-slate-300';
+            const TONE = { orange: 'bg-orange-500 border-orange-500', slate: 'bg-slate-500 border-slate-500' };
+            const dot  = s.reached ? (TONE[s.tone] || 'bg-emerald-500 border-emerald-500') : 'bg-white border-slate-300';
             const next = steps[i + 1];
-            const line = last ? '' : `<span class="absolute left-[7px] top-5 bottom-0 w-px ${next?.reached ? 'bg-emerald-300' : 'bg-slate-300'}"></span>`;
+            const line = last ? '' : `<span class="absolute left-[7px] top-5 bottom-0 w-px ${next?.reached ? (next.tone ? 'bg-slate-300' : 'bg-emerald-300') : 'bg-slate-300'}"></span>`;
             const lbl  = s.key ? 'font-bold text-slate-900' : 'font-medium text-slate-700';
             return `<li class="relative pl-7 ${last ? '' : 'pb-3'}">
                 ${line}
@@ -1924,14 +2194,37 @@
         if (r.status === 'Processing') sEl.classList.add('text-blue-600');
         if (r.status === 'Done')       sEl.classList.add('text-emerald-600');
         if (r.status === 'Closed')     { sEl.classList.add('text-emerald-700'); sEl.innerText = 'Closed (Completed)'; }
+        if (r.status === 'Unrepairable') { sEl.classList.add('text-orange-700'); sEl.innerText = 'ซ่อมไม่ได้'; }
+        if (r.status === 'Cancelled')  { sEl.classList.add('text-slate-500'); sEl.innerText = 'ยกเลิก'; }
 
         renderTimeline(r);
 
+        // กล่องผลของงาน: ยกเลิก / ซ่อมไม่ได้ / คำขอยกเลิก / ใบนี้แจ้งแทนใบที่ยกเลิก
+        const jobLink = id => `<a href="javascript:void(0)" onclick="openDetailModal('${escHtml(id)}')" class="font-mono font-semibold text-blue-700 underline">${escHtml(id)}</a>`;
+        const boxes = [];
+        if (r.status === 'Cancelled') boxes.push(`<div class="rounded-xl border border-slate-300 bg-slate-100 p-3">
+            <div class="font-bold text-slate-800 mb-1">ใบแจ้งซ่อมนี้ถูกยกเลิก</div>
+            <div class="text-slate-700">เหตุผล: ${escHtml(r.cancelReason || '-')}</div>
+            ${r.cancelRefJobId ? `<div class="text-slate-700 mt-1">แจ้งใหม่เป็นใบ: ${jobLink(r.cancelRefJobId)}</div>` : ''}</div>`);
+        if (hasCancelRequest(r)) boxes.push(`<div class="rounded-xl border border-red-200 bg-red-50 p-3">
+            <div class="font-bold text-red-800 mb-1">ผู้แจ้งขอยกเลิกใบนี้แล้ว รอแอดมินยืนยัน</div>
+            <div class="text-red-900">เหตุผล: ${escHtml(r.cancelRequest.reason || '-')}</div>
+            ${r.cancelRequest.refJobId ? `<div class="text-red-900 mt-1">แจ้งใหม่เป็นใบ: ${jobLink(r.cancelRequest.refJobId)}</div>` : ''}</div>`);
+        if (r.status === 'Unrepairable') boxes.push(`<div class="rounded-xl border border-orange-300 bg-orange-50 p-3">
+            <div class="font-bold text-orange-800 mb-1">ซ่อมไม่ได้</div>
+            <div class="text-orange-900">เหตุผล: ${escHtml(unrepairText(r) || '-')}</div>
+            <div class="text-xs mt-1 ${r.unrepairableConfirmedDate ? 'text-slate-600' : 'text-amber-700 font-semibold'}">${r.unrepairableConfirmedDate ? 'ผู้แจ้งยืนยันรับทราบแล้ว' : 'รอผู้แจ้งยืนยันรับทราบด้วย PIN'}</div></div>`);
+        const replaced = replacedJobs(r.jobID);
+        if (replaced.length) boxes.push(`<div class="rounded-xl border border-blue-200 bg-blue-50 p-3 text-blue-900">ใบนี้แจ้งแทนใบที่ยกเลิก: ${replaced.map(jobLink).join(', ')}</div>`);
+        $('d-outcome').innerHTML = boxes.join('');
+        $('d-outcome').className = boxes.length ? 'space-y-2' : 'hidden';
+
         const admSec = $('d-admin-sec');
-        if (r.status !== 'Waiting') {
+        const cancelledUntouched = r.status === 'Cancelled' && !r.technician && !r.adminRemarks;
+        if (r.status !== 'Waiting' && !cancelledUntouched) {
             admSec.classList.remove('hidden');
             setText('d-tech',   r.technician);
-            setText('d-remark', r.adminRemarks || 'กำลังดำเนินการ...');
+            setText('d-remark', r.adminRemarks || (['Processing', 'Done'].includes(r.status) ? 'กำลังดำเนินการ...' : '-'));
             const costBox = $('d-cost-box');
             if (r.cost && +r.cost > 0) {
                 costBox.classList.remove('hidden');
@@ -1951,6 +2244,10 @@
         const vDiv = $('d-verify-area');
         vDiv.innerHTML = r.status === 'Done'
             ? `<button onclick="closeDetailModal();verifyUserJob('${r.jobID}','${r.userPin||''}')" class="btn-success w-full py-3 text-base">ยืนยันจบงาน (Verify & Close)</button>`
+            : r.status === 'Unrepairable' && !r.unrepairableConfirmedDate
+            ? `<button onclick="closeDetailModal();confirmUnrepairable('${r.jobID}')" class="btn bg-orange-700 hover:bg-orange-800 text-white w-full py-3 text-base">ยืนยันรับทราบ ซ่อมไม่ได้ (ใส่ PIN)</button>`
+            : canCancel(r) && !hasCancelRequest(r)
+            ? `<button onclick="closeDetailModal();requestCancelJob('${r.jobID}')" class="btn bg-white text-red-700 hover:bg-red-50 border border-red-300 w-full py-2 text-sm">ขอยกเลิกใบแจ้งซ่อมนี้</button>`
             : '';
 
         $('detailModal').style.display = 'flex';
@@ -2008,9 +2305,11 @@
 
     function toggleAdminFields() {
         const st = $('modalStatus').value;
-        const isDone = st === 'Done' || st === 'Closed';
+        const isDone = st === 'Done' || st === 'Closed' || st === 'Unrepairable' || st === 'Cancelled';
         $('costSection').style.display        = (isDone || st === 'Processing') ? 'block' : 'none';
         $('adminImageSection').style.display  = (isDone || st === 'Processing') ? 'block' : 'none';
+        $('unrepairSection').classList.toggle('hidden', st !== 'Unrepairable');
+        $('cancelInfoSection').classList.toggle('hidden', st !== 'Cancelled');
         renderSparePanel();
     }
 
@@ -2066,6 +2365,7 @@
         const yf = $('statYear').value;
         const mf = $('statMonth').value;
         const deptStats = Object.create(null);
+        const sum = { total: 0, finished: 0, open: 0, unrepairable: 0, cancelled: 0 };
 
         appData.reqs.forEach(r => {
             if (!r.requestDate) return;
@@ -2075,11 +2375,26 @@
             if (yf !== 'all' && y !== yf) return;
             if (mf !== 'all' && m !== mf) return;
 
+            // ใบที่ยกเลิก (แจ้งผิด/แจ้งซ้ำ) ไม่นับเป็นงานซ่อม
+            if (r.status === 'Cancelled') { sum.cancelled++; return; }
+            sum.total++;
+            if (r.status === 'Done' || r.status === 'Closed') sum.finished++;
+            else if (r.status === 'Unrepairable') sum.unrepairable++;
+            else sum.open++;
+
             const dept = r.positionDept || 'ไม่ระบุแผนก';
             if (!deptStats[dept]) deptStats[dept] = { count: 0, cost: 0 };
             deptStats[dept].count++;
             deptStats[dept].cost += parseFloat(r.cost) || 0;
         });
+
+        const tile = (label, val, cls) => `<div class="card p-3 ${cls}"><div class="text-xs text-slate-500 font-semibold">${label}</div><div class="text-2xl font-bold mt-0.5">${val}</div></div>`;
+        $('statSummary').innerHTML =
+            tile('งานแจ้งซ่อม (ไม่รวมยกเลิก)', sum.total, 'text-slate-900') +
+            tile('ซ่อมเสร็จ / ปิดงาน', sum.finished, 'text-emerald-700 border-l-4 border-l-emerald-500') +
+            tile('กำลังดำเนินการ / รอ', sum.open, 'text-blue-700 border-l-4 border-l-blue-500') +
+            tile('ซ่อมไม่ได้', sum.unrepairable, 'text-orange-700 border-l-4 border-l-orange-500') +
+            tile('ยกเลิก', sum.cancelled, 'text-slate-600 border-l-4 border-l-slate-400');
 
         const byCount = Object.keys(deptStats).sort((a, b) => deptStats[b].count - deptStats[a].count);
         const byCost  = Object.keys(deptStats).sort((a, b) => deptStats[b].cost  - deptStats[a].cost);
