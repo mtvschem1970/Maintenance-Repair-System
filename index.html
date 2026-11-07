@@ -2067,7 +2067,7 @@
                 : hasCancelRequest(r)
                 ? `<button onclick="adminCancelJob(${inlineArg(r.jobID)})" class="btn bg-red-700 hover:bg-red-800 text-white px-2.5 py-1 text-xs mr-1 mb-1 md:mb-0">ยืนยันยกเลิก</button>`
                 : `<button onclick="adminCancelJob(${inlineArg(r.jobID)})" class="btn bg-white text-slate-600 hover:bg-slate-100 border border-slate-300 px-2.5 py-1 text-xs mr-1 mb-1 md:mb-0">ยกเลิก</button>`;
-            return `<tr class="${trCls}" data-status="${escHtml(r.status)}" data-cancelreq="${hasCancelRequest(r) ? 1 : 0}" data-pending="${pendingOwner ? 1 : 0}">
+            return `<tr class="${trCls} cursor-pointer" title="คลิกเพื่อดูรายละเอียดงาน" onclick="if(!event.target.closest('button,input,a,label'))openDetailModal(${inlineArg(r.jobID)},true)" data-status="${escHtml(r.status)}" data-cancelreq="${hasCancelRequest(r) ? 1 : 0}" data-pending="${pendingOwner ? 1 : 0}">
                 <td class="p-3 text-center"><input type="checkbox" class="chk-job accent-blue-600 w-4 h-4 cursor-pointer" value="${escHtml(r.jobID)}"></td>
                 <td class="p-3 text-xs">${badgeFor(r).replace('justify-end', 'justify-start')}</td>
                 <td class="p-3 font-mono text-xs text-blue-700 font-semibold whitespace-nowrap">${escHtml(r.jobID)}</td>
@@ -2175,7 +2175,7 @@
         }).join('');
     }
 
-    function openDetailModal(jobId) {
+    function openDetailModal(jobId, fromAdmin = false) {
         const r = appData.reqs.find(x => x.jobID === jobId);
         if (!r) return;
 
@@ -2201,7 +2201,7 @@
         renderTimeline(r);
 
         // กล่องผลของงาน: ยกเลิก / ซ่อมไม่ได้ / คำขอยกเลิก / ใบนี้แจ้งแทนใบที่ยกเลิก
-        const jobLink = id => `<a href="javascript:void(0)" onclick="openDetailModal(${inlineArg(id)})" class="font-mono font-semibold text-blue-700 underline">${escHtml(id)}</a>`;
+        const jobLink = id => `<a href="javascript:void(0)" onclick="openDetailModal(${inlineArg(id)},${fromAdmin})" class="font-mono font-semibold text-blue-700 underline">${escHtml(id)}</a>`;
         const boxes = [];
         if (r.status === 'Cancelled') boxes.push(`<div class="rounded-xl border border-slate-300 bg-slate-100 p-3">
             <div class="font-bold text-slate-800 mb-1">ใบแจ้งซ่อมนี้ถูกยกเลิก</div>
@@ -2248,7 +2248,8 @@
         setImg('d-img-after',  r.imageAfter,  'ไม่มีรูป');
 
         const vDiv = $('d-verify-area');
-        vDiv.innerHTML = r.status === 'Done'
+        // เปิดจากตารางแอดมิน: ไม่แสดงปุ่มฝั่งผู้แจ้ง (ยืนยันจบงาน/ขอยกเลิก) เพราะแอดมินมีปุ่มของตัวเองในตารางอยู่แล้ว
+        vDiv.innerHTML = fromAdmin ? '' : r.status === 'Done'
             ? `<button onclick="closeDetailModal();verifyUserJob(${inlineArg(r.jobID)})" class="btn-success w-full py-3 text-base">ยืนยันจบงาน (Verify & Close)</button>`
             : r.status === 'Unrepairable' && !r.unrepairableConfirmedDate
             ? `<button onclick="closeDetailModal();confirmUnrepairable(${inlineArg(r.jobID)})" class="btn bg-orange-700 hover:bg-orange-800 text-white w-full py-3 text-base">ยืนยันรับทราบ ซ่อมไม่ได้ (ใส่ PIN)</button>`
