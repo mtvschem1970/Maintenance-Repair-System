@@ -19,6 +19,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-functions-compat.js"></script>
 
     <script>
         tailwind.config = {
@@ -141,6 +143,7 @@
             </div>
             <div class="flex items-center gap-2 shrink-0">
                 <button onclick="refreshData()" class="h-9 w-9 rounded hover:bg-white/10 transition text-slate-300 hover:text-white flex items-center justify-center" title="Refresh"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg></button>
+                <span id="adminIdentity" class="hidden text-xs text-slate-300"></span>
                 <button id="btnLogin"  onclick="showLoginModal()" class="btn px-4 py-1.5 text-sm border border-white/30 text-white hover:bg-white/10">Admin Login</button>
                 <button id="btnLogout" onclick="logout()"         class="hidden btn px-4 py-1.5 text-sm border border-white/30 text-white hover:bg-white/10">Logout</button>
             </div>
@@ -149,9 +152,12 @@
             <div class="flex gap-1 overflow-x-auto -mb-px">
                 <button onclick="switchTab('request')"    id="tab-request"    class="tab-btn active">แจ้งซ่อม</button>
                 <button onclick="switchTab('status')"     id="tab-status"     class="tab-btn">ติดตามงาน</button>
-                <button onclick="switchTab('statistics')" id="tab-statistics" class="tab-btn hidden admin-only">สถิติ</button>
+                <button onclick="switchTab('statistics')" id="tab-statistics" class="tab-btn hidden super-admin-only">สถิติ</button>
                 <button onclick="switchTab('dashboard')"  id="tab-dashboard"  class="tab-btn hidden admin-only">Admin</button>
-                <button onclick="switchTab('settings')"   id="tab-settings"   class="tab-btn hidden admin-only">ตั้งค่า</button>
+                <button onclick="switchTab('account')" id="tab-account" class="tab-btn hidden admin-only">บัญชีของฉัน</button>
+                <button onclick="switchTab('settings')"   id="tab-settings"   class="tab-btn hidden super-admin-only">ตั้งค่า</button>
+                <button onclick="switchTab('adminlogs')" id="tab-adminlogs" class="tab-btn hidden super-admin-only">Log แอดมิน</button>
+                <button onclick="switchTab('requesterpins')" id="tab-requesterpins" class="tab-btn hidden super-admin-only">PIN ผู้แจ้ง</button>
             </div>
         </nav>
     </header>
@@ -210,40 +216,29 @@
             </div>
         </div>
 
-        <!-- Settings -->
-        <div id="view-settings" class="view-section hidden max-w-5xl mx-auto fade-in">
-            <h2 class="text-2xl font-bold text-slate-900 mb-4">ตั้งค่าระบบ</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div class="card">
-                    <div class="card-head"><h3 class="card-title">System Config (Firebase Cloud Sync)</h3></div>
-                    <div class="p-5">
-                        <div class="mb-4 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">การตั้งค่าทั้งหมดถูกเก็บไว้ใน Firebase อย่างปลอดภัยและซิงค์ตรงกันทุกอุปกรณ์</div>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div><label class="lbl-sm">คำนำหน้า (Prefix)</label><input id="setting-id-prefix" class="field-sm" placeholder="เช่น MTN"></div>
-                            <div><label class="lbl-sm">เลขเริ่มต้น (Start)</label><input type="number" id="setting-id-start" class="field-sm" placeholder="เช่น 1"></div>
-                            <div><label class="lbl-sm text-amber-700 font-bold">รหัสผ่าน Admin</label><input type="text" id="setting-admin-pass" class="field-sm font-bold text-amber-800" placeholder="ตั้งรหัสใหม่"></div>
-                        </div>
-                        <p class="text-xs text-slate-500 mt-3">รูปแบบ Job ID ตัวอย่าง: <span id="id-preview" class="text-blue-700 font-mono font-semibold">MTN-2026-0001</span></p>
-                        <button onclick="saveSystemSettings()" class="btn-primary w-full py-2.5 text-sm mt-4">บันทึกการตั้งค่าลงระบบ</button>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-head"><h3 class="card-title">List Management</h3></div>
-                    <div class="p-5 space-y-5">
-                        <div>
-                            <label class="lbl-sm">Departments (แผนก)</label>
-                            <div class="flex gap-2 mb-2"><input id="new-dept" class="field-sm flex-1" placeholder="เพิ่มแผนก..."><button onclick="modifyList('depts','add','new-dept')" class="btn-success px-4 text-sm">Add</button></div>
-                            <ul id="list-depts" class="h-32 overflow-y-auto bg-slate-50 border border-slate-200 p-1 text-sm text-slate-700 rounded-lg"><li class="text-center pt-10 text-slate-400">กำลังโหลด...</li></ul>
-                        </div>
-                        <div>
-                            <label class="lbl-sm">Technicians (ช่าง)</label>
-                            <div class="flex gap-2 mb-2"><input id="new-tech" class="field-sm flex-1" placeholder="เพิ่มช่าง..."><button onclick="modifyList('techs','add','new-tech')" class="btn-success px-4 text-sm">Add</button></div>
-                            <ul id="list-techs" class="h-32 overflow-y-auto bg-slate-50 border border-slate-200 p-1 text-sm text-slate-700 rounded-lg"><li class="text-center pt-10 text-slate-400">กำลังโหลด...</li></ul>
-                        </div>
-                    </div>
-                </div>
+        <!-- Settings: super admin only -->
+        <section id="view-settings" class="view-section hidden max-w-5xl mx-auto space-y-5">
+            <h2 class="text-2xl font-bold">ตั้งค่าระบบ</h2>
+            <div class="card p-5 space-y-4">
+                <h3 class="card-title">เลขใบแจ้งซ่อม</h3>
+                <div class="grid grid-cols-2 gap-4"><div><label class="lbl" for="setting-id-prefix">คำนำหน้า</label><input id="setting-id-prefix" class="field" maxlength="30"></div><div><label class="lbl" for="setting-id-start">เลขเริ่มต้น</label><input id="setting-id-start" type="number" min="1" class="field"></div></div>
+                <p class="text-sm text-slate-500">ตัวอย่าง: <span id="id-preview"></span></p>
+                <button onclick="saveSystemSettings()" class="btn-primary px-4 py-2">บันทึกการตั้งค่า</button>
             </div>
-        </div>
+            <div class="card p-5 space-y-4">
+                <h3 class="card-title">บัญชี Admin รอง</h3>
+                <p class="text-sm text-slate-500">เปลี่ยนรหัสของคุณเองได้ที่หน้า “บัญชีของฉัน” ส่วนนี้ใช้รีเซ็ตรหัสหรือเปิด–ปิดบัญชี Admin รอง</p>
+                <p id="limited-account-status" class="text-sm text-slate-500">กำลังตรวจสถานะบัญชี...</p>
+                <label class="flex items-center gap-2"><input id="setting-limited-enabled" type="checkbox"> เปิดใช้ Admin รอง</label>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="lbl" for="setting-limited-pass">รหัสใหม่ของ Admin รอง</label><input id="setting-limited-pass" type="password" autocomplete="new-password" maxlength="128" class="field" placeholder="เว้นว่างเพื่อคงรหัสเดิม"></div><div><label class="lbl" for="setting-limited-confirm">ยืนยันรหัสใหม่</label><input id="setting-limited-confirm" type="password" autocomplete="new-password" maxlength="128" class="field"></div></div>
+                <button id="limited-account-save" onclick="saveLimitedAdminAccount()" disabled class="btn-primary px-4 py-2">บันทึกบัญชี Admin รอง</button>
+                <button onclick="refreshAdminAccountStatus()" class="btn-soft px-4 py-2">ตรวจสถานะอีกครั้ง</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div class="card p-5"><h3 class="card-title mb-3">แผนก</h3><div class="flex gap-2 mb-3"><input id="new-dept" class="field-sm flex-1" placeholder="เพิ่มแผนก"><button onclick="modifyList('depts','add','new-dept')" class="btn-success px-3">เพิ่ม</button></div><ul id="list-depts" class="max-h-52 overflow-y-auto"></ul></div>
+                <div class="card p-5"><h3 class="card-title mb-3">ช่าง</h3><div class="flex gap-2 mb-3"><input id="new-tech" class="field-sm flex-1" placeholder="เพิ่มช่าง"><button onclick="modifyList('techs','add','new-tech')" class="btn-success px-3">เพิ่ม</button></div><ul id="list-techs" class="max-h-52 overflow-y-auto"></ul></div>
+            </div>
+        </section>
 
         <!-- Status -->
         <div id="view-status" class="view-section hidden max-w-4xl mx-auto fade-in">
@@ -267,6 +262,10 @@
                 <div class="card p-4 border-l-4 border-l-orange-500"><div class="text-slate-500 text-xs font-bold tracking-wide">UNREPAIRABLE</div><div class="text-3xl font-bold text-orange-700 mt-1" id="kpi-unrepairable">0</div><div class="text-[11px] text-slate-500">ซ่อมไม่ได้</div></div>
                 <div class="card p-4 border-l-4 border-l-slate-400"><div class="text-slate-500 text-xs font-bold tracking-wide">CANCELLED</div><div class="text-3xl font-bold text-slate-600 mt-1" id="kpi-cancelled">0</div><div class="text-[11px] text-slate-500" id="kpi-cancel-pending">ยกเลิก</div></div>
             </div>
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="card p-4"><div class="text-sm text-slate-500">รออะไหล่</div><div id="kpi-waiting-parts" class="text-3xl font-bold text-amber-700">0</div></div>
+                <div class="card p-4"><div class="text-sm text-slate-500">รออนุมัติ</div><div id="kpi-pending-approval" class="text-3xl font-bold text-blue-700">0</div></div>
+            </div>
             <div class="card overflow-hidden">
                 <div class="p-4 border-b border-slate-200 flex flex-col lg:flex-row justify-between lg:items-center gap-3">
                     <h2 class="card-title text-lg">จัดการงานซ่อม</h2>
@@ -276,15 +275,17 @@
                         <button onclick="exportSelectedJobsExcel()" class="btn bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 text-sm">โหลดใบงานที่เลือก</button>
 
                         <input type="file" id="importExcelFile" accept=".xlsx, .xls" class="hidden" onchange="handleImportExcel(event)">
-                        <button onclick="document.getElementById('importExcelFile').click()" class="btn-soft px-3 py-1.5 text-sm">Import เก่า</button>
+                        <button onclick="document.getElementById('importExcelFile').click()" class="hidden super-admin-only btn-soft px-3 py-1.5 text-sm">Import เก่า</button>
 
-                        <button onclick="exportToExcelAll()" class="btn-success px-3 py-1.5 text-sm">โหลดรายงานรวม</button>
+                        <button onclick="exportToExcelAll()" class="hidden super-admin-only btn-success px-3 py-1.5 text-sm">โหลดรายงานรวม</button>
 
                         <select id="adminStatusFilter" onchange="applyAdminFilters()" class="field-sm w-auto py-1.5">
                             <option value="All">แสดงทั้งหมด</option>
                             <option value="Active">ยังไม่ปิดจบงาน (Active)</option>
                             <option value="Waiting">- รอรับงาน (Waiting)</option>
                             <option value="Processing">- กำลังดำเนินการ (Processing)</option>
+                            <option value="WaitingParts">- รออะไหล่</option>
+                            <option value="PendingApproval">- รออนุมัติ</option>
                             <option value="Done">- รอตรวจสอบ/รอปิด (Done)</option>
                             <option value="CancelRequest">- รอยืนยันยกเลิก</option>
                             <option value="Closed">ปิดงานแล้ว (Closed)</option>
@@ -334,6 +335,32 @@
             </div>
         </div>
 
+        <section id="view-adminlogs" class="view-section hidden max-w-6xl mx-auto space-y-4">
+            <div class="flex flex-wrap justify-between gap-3"><h2 class="text-2xl font-bold">Log แอดมิน</h2><button onclick="loadAdminLogs(true)" class="btn-soft px-4 py-2">รีเฟรช</button></div>
+            <p class="text-sm text-slate-500">แสดงผู้ทำรายการ เวลาไทย และข้อมูลก่อน–หลังแก้ไข โดยไม่แสดงรหัสผ่านหรือ PIN ใน Log</p>
+            <input id="adminLogSearch" oninput="renderAdminLogs()" class="field" placeholder="ค้นหา Log ที่โหลดแล้ว: ชื่อแอดมิน / เลขใบงาน / การทำรายการ" aria-label="ค้นหา Log แอดมิน">
+            <div id="adminLogList" class="space-y-3"></div>
+            <button id="adminLogMore" onclick="loadAdminLogs(false)" class="hidden btn-soft px-4 py-2">โหลด Log เพิ่มเติม</button>
+        </section>
+        <section id="view-requesterpins" class="view-section hidden max-w-5xl mx-auto space-y-4">
+            <h2 class="text-2xl font-bold">PIN ผู้แจ้ง · เฉพาะ Admin ใหญ่</h2>
+            <p class="text-sm text-slate-500">ค้นหาใบงานแล้วกดดู PIN เมื่อผู้แจ้งลืมรหัส ทุกครั้งที่เปิดดูจะบันทึกใน Log แอดมิน</p>
+            <input id="requesterPinSearch" oninput="renderRequesterPins()" class="field" placeholder="ค้นหาเลขใบงาน / ชื่อผู้แจ้ง / อุปกรณ์" aria-label="ค้นหา PIN ผู้แจ้ง">
+            <div class="card overflow-x-auto"><table class="w-full text-left text-sm"><thead><tr><th class="p-3">ใบงาน</th><th class="p-3">ผู้แจ้ง</th><th class="p-3">อุปกรณ์</th><th class="p-3">PIN</th></tr></thead><tbody id="requesterPinRows"></tbody></table></div>
+        </section>
+        <section id="view-account" class="view-section hidden max-w-xl mx-auto">
+            <div class="card p-5 space-y-4">
+                <h2 class="text-xl font-bold">เปลี่ยนรหัสของฉัน</h2>
+                <p id="account-role" class="text-sm text-slate-500"></p>
+                <form onsubmit="changeOwnAdminPassword(event)" class="space-y-4">
+                    <div><label class="lbl" for="account-current-password">รหัสเดิม</label><input id="account-current-password" type="password" autocomplete="current-password" maxlength="128" required class="field"></div>
+                    <div><label class="lbl" for="account-new-password">รหัสใหม่</label><input id="account-new-password" type="password" autocomplete="new-password" minlength="8" maxlength="128" required class="field"><p class="text-xs text-slate-500 mt-1">อย่างน้อย 8 ตัว และต้องต่างจากรหัสของแอดมินอีกบัญชี</p></div>
+                    <div><label class="lbl" for="account-confirm-password">ยืนยันรหัสใหม่</label><input id="account-confirm-password" type="password" autocomplete="new-password" minlength="8" maxlength="128" required class="field"></div>
+                    <button type="submit" class="btn-primary px-4 py-2">บันทึกรหัสใหม่</button>
+                    <p class="text-xs text-slate-500">เมื่อบันทึกสำเร็จ กรุณาเข้าสู่ระบบอีกครั้งด้วยรหัสใหม่</p>
+                </form>
+            </div>
+        </section>
     </main>
     <!-- Footer -->
     <footer id="docFooter" class="bg-white border-t border-slate-200 shrink-0">
@@ -372,7 +399,7 @@
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
-                    <div><label class="lbl-sm">Status</label><select id="modalStatus" onchange="toggleAdminFields()" class="field"><option>Waiting</option><option>Processing</option><option>Done</option><option>Closed</option><option value="Unrepairable">Unrepairable (ซ่อมไม่ได้)</option><option value="Cancelled" disabled>Cancelled (ยกเลิก)</option></select></div>
+                    <div><label class="lbl-sm">Status</label><select id="modalStatus" onchange="toggleAdminFields()" class="field"><option>Waiting</option><option>Processing</option><option value="WaitingParts">รออะไหล่</option><option value="PendingApproval">รออนุมัติ</option><option value="Done">ซ่อมเสร็จ (รอผู้แจ้งยืนยัน)</option><option>Closed</option><option value="Unrepairable">Unrepairable (ซ่อมไม่ได้)</option><option value="Cancelled" disabled>Cancelled (ยกเลิก)</option></select></div>
                     <div><label class="lbl-sm">Technician</label><select id="modalTech" class="field"></select></div>
                 </div>
                 <div id="unrepairSection" class="hidden border border-orange-300 rounded-xl p-3 bg-orange-50 space-y-2">
@@ -497,7 +524,7 @@
     // 1. FIREBASE SETUP
     // ----------------------------------------------------------------
     const firebaseConfig = {
-      apiKey: "AIzaSyAQ6zJ7_s__e3iLpQE8bScUxUgVVGbYOAU",
+      apiKey: "AIzaSyAQ6zJ7_s__e3iLpQE8bSCuXUgVVGbYOAU",
       authDomain: "maintenance-system-e6ed7.firebaseapp.com",
       projectId: "maintenance-system-e6ed7",
       storageBucket: "maintenance-system-e6ed7.firebasestorage.app",
@@ -508,6 +535,8 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const storage = firebase.storage();
+    const auth = firebase.auth();
+    const backend = firebase.app().functions('asia-southeast1');
 
     // ----------------------------------------------------------------
     // 1.5 เชื่อมกับระบบ MT-Asset-Tracker (โปรเจกต์ Firebase แยก)
@@ -525,9 +554,9 @@
     const assetApp = firebase.apps.find(a => a.name === 'asset-tracker') || firebase.initializeApp(assetFirebaseConfig, 'asset-tracker');
     const assetDb  = assetApp.firestore();
 
-    const STATUS_TH = { Waiting: 'รอดำเนินการ', Processing: 'กำลังดำเนินการ', Done: 'ซ่อมเสร็จ', Closed: 'ปิดงานแล้ว', Cancelled: 'ยกเลิก', Unrepairable: 'ซ่อมไม่ได้' };
+    const STATUS_TH = { Waiting: 'รอดำเนินการ', Processing: 'กำลังดำเนินการ', WaitingParts: 'รออะไหล่', PendingApproval: 'รออนุมัติ', Done: 'ซ่อมเสร็จ', Closed: 'ปิดงานแล้ว', Cancelled: 'ยกเลิก', Unrepairable: 'ซ่อมไม่ได้' };
     // ยกเลิกได้เฉพาะงานที่ยังไม่ซ่อมเสร็จ; cancelRequest = ผู้แจ้งยืนยัน PIN แล้ว รอแอดมินยืนยัน
-    const canCancel        = r => r.status === 'Waiting' || r.status === 'Processing';
+    const canCancel        = r => ['Waiting', 'Processing', 'WaitingParts', 'PendingApproval'].includes(r.status);
     const hasCancelRequest = r => !!r.cancelRequest && canCancel(r);
     const unrepairText     = r => [r.unrepairableReason, r.unrepairableDetail].filter(Boolean).join(' - ');
     // ต้องตรงกับ docId() ใน firebase-api.js ของ Asset Tracker
@@ -611,7 +640,7 @@
     // อ่านงานล่าสุดจาก Firestore แล้วซิงก์ ไม่ให้ความผิดพลาดของการซิงก์ไปกระทบงานหลัก
     async function syncJobById(jobId) {
         try {
-            const d = await db.collection('requests').doc(jobId).get();
+            const d = await db.collection('repairJobs').doc(jobId).get();
             if (d.exists) return await syncRepairToAsset(d.data());
         } catch (e) { console.warn('Asset sync failed', jobId, e); }
         return { linked: false, error: true };
@@ -645,6 +674,7 @@
     //     - แก้จำนวน/ลบรายการแล้วบันทึกใหม่ ระบบจะคืนหรือตัดสต๊อกเพิ่มตามส่วนต่าง
     // ----------------------------------------------------------------
     const escHtml = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const inlineArg = value => escHtml(JSON.stringify(String(value)));
     const fmtBaht = n => Number(n || 0).toLocaleString('th-TH', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
     const usageKey = u => `${u.assetId}|${u.partId}`;
 
@@ -736,13 +766,14 @@
                     <div class="flex-1 min-w-0"><div class="text-slate-800 font-medium truncate">${escHtml(sp.name)}</div>
                         <div class="text-slate-500">฿${fmtBaht(sp.price)} · คงเหลือ <b class="${low ? 'text-red-600' : 'text-emerald-700'}">${fmtBaht(sp.stock)}</b>${low ? ' (ต่ำกว่าขั้นต่ำ)' : ''}</div></div>
                     <input type="number" min="1" value="1" id="spq-${escHtml(sp.id)}" class="w-14 bg-white border border-slate-300 rounded px-1 py-0.5 text-slate-800 text-center" ${out ? 'disabled' : ''}>
-                    <button type="button" onclick="useSparePart('${escHtml(sp.id)}')" class="bg-sky-600 hover:bg-sky-700 disabled:opacity-40 text-white px-2.5 py-1 rounded-md font-semibold" ${out ? 'disabled' : ''}>ใช้</button>
+                    <button type="button" onclick="useSparePart(${inlineArg(sp.id)})" class="bg-sky-600 hover:bg-sky-700 disabled:opacity-40 text-white px-2.5 py-1 rounded-md font-semibold" ${out ? 'disabled' : ''}>ใช้</button>
                 </div>`;
             }).join('')}</div>
             <p class="text-[11px] text-slate-500 mt-1">สต๊อกจะถูกตัดเมื่อกด "บันทึก (Save)"</p>`;
     }
 
     function useSparePart(partId) {
+        if (!requireSuperAdmin()) return;
         const a = appData.modalAsset; if (!a) return;
         const sp = (a.data.spareParts || []).find(x => String(x.id) === String(partId)); if (!sp) return;
         const q = Math.max(1, parseInt(document.getElementById('spq-' + partId)?.value, 10) || 1);
@@ -763,7 +794,11 @@
         reqs:    [],
         lists:   { depts: [], techs: [] },
         isAdmin: false,
-        adminPass: '888',
+        adminRole: null,
+        adminName: '',
+        limitedEnabled: false,
+        superAdminName: 'Admin ใหญ่',
+        limitedAdminName: 'Admin รอง',
         cfg:     { jobId: { prefix: 'MTN', startNum: 1 } }
     };
 
@@ -820,6 +855,7 @@
 
     // ฟังก์ชันสร้าง Sheet รายบุคคล (แบบฟอร์ม 100% ตรงกลาง A4)
     async function buildJobSheet(workbook, jobId) {
+        if (!requireAdmin()) return;
         const r = appData.reqs.find(x => x.jobID === jobId);
         if (!r) return;
 
@@ -1106,6 +1142,7 @@
 
     // ฟังก์ชันเมื่อกดปุ่ม "🖨️ โหลดใบงานที่เลือก" จากหน้าตาราง
     async function exportSelectedJobsExcel() {
+        if (!requireAdmin()) return;
         const checkboxes = document.querySelectorAll('.chk-job:checked');
         if (checkboxes.length === 0) {
             return Swal.fire('ไม่ได้เลือกงาน', 'กรุณาติ๊กช่องสี่เหลี่ยมหน้างานที่ต้องการดาวน์โหลดใบรายงาน', 'warning');
@@ -1126,6 +1163,7 @@
             
             const buffer = await workbook.xlsx.writeBuffer();
             const dateStr = new Date().toISOString().split('T')[0];
+            await recordAdminEvent('สร้างไฟล์ใบแจ้งซ่อม', Array.from(checkboxes, cb => cb.value).join(', '));
             saveAs(new Blob([buffer]), `Job_Reports_${dateStr}.xlsx`);
             Swal.close();
         } catch (e) {
@@ -1134,7 +1172,8 @@
         }
     }
 
-    function exportToExcelAll() {
+    async function exportToExcelAll() {
+        if (!requireSuperAdmin()) return;
         if (!appData.reqs || appData.reqs.length === 0) {
             return Swal.fire('ไม่มีข้อมูล', 'ยังไม่มีข้อมูลแจ้งซ่อมในระบบ', 'warning');
         }
@@ -1167,7 +1206,10 @@
         XLSX.utils.book_append_sheet(workbook, worksheet, "Maintenance_Report");
         
         const dateStr = new Date().toISOString().split('T')[0];
-        XLSX.writeFile(workbook, `Maintenance_Summary_${dateStr}.xlsx`);
+        try {
+            await recordAdminEvent('สร้างไฟล์รายงานรวม');
+            XLSX.writeFile(workbook, `Maintenance_Summary_${dateStr}.xlsx`);
+        } catch (e) { Swal.fire('ดาวน์โหลดไม่สำเร็จ', e.message, 'error'); }
     }
 
     // ฟังก์ชันติ๊กเลือกทั้งหมดในตาราง
@@ -1194,6 +1236,7 @@
     }
 
     async function handleImportExcel(event) {
+        if (!requireSuperAdmin()) return;
         const file = event.target.files[0];
         if (!file) return;
 
@@ -1260,7 +1303,7 @@
                     if (row["Accepted"]) payload.acceptedDate = new Date(row["Accepted"]).toISOString();
                     if (row["Completed"]) payload.completedDate = new Date(row["Completed"]).toISOString();
                     
-                    await db.collection("requests").doc(jobId).set(payload);
+                    await auditedJobWrite(jobId, payload, 'นำเข้าใบงานจาก Excel', 'set');
                     successCount++;
                 }
                 
@@ -1333,40 +1376,26 @@
         $('setting-id-prefix').addEventListener('input', updateIdPreview);
         $('setting-id-start').addEventListener('input',  updateIdPreview);
         
-        Promise.all([refreshData(true), loadSystemConfig()]);
+        initializeSession();
     });
 
     // ----------------------------------------------------------------
     // 5. SYSTEM CONFIG & LIST MANAGEMENT (Firebase)
     // ----------------------------------------------------------------
-    async function loadSystemConfig(manual = false) {
+    async function loadSystemConfig(manual=false) {
         try {
-            const doc = await db.collection('system').doc('config').get();
-            if (doc.exists) {
-                const data = doc.data();
-                if (data.lists) appData.lists = data.lists;
-                if (data.adminPass) appData.adminPass = data.adminPass;
-                if (data.jobIdConfig) appData.cfg.jobId = data.jobIdConfig;
-            } else {
-                await db.collection('system').doc('config').set({ 
-                    lists: { depts: [], techs: [] }, 
-                    adminPass: '888',
-                    jobIdConfig: { prefix: 'MTN', startNum: 1 }
-                }, {merge: true});
-            }
-            
-            renderLists();
-            renderDrops();
-            
-            $('setting-admin-pass').value = appData.adminPass;
-            $('setting-id-prefix').value  = appData.cfg.jobId.prefix;
-            $('setting-id-start').value   = appData.cfg.jobId.startNum;
+            const doc=await db.collection('system').doc('publicConfig').get();
+            const data=doc.exists?doc.data():{};
+            if(data.lists)appData.lists=data.lists;
+            if(data.jobIdConfig)appData.cfg.jobId=data.jobIdConfig;
+            appData.superAdminName=data.superAdminName||'Admin ใหญ่';
+            appData.limitedAdminName=data.limitedAdminName||'Admin รอง';
+            renderLists();renderDrops();
+            $('setting-id-prefix').value=appData.cfg.jobId.prefix;
+            $('setting-id-start').value=appData.cfg.jobId.startNum;
             updateIdPreview();
-            
-        } catch (e) {
-            console.warn('loadSystemConfig failed', e);
-        }
-        if (manual) Swal.close();
+        } catch(error) { console.warn('loadSystemConfig failed',error.code); }
+        if(manual)Swal.close();
     }
 
     function updateIdPreview() {
@@ -1377,51 +1406,24 @@
     }
 
     async function saveSystemSettings() {
-        const newPrefix = $('setting-id-prefix').value.trim() || 'MTN';
-        const newStartNum = parseInt($('setting-id-start').value.trim()) || 1;
-        const newPass = $('setting-admin-pass').value.trim() || '888';
-
-        appData.cfg.jobId = { prefix: newPrefix, startNum: newStartNum };
-        appData.adminPass = newPass;
-        
-        Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
-        try {
-            await db.collection('system').doc('config').set({
-                adminPass: newPass,
-                jobIdConfig: appData.cfg.jobId
-            }, { merge: true });
-            
-            Swal.fire('สำเร็จ', 'บันทึกการตั้งค่าลงระบบคลาวด์เรียบร้อย', 'success');
-            updateIdPreview();
-        } catch (e) {
-            Swal.fire('Error', String(e), 'error');
-        }
+        if(!requireSuperAdmin())return;
+        const prefix=$('setting-id-prefix').value.trim(),startNum=Number($('setting-id-start').value);
+        if(!/^[A-Za-z0-9_-]{1,30}$/.test(prefix)||!Number.isInteger(startNum)||startNum<1)return Swal.fire('ข้อมูลไม่ถูกต้อง','กรอกคำนำหน้าด้วยตัวอักษรอังกฤษ ตัวเลข _ หรือ - และเลขเริ่มต้นตั้งแต่ 1','warning');
+        try { await callBackend('adminConfigUpdate',{jobIdConfig:{prefix,startNum}});await Swal.fire('บันทึกแล้ว','บันทึกการตั้งค่าและ Log แล้ว','success');await loadSystemConfig(); }
+        catch(error) { Swal.fire('บันทึกไม่สำเร็จ',error.message,'error'); }
     }
 
     async function modifyList(type, act, id) {
-        const val = act === 'add' ? $(id).value.trim() : id;
-        if (!val) return;
-        Swal.showLoading();
-        try {
-            const ref = db.collection('system').doc('config');
-            if (act === 'add') {
-                await ref.update({ [`lists.${type}`]: firebase.firestore.FieldValue.arrayUnion(val) });
-                $(id).value = '';
-            } else {
-                await ref.update({ [`lists.${type}`]: firebase.firestore.FieldValue.arrayRemove(val) });
-            }
-            await loadSystemConfig();
-            Swal.close();
-        } catch (e) {
-            Swal.fire('Error', String(e), 'error');
-        }
+        if (!requireSuperAdmin()) return;
+        const value=act==='add'?$(id).value.trim():id;
+        if(!value) return;
+        try { await callBackend('adminConfigUpdate',{listChange:{type,act,value}});if(act==='add')$(id).value='';await loadSystemConfig(); }
+        catch(e){Swal.fire('บันทึกไม่สำเร็จ',e.message,'error');}
     }
 
-    // ----------------------------------------------------------------
-    // 6. SUBMIT REQUEST (Firebase)
-    // ----------------------------------------------------------------
     async function submitRequest(e) {
         e.preventDefault();
+        if (appData.isAdmin && !requireSuperAdmin()) return;
 
         const fileInput = $('reqImg');
         if (!fileInput.files.length) {
@@ -1453,31 +1455,14 @@
         Swal.fire({ title: 'กำลังประมวลผล...', allowOutsideClick: false, didOpen: () => Swal.showLoading(),  });
 
         try {
-            // Generate Job ID
-            const p = appData.cfg.jobId.prefix || 'MTN';
-            const s = appData.cfg.jobId.startNum || 1;
-            const year = new Date().getFullYear();
-            const pattern = `${p}-${year}-`;
-            let maxId = 0;
-            
-            appData.reqs.forEach(r => {
-                if (r.jobID && r.jobID.startsWith(pattern)) {
-                    const n = parseInt(r.jobID.replace(pattern, ''), 10);
-                    if (!isNaN(n) && n > maxId) maxId = n;
-                }
-            });
-            
-            const newId = pattern + String(maxId === 0 ? s : maxId + 1).padStart(4, '0');
-
             // Image Upload
             let imgUrl = "";
             let imgData = await fileToBase64(fileInput.files[0]);
-            const imgRef = storage.ref(`jobs/${newId}_BEFORE.jpg`);
+            const imgRef = storage.ref(`request-uploads/${auth.currentUser.uid}/${crypto.randomUUID()}.jpg`);
             await imgRef.putString(imgData, 'data_url');
             imgUrl = await imgRef.getDownloadURL();
 
             const payload = {
-                jobID: newId,
                 requestDate: new Date().toISOString(),
                 requesterName: $('reqName').value,
                 positionDept: $('reqDept').value,
@@ -1492,7 +1477,8 @@
                 technician: '', adminRemarks: '', additionalNotes: '', cost: 0, itemsData: '[]'
             };
 
-            await db.collection('requests').doc(newId).set(payload);
+            const created=await callBackend('createRequest',payload);
+            const newId=created.jobId; payload.jobID=newId;
 
             let assetLink = { linked: false };
             try { assetLink = await syncRepairToAsset(payload); }
@@ -1504,9 +1490,9 @@
 
             let html = `<div class="text-left mt-2">
                 <p class="text-sm text-emerald-700 mb-2">ข้อมูลของท่านได้รับการจัดส่งเข้าสู่ระบบเรียบร้อยแล้ว</p>
-                <p class="mb-1">หมายเลขงาน (Job ID): <b class="text-blue-700 font-mono">${newId}</b></p>
-                <p class="mb-3">รหัสยืนยันปิดงาน (PIN): <b class="text-amber-700 font-mono tracking-widest">${userPin}</b></p>
-                ${assetLink.linked ? `<p class="mb-3 text-xs text-emerald-700">บันทึกลงประวัติซ่อมของอุปกรณ์ <b>${assetLink.name}</b> ใน Asset Tracker แล้ว</p>`
+                <p class="mb-1">หมายเลขงาน (Job ID): <b class="text-blue-700 font-mono">${escHtml(newId)}</b></p>
+                <p class="mb-3">รหัสยืนยันปิดงาน (PIN): <b class="text-amber-700 font-mono tracking-widest">${escHtml(userPin)}</b></p>
+                ${assetLink.linked ? `<p class="mb-3 text-xs text-emerald-700">บันทึกลงประวัติซ่อมของอุปกรณ์ <b>${escHtml(assetLink.name)}</b> ใน Asset Tracker แล้ว</p>`
                   : assetLink.error ? `<p class="mb-3 text-xs text-orange-600">หมายเหตุ: บันทึกใบแจ้งซ่อมแล้ว แต่ส่งประวัติไป Asset Tracker ไม่สำเร็จ (จะลองใหม่เมื่อมีการอัปเดตงาน)</p>` : ''}
                 <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
                     <p class="text-xs text-slate-600 leading-relaxed"><b>ข้อกำหนดสำคัญ:</b><br>
@@ -1534,26 +1520,12 @@
     // ----------------------------------------------------------------
     // 7. VERIFY / CLOSE JOB (User side - Firebase)
     // ----------------------------------------------------------------
-    async function verifyUserJob(jobId, correctPin) {
-        const { value: enteredPin } = await Swal.fire({
-            title: 'ยืนยันการจบงาน', text: 'กรุณาใส่รหัส PIN ที่คุณตั้งไว้ตอนแจ้งซ่อม',
-            input: 'password', inputPlaceholder: 'Enter PIN',
-            confirmButtonColor: '#22c55e', showCancelButton: true
-        });
-        if (!enteredPin) return;
-        if (String(enteredPin) !== String(correctPin)) return Swal.fire('รหัสไม่ถูกต้อง', 'กรุณาลองใหม่อีกครั้ง', 'error');
-
-        Swal.fire({ title: 'Verifying...', didOpen: () => Swal.showLoading() });
-        try {
-            await db.collection('requests').doc(jobId).update({
-                status: 'Closed',
-                completedDate: new Date().toISOString(),
-                ownerClosedDate: new Date().toISOString()   // วันที่เจ้าของงานยืนยันปิดงาน
-            });
-            await syncJobById(jobId);
-            refreshData(true);
-            Swal.fire('สำเร็จ', 'ยืนยันจบงานเรียบร้อยแล้ว', 'success');
-        } catch (err) { Swal.fire('Error', String(err), 'error'); }
+    async function verifyUserJob(jobId) {
+        if(appData.isAdmin&&!requireSuperAdmin())return;
+        const {value:pin}=await Swal.fire({title:'ยืนยันการจบงาน',text:'ใส่ PIN ที่ตั้งไว้ตอนแจ้งซ่อม',input:'password',showCancelButton:true});
+        if(!pin)return;
+        try{await callBackend('requesterAction',{action:'verify',jobId,pin});await syncJobById(jobId);await refreshData(true);Swal.fire('ปิดงานแล้ว','ยืนยันปิดงานเรียบร้อย','success');}
+        catch(e){Swal.fire('ยืนยันไม่สำเร็จ',e.message,'error');}
     }
 
     // ----------------------------------------------------------------
@@ -1586,19 +1558,21 @@
     }
 
     // อ่านค่าจากฟอร์มยกเลิก (ใช้ใน preConfirm) คืน false ถ้าไม่ผ่าน
-    function readCancelForm(r, { userPin = false, adminPin = false } = {}) {
-        const type   = document.querySelector('input[name="cx-type"]:checked')?.value;
-        const refId  = type === 'ref' ? $('cx-ref').value : '';
-        const reason = $('cx-reason').value.trim();
-        if (type === 'ref' && !refId) return Swal.showValidationMessage('กรุณาเลือกหมายเลขใบแจ้งซ่อมใบใหม่'), false;
-        if (type !== 'ref' && !reason) return Swal.showValidationMessage('กรุณาใส่เหตุผลการยกเลิก'), false;
-        if (userPin && String($('cx-pin').value) !== String(r.userPin)) return Swal.showValidationMessage('รหัส PIN ผู้แจ้งไม่ถูกต้อง'), false;
-        if (adminPin && $('cx-admin').value !== appData.adminPass) return Swal.showValidationMessage('รหัสผ่าน Admin ไม่ถูกต้อง'), false;
-        return { refJobId: refId, reason: reason || `แจ้งใหม่เป็นใบ ${refId}`, returnStock: !!$('cx-stock')?.checked };
+    async function readCancelForm(r, {userPin=false,adminPin=false}={}) {
+        const type=document.querySelector('input[name="cx-type"]:checked')?.value;
+        const refJobId=type==='ref'?$('cx-ref').value:'';
+        const reason=$('cx-reason').value.trim();
+        if(type==='ref'&&!refJobId)return Swal.showValidationMessage('กรุณาเลือกใบงานอ้างอิง'),false;
+        if(type!=='ref'&&!reason)return Swal.showValidationMessage('กรุณาระบุเหตุผล'),false;
+        const pin=userPin?$('cx-pin').value:'';
+        if(userPin&&!pin)return Swal.showValidationMessage('กรุณาใส่ PIN ผู้แจ้ง'),false;
+        if(adminPin){try{await callBackend('adminVerify',{jobId:r.jobID,password:$('cx-admin').value,...(userPin?{pin}:{})});}catch(e){return Swal.showValidationMessage(e.message),false;}}
+        return {refJobId,reason:reason||'แจ้งใหม่เป็นใบ '+refJobId,pin,returnStock:!!$('cx-stock')?.checked};
     }
 
     // ผู้แจ้งขอยกเลิก (หน้า ติดตามงาน)
     async function requestCancelJob(jobId) {
+        if (appData.isAdmin && !requireSuperAdmin()) return;
         const r = appData.reqs.find(x => x.jobID === jobId);
         if (!r || !canCancel(r)) return;
         const { value: v } = await Swal.fire({
@@ -1610,9 +1584,7 @@
         if (!v) return;
         Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
         try {
-            await db.collection('requests').doc(jobId).update({
-                cancelRequest: { requestedDate: new Date().toISOString(), reason: v.reason, refJobId: v.refJobId }
-            });
+            await callBackend('requesterAction',{action:'cancel',jobId,pin:v.pin,reason:v.reason,refJobId:v.refJobId});
             await refreshData(true);
             Swal.fire('ส่งคำขอแล้ว', `ใบ ${jobId} รอแอดมินยืนยันการยกเลิก`, 'success');
         } catch (e) { Swal.fire('Error', String(e), 'error'); }
@@ -1620,6 +1592,7 @@
 
     // แอดมินยืนยันการยกเลิก (ถ้าผู้แจ้งยังไม่ได้ส่งคำขอ ต้องใส่ PIN ผู้แจ้งด้วย)
     async function adminCancelJob(jobId) {
+        if (!requireSuperAdmin()) return;
         const r = appData.reqs.find(x => x.jobID === jobId);
         if (!r || !canCancel(r)) return;
         const req = hasCancelRequest(r) ? r.cancelRequest : null;
@@ -1636,7 +1609,7 @@
         });
         if (res.isDenied) {
             try {
-                await db.collection('requests').doc(jobId).update({ cancelRequest: null });
+                await auditedJobWrite(jobId, { cancelRequest: null }, 'ปฏิเสธคำขอยกเลิก');
                 await refreshData(true);
                 Swal.fire('ปฏิเสธแล้ว', `ใบ ${jobId} ดำเนินการต่อตามปกติ`, 'info');
             } catch (e) { Swal.fire('Error', String(e), 'error'); }
@@ -1645,6 +1618,8 @@
         const v = res.value;
         if (!v) return;
         Swal.fire({ title: 'กำลังยกเลิก...', didOpen: () => Swal.showLoading() });
+        let returnedStock = false;
+        let cancelCommitted = false;
         try {
             const now = new Date().toISOString();
             const update = {
@@ -1658,6 +1633,7 @@
             };
             if (v.returnStock) {
                 await applyStockDelta(r.stockUsage, []);   // คืนสต๊อกก่อน ถ้าคืนไม่ได้จะไม่ยกเลิก
+                returnedStock = true;
                 let items = [];
                 try { items = JSON.parse(r.itemsData || '[]'); } catch (e) {}
                 items = items.filter(i => !i.partId);
@@ -1665,17 +1641,25 @@
                 update.cost = items.reduce((t, i) => t + (Number(i.total) || 0), 0);
                 update.stockUsage = [];
             }
-            await db.collection('requests').doc(jobId).update(update);
+            await auditedJobWrite(jobId, update, 'ยกเลิกใบงาน');
+            cancelCommitted = true;
             await syncJobById(jobId);
             await refreshData(true);
             Swal.fire('ยกเลิกแล้ว', v.refJobId ? `ใบ ${jobId} ถูกยกเลิก และเชื่อมกับใบ ${v.refJobId}` : `ใบ ${jobId} ถูกยกเลิก`, 'success');
-        } catch (e) { Swal.fire('Error', String(e), 'error'); }
+        } catch (e) {
+            if (returnedStock && !cancelCommitted) {
+                try { await applyStockDelta([], r.stockUsage); }
+                catch (stockError) { e.message += ' · คืนสต๊อกกลับไม่สำเร็จ กรุณาตรวจสอบทะเบียนอะไหล่: ' + stockError.message; }
+            }
+            Swal.fire('Error', String(e), 'error');
+        }
     }
 
     // ----------------------------------------------------------------
     // 7.2 ซ่อมไม่ได้: แอดมินตั้งสถานะ + เหตุผลในหน้าต่างจัดการงาน -> ผู้แจ้งยืนยันรับทราบด้วย PIN
     // ----------------------------------------------------------------
     async function confirmUnrepairable(jobId) {
+        if (appData.isAdmin && !requireSuperAdmin()) return;
         const r = appData.reqs.find(x => x.jobID === jobId);
         if (!r || r.status !== 'Unrepairable') return;
         const { value: pin } = await Swal.fire({
@@ -1683,12 +1667,12 @@
             html: `<div class="text-left text-sm bg-orange-50 border border-orange-200 rounded p-3 mb-2"><div class="text-xs text-orange-800 font-bold mb-1">เหตุผลจากช่าง</div>${escHtml(unrepairText(r) || '-')}</div>
                    <p class="text-xs text-slate-500 text-left">ใส่รหัส PIN ที่ตั้งไว้ตอนแจ้งซ่อมเพื่อยืนยัน</p>`,
             input: 'password', inputPlaceholder: 'PIN', showCancelButton: true, confirmButtonText: 'ยืนยัน', confirmButtonColor: '#c2410c',
-            preConfirm: v => String(v) === String(r.userPin) ? v : (Swal.showValidationMessage('รหัส PIN ไม่ถูกต้อง'), false)
+            preConfirm: v => v || (Swal.showValidationMessage('กรุณาใส่ PIN'), false)
         });
         if (!pin) return;
         Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
         try {
-            await db.collection('requests').doc(jobId).update({ unrepairableConfirmedDate: new Date().toISOString() });
+            await callBackend('requesterAction',{action:'unrepairable',jobId,pin});
             await syncJobById(jobId);
             await refreshData(true);
             Swal.fire('สำเร็จ', 'ยืนยันรับทราบเรียบร้อยแล้ว', 'success');
@@ -1701,7 +1685,7 @@
     async function refreshData(silent = false) {
         if (!silent) Swal.showLoading();
         try {
-            const snapshot = await db.collection('requests').orderBy('requestDate', 'desc').get();
+            const snapshot = await db.collection('repairJobs').orderBy('requestDate', 'desc').get();
             appData.reqs = snapshot.docs.map(doc => doc.data());
             renderStatus();
             if (appData.isAdmin) renderAdmin();
@@ -1714,6 +1698,7 @@
     // 9. ADMIN FUNCTIONS (Firebase)
     // ----------------------------------------------------------------
     function openModal(id) {
+        if (!requireSuperAdmin()) return;
         const r = appData.reqs.find(x => x.jobID === id);
         if (!r) return Swal.fire('Error', 'ไม่พบข้อมูลงาน', 'error');
 
@@ -1758,6 +1743,7 @@
     }
 
     async function saveJob() {
+        if (!requireSuperAdmin()) return;
         const jobId = $('modalJobId').value;
         const st = $('modalStatus').value;
         let items = [], cost = 0;
@@ -1839,7 +1825,7 @@
                     await refAfter.putString(b64After, 'data_url');
                     updateData.imageAfter = await refAfter.getDownloadURL();
                 }
-            } else if (st === 'Processing') {
+            } else if (['Processing', 'WaitingParts', 'PendingApproval'].includes(st)) {
                 const r = appData.reqs.find(x => x.jobID === jobId);
                 if (!r.acceptedDate) updateData.acceptedDate = new Date().toISOString();
             }
@@ -1861,7 +1847,7 @@
             }
 
             try {
-                await db.collection('requests').doc(jobId).update(updateData);
+                await auditedJobWrite(jobId, updateData, 'แก้ไขใบงาน');
             } catch (e) {
                 if (stockChanged) { try { await applyStockDelta(newUsage, oldUsage); } catch (e2) { console.error('Stock rollback failed', e2); } }
                 throw e;
@@ -1879,6 +1865,7 @@
     }
 
     async function deleteJobPrompt(jobId) {
+        if (!requireSuperAdmin()) return;
         const r = appData.reqs.find(x => x.jobID === jobId);
         if (!r) return Swal.fire('Error', 'ไม่พบข้อมูลงาน', 'error');
 
@@ -1889,7 +1876,7 @@
             confirmButtonColor: '#ef4444', showCancelButton: true
         });
         if (!enteredUserPin) return;
-        if (String(enteredUserPin) !== String(r.userPin)) return Swal.fire('รหัสไม่ถูกต้อง', 'รหัส PIN ผู้แจ้งไม่ตรงกัน', 'error');
+        try { await callBackend('adminVerify',{jobId,pin:String(enteredUserPin)}); } catch(e) { return Swal.fire('ยืนยันไม่สำเร็จ',e.message,'error'); }
 
         const { value: enteredAdminPass } = await Swal.fire({
             title: 'ยืนยันการลบงาน (2/2)',
@@ -1898,7 +1885,7 @@
             confirmButtonColor: '#ef4444', showCancelButton: true
         });
         if (!enteredAdminPass) return;
-        if (enteredAdminPass !== appData.adminPass) return Swal.fire('รหัสไม่ถูกต้อง', 'รหัส Admin ไม่ถูกต้อง', 'error');
+        try { await callBackend('adminVerify',{jobId,password:enteredAdminPass}); } catch(e) { return Swal.fire('ยืนยันไม่สำเร็จ',e.message,'error'); }
 
         const { isConfirmed, value: returnStockChecked } = await Swal.fire({
             title: 'ยืนยันการลบถาวร',
@@ -1915,13 +1902,20 @@
 
         if (isConfirmed) {
             Swal.fire({ title: 'กำลังลบข้อมูล...', didOpen: () => Swal.showLoading() });
+            let returnedStock = false;
+            let deleteCommitted = false;
             try {
-                if (returnStock) await applyStockDelta(r.stockUsage, []);   // คืนสต๊อกก่อนลบ ถ้าคืนไม่ได้จะไม่ลบงาน
-                await db.collection('requests').doc(jobId).delete();
+                if (returnStock) { await applyStockDelta(r.stockUsage, []); returnedStock = true; }
+                await auditedJobWrite(jobId, {}, 'ลบใบงาน', 'delete');
+                deleteCommitted = true;
                 try { await removeRepairFromAsset(r); } catch (e) { console.warn('Asset history remove failed', e); }
                 await refreshData(true);
                 Swal.fire('Deleted!', 'ลบข้อมูลออกจากระบบสำเร็จ', 'success');
             } catch (e) {
+                if (returnedStock && !deleteCommitted) {
+                    try { await applyStockDelta([], r.stockUsage); }
+                    catch (stockError) { e.message += ' · คืนสต๊อกกลับไม่สำเร็จ กรุณาตรวจสอบทะเบียนอะไหล่: ' + stockError.message; }
+                }
                 Swal.fire('Error', String(e), 'error');
             }
         }
@@ -1935,18 +1929,20 @@
             const list = appData.lists[k] || [];
             const el   = $('list-' + k);
             el.innerHTML = list.length
-                ? list.map(x => `<li class="flex justify-between items-center border-b border-slate-200 last:border-0 px-2 py-1.5 hover:bg-white rounded"><span>${x}</span><button onclick="modifyList('${k}','del','${x}')" class="text-red-500 hover:text-red-700 font-bold px-2">×</button></li>`).join('')
+                ? list.map(x => `<li class="flex justify-between items-center border-b border-slate-200 last:border-0 px-2 py-1.5 hover:bg-white rounded"><span>${escHtml(x)}</span><button onclick="modifyList('${k}','del',${inlineArg(x)})" class="text-red-500 hover:text-red-700 font-bold px-2">×</button></li>`).join('')
                 : `<li class="text-center pt-10 text-slate-400">Empty</li>`;
         });
     }
 
     function renderDrops() {
-        const opts = list => '<option value="">-- Select --</option>' + (list || []).map(x => `<option value="${x}">${x}</option>`).join('');
+        const opts = list => '<option value="">-- Select --</option>' + (list || []).map(x => `<option value="${escHtml(x)}">${escHtml(x)}</option>`).join('');
         $('reqDept').innerHTML  = opts(appData.lists.depts);
         $('modalTech').innerHTML = opts(appData.lists.techs);
     }
 
     const STATUS_BADGE = {
+        WaitingParts: '<span class="inline-flex whitespace-nowrap px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">รออะไหล่</span>',
+        PendingApproval: '<span class="inline-flex whitespace-nowrap px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">รออนุมัติ</span>',
         Waiting:    `<span class="inline-flex items-center gap-1 whitespace-nowrap px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200 ">Waiting</span>`,
         Processing: `<span class="inline-flex items-center gap-1 whitespace-nowrap px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">Processing</span>`,
         Done:       `<span class="inline-flex items-center gap-1 whitespace-nowrap px-2 py-0.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-300">Wait Verify</span>`,
@@ -1956,7 +1952,7 @@
         _default:   `<span class="inline-flex items-center whitespace-nowrap px-2 py-0.5 rounded text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">`
     };
 
-    function getBadge(status) { return STATUS_BADGE[status] || (STATUS_BADGE._default + status + '</span>'); }
+    function getBadge(status) { return STATUS_BADGE[status] || (STATUS_BADGE._default + escHtml(status) + '</span>'); }
 
     // badge + ป้ายงานที่รอการยืนยัน (ขอยกเลิก / ซ่อมไม่ได้รอผู้แจ้งยืนยัน)
     function badgeFor(r) {
@@ -1968,7 +1964,7 @@
     }
 
     function statusLabel(r) {
-        const base = { Waiting: 'รอรับงาน', Processing: 'กำลังดำเนินการ', Done: 'รอตรวจสอบ', Closed: 'ปิดงานแล้ว', Cancelled: 'ยกเลิก', Unrepairable: 'ซ่อมไม่ได้' }[r.status] || r.status || '-';
+        const base = { Waiting: 'รอรับงาน', Processing: 'กำลังดำเนินการ', WaitingParts: 'รออะไหล่', PendingApproval: 'รออนุมัติ', Done: 'รอตรวจสอบ', Closed: 'ปิดงานแล้ว', Cancelled: 'ยกเลิก', Unrepairable: 'ซ่อมไม่ได้' }[r.status] || r.status || '-';
         if (hasCancelRequest(r)) return base + ' (รอยืนยันยกเลิก)';
         if (r.status === 'Unrepairable' && !r.unrepairableConfirmedDate) return base + ' (รอผู้แจ้งยืนยัน)';
         return base;
@@ -2018,22 +2014,22 @@
         const html = sorted.map(([month, rows], idx) => {
             const rowsHtml = rows.map(r => {
                 const hasRemark  = r.adminRemarks?.trim();
-                let detail       = hasRemark ? `หมายเหตุช่าง: ${r.adminRemarks}` : r.problemDetails;
+                let detail       = hasRemark ? `หมายเหตุช่าง: ${escHtml(r.adminRemarks)}` : escHtml(r.problemDetails);
                 let remarkCls    = hasRemark ? 'text-blue-800 italic border-blue-300' : 'text-slate-500 border-slate-200';
                 if (r.status === 'Cancelled') { detail = `ยกเลิก: ${escHtml(r.cancelReason || '-')}${r.cancelRefJobId ? ` · แจ้งใหม่เป็นใบ ${escHtml(r.cancelRefJobId)}` : ''}`; remarkCls = 'text-slate-600 border-slate-400'; }
                 else if (r.status === 'Unrepairable') { detail = `ซ่อมไม่ได้: ${escHtml(unrepairText(r) || '-')}`; remarkCls = 'text-orange-800 border-orange-400'; }
                 let dateStr = '-';
                 try { dateStr = new Date(r.requestDate).toLocaleString('th-TH', thLocale); } catch (_) {}
-                return `<div onclick="openDetailModal('${r.jobID}')" class="p-4 hover:bg-slate-50 cursor-pointer transition active:bg-slate-100 group ${getUrgClass(r)}">
+                return `<div onclick="openDetailModal(${inlineArg(r.jobID)})" class="p-4 hover:bg-slate-50 cursor-pointer transition active:bg-slate-100 group ${getUrgClass(r)}">
                     <div class="flex justify-between items-center gap-2 mb-1.5">
-                        <span class="text-blue-700 font-mono text-xs font-semibold tracking-wide">${r.jobID}</span>
+                        <span class="text-blue-700 font-mono text-xs font-semibold tracking-wide">${escHtml(r.jobID)}</span>
                         ${badgeFor(r)}
                     </div>
-                    <div class="mb-2"><span class="${r.status === 'Cancelled' ? 'text-slate-500 line-through' : 'text-slate-900'} font-bold text-[15px] block leading-relaxed break-words">${r.equipmentLocation}</span></div>
+                    <div class="mb-2"><span class="${r.status === 'Cancelled' ? 'text-slate-500 line-through' : 'text-slate-900'} font-bold text-[15px] block leading-relaxed break-words">${escHtml(r.equipmentLocation)}</span></div>
                     <div class="text-sm ${remarkCls} break-words leading-relaxed border-l-2 pl-2 mb-3">${detail}</div>
                     <div class="flex items-center gap-4 text-xs text-slate-500">
                         <div class="flex items-center gap-1 overflow-hidden whitespace-nowrap text-ellipsis max-w-[50%]">
-                            <span class="text-slate-400">ผู้แจ้ง</span><span class="text-slate-700 font-medium truncate">${r.requesterName}</span>
+                            <span class="text-slate-400">ผู้แจ้ง</span><span class="text-slate-700 font-medium truncate">${escHtml(r.requesterName)}</span>
                         </div>
                         <div class="flex items-center gap-1 whitespace-nowrap"><span class="text-slate-400">วันที่</span><span>${dateStr}</span></div>
                         <span class="ml-auto text-slate-300 group-hover:text-blue-500 transition">›</span>
@@ -2055,6 +2051,7 @@
     }
 
     function renderAdmin() {
+        if (!appData.isAdmin) return;
         const tbody = $('adminTableBody');
         const rows  = appData.reqs.map(r => {
             let trCls = 'hover:bg-slate-50';
@@ -2066,20 +2063,21 @@
             else if (r.urgency === 'Medium') trCls += ' urgency-medium-blink';
 
             const pendingOwner = r.status === 'Unrepairable' && !r.unrepairableConfirmedDate;
-            const cancelBtn = !canCancel(r) ? ''
+            const cancelBtn = !isSuperAdmin() || !canCancel(r) ? ''
                 : hasCancelRequest(r)
-                ? `<button onclick="adminCancelJob('${r.jobID}')" class="btn bg-red-700 hover:bg-red-800 text-white px-2.5 py-1 text-xs mr-1 mb-1 md:mb-0">ยืนยันยกเลิก</button>`
-                : `<button onclick="adminCancelJob('${r.jobID}')" class="btn bg-white text-slate-600 hover:bg-slate-100 border border-slate-300 px-2.5 py-1 text-xs mr-1 mb-1 md:mb-0">ยกเลิก</button>`;
-            return `<tr class="${trCls}" data-status="${r.status}" data-cancelreq="${hasCancelRequest(r) ? 1 : 0}" data-pending="${pendingOwner ? 1 : 0}">
-                <td class="p-3 text-center"><input type="checkbox" class="chk-job accent-blue-600 w-4 h-4 cursor-pointer" value="${r.jobID}"></td>
+                ? `<button onclick="adminCancelJob(${inlineArg(r.jobID)})" class="btn bg-red-700 hover:bg-red-800 text-white px-2.5 py-1 text-xs mr-1 mb-1 md:mb-0">ยืนยันยกเลิก</button>`
+                : `<button onclick="adminCancelJob(${inlineArg(r.jobID)})" class="btn bg-white text-slate-600 hover:bg-slate-100 border border-slate-300 px-2.5 py-1 text-xs mr-1 mb-1 md:mb-0">ยกเลิก</button>`;
+            return `<tr class="${trCls}" data-status="${escHtml(r.status)}" data-cancelreq="${hasCancelRequest(r) ? 1 : 0}" data-pending="${pendingOwner ? 1 : 0}">
+                <td class="p-3 text-center"><input type="checkbox" class="chk-job accent-blue-600 w-4 h-4 cursor-pointer" value="${escHtml(r.jobID)}"></td>
                 <td class="p-3 text-xs">${badgeFor(r).replace('justify-end', 'justify-start')}</td>
-                <td class="p-3 font-mono text-xs text-blue-700 font-semibold whitespace-nowrap">${r.jobID}</td>
-                <td class="p-3 text-sm text-slate-700">${r.requesterName}</td>
-                <td class="p-3 text-sm text-slate-700 max-w-[220px] truncate" title="${r.equipmentLocation}">${r.equipmentLocation}</td>
+                <td class="p-3 font-mono text-xs text-blue-700 font-semibold whitespace-nowrap">${escHtml(r.jobID)}</td>
+                <td class="p-3 text-sm text-slate-700">${escHtml(r.requesterName)}</td>
+                <td class="p-3 text-sm text-slate-700 max-w-[220px] truncate" title="${escHtml(r.equipmentLocation)}">${escHtml(r.equipmentLocation)}</td>
                 <td class="p-3 text-right whitespace-nowrap">
                     ${cancelBtn}
-                    <button onclick="openModal('${r.jobID}')" class="btn bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 px-2.5 py-1 text-xs mr-1 mb-1 md:mb-0">Edit</button>
-                    <button onclick="deleteJobPrompt('${r.jobID}')" class="btn bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 px-2.5 py-1 text-xs">Del</button>
+                    ${isSuperAdmin() ? `<button onclick="openModal(${inlineArg(r.jobID)})" class="btn-soft px-2.5 py-1 text-xs">แก้ไข</button>
+                    <button onclick="deleteJobPrompt(${inlineArg(r.jobID)})" class="btn-danger px-2.5 py-1 text-xs">ลบ</button>` : ''}
+                    ${canCompleteJob(r) ? `<button onclick="completeJob(${inlineArg(r.jobID)})" class="btn-success px-2.5 py-1 text-xs">ซ่อมเสร็จ</button>` : ''}
                 </td>
             </tr>`;
         });
@@ -2093,6 +2091,8 @@
         const pendingCancel = reqs.filter(hasCancelRequest).length;
         $('kpi-total').innerText      = reqs.filter(x => x.status !== 'Cancelled').length;
         $('kpi-waiting').innerText    = reqs.filter(x => x.status === 'Waiting').length;
+        $('kpi-waiting-parts').innerText = reqs.filter(x => x.status === 'WaitingParts').length;
+        $('kpi-pending-approval').innerText = reqs.filter(x => x.status === 'PendingApproval').length;
         $('kpi-processing').innerText = reqs.filter(x => x.status === 'Processing').length;
         $('kpi-done').innerText       = reqs.filter(x => x.status === 'Done' || x.status === 'Closed').length;
         $('kpi-unrepairable').innerText = reqs.filter(x => x.status === 'Unrepairable').length;
@@ -2137,6 +2137,7 @@
         // แสดงเฉพาะขั้นตอนที่งานนี้ผ่านจริง (+ ขั้นถัดไปที่รอเจ้าของงานยืนยัน)
         const steps = [{ label: 'แจ้งซ่อม', date: r.requestDate, who: r.requesterName, reached: true }];
         if (r.acceptedDate) steps.push({ label: 'ช่างรับงาน', date: r.acceptedDate, who: r.technician, reached: true });
+        if (['WaitingParts', 'PendingApproval'].includes(r.status)) steps.push({label: STATUS_TH[r.status], date: r.lastModifiedAt, who: r.lastModifiedBy?.name, reached: true});
         if (isDone) steps.push({ label: 'ช่างปิดงาน', date: tech, who: r.technician, reached: true, key: true, emptyText: noTime, mark: techEstimated ? ' <span title="เวลาอ้างอิงจากประวัติการแก้ไขในระบบ (เติมย้อนหลัง)" class="cursor-help">*</span>' : '' });
         if (r.status === 'Closed') steps.push({ label: 'เจ้าของงานยืนยันปิดงาน', date: owner, who: r.requesterName, reached: true, key: true, emptyText: noTime });
         else if (r.status === 'Done') steps.push({ label: 'เจ้าของงานยืนยันปิดงาน', reached: false, key: true, emptyText: 'รอยืนยัน' });
@@ -2189,7 +2190,7 @@
 
         const sEl = $('d-status');
         sEl.className = 'font-bold text-lg ';
-        sEl.innerText = r.status;
+        sEl.innerText = STATUS_TH[r.status] || r.status;
         if (r.status === 'Waiting')    sEl.classList.add('text-amber-600');
         if (r.status === 'Processing') sEl.classList.add('text-blue-600');
         if (r.status === 'Done')       sEl.classList.add('text-emerald-600');
@@ -2200,7 +2201,7 @@
         renderTimeline(r);
 
         // กล่องผลของงาน: ยกเลิก / ซ่อมไม่ได้ / คำขอยกเลิก / ใบนี้แจ้งแทนใบที่ยกเลิก
-        const jobLink = id => `<a href="javascript:void(0)" onclick="openDetailModal('${escHtml(id)}')" class="font-mono font-semibold text-blue-700 underline">${escHtml(id)}</a>`;
+        const jobLink = id => `<a href="javascript:void(0)" onclick="openDetailModal(${inlineArg(id)})" class="font-mono font-semibold text-blue-700 underline">${escHtml(id)}</a>`;
         const boxes = [];
         if (r.status === 'Cancelled') boxes.push(`<div class="rounded-xl border border-slate-300 bg-slate-100 p-3">
             <div class="font-bold text-slate-800 mb-1">ใบแจ้งซ่อมนี้ถูกยกเลิก</div>
@@ -2224,7 +2225,7 @@
         if (r.status !== 'Waiting' && !cancelledUntouched) {
             admSec.classList.remove('hidden');
             setText('d-tech',   r.technician);
-            setText('d-remark', r.adminRemarks || (['Processing', 'Done'].includes(r.status) ? 'กำลังดำเนินการ...' : '-'));
+            setText('d-remark', r.adminRemarks || (['Processing', 'WaitingParts', 'PendingApproval', 'Done'].includes(r.status) ? 'กำลังดำเนินการ...' : '-'));
             const costBox = $('d-cost-box');
             if (r.cost && +r.cost > 0) {
                 costBox.classList.remove('hidden');
@@ -2234,20 +2235,25 @@
 
         const setImg = (id, url, placeholder) => {
             const div = $(id);
-            div.innerHTML = url
-                ? `<img src="${url}" class="h-full w-full object-cover cursor-pointer hover:scale-105 transition" onclick="openImageViewer('${url}')">`
-                : `<span class="text-slate-400 text-xs">${placeholder}</span>`;
+            div.replaceChildren();
+            if (url && /^https?:\/\//i.test(url)) {
+                const img = document.createElement('img');
+                img.src = url; img.className = 'h-full w-full object-cover cursor-pointer hover:scale-105 transition';
+                img.addEventListener('click', () => openImageViewer(url)); div.appendChild(img);
+            } else {
+                const span = document.createElement('span'); span.className = 'text-slate-400 text-xs'; span.textContent = placeholder; div.appendChild(span);
+            }
         };
         setImg('d-img-before', r.imageBefore, 'ไม่มีรูป');
         setImg('d-img-after',  r.imageAfter,  'ไม่มีรูป');
 
         const vDiv = $('d-verify-area');
         vDiv.innerHTML = r.status === 'Done'
-            ? `<button onclick="closeDetailModal();verifyUserJob('${r.jobID}','${r.userPin||''}')" class="btn-success w-full py-3 text-base">ยืนยันจบงาน (Verify & Close)</button>`
+            ? `<button onclick="closeDetailModal();verifyUserJob(${inlineArg(r.jobID)})" class="btn-success w-full py-3 text-base">ยืนยันจบงาน (Verify & Close)</button>`
             : r.status === 'Unrepairable' && !r.unrepairableConfirmedDate
-            ? `<button onclick="closeDetailModal();confirmUnrepairable('${r.jobID}')" class="btn bg-orange-700 hover:bg-orange-800 text-white w-full py-3 text-base">ยืนยันรับทราบ ซ่อมไม่ได้ (ใส่ PIN)</button>`
+            ? `<button onclick="closeDetailModal();confirmUnrepairable(${inlineArg(r.jobID)})" class="btn bg-orange-700 hover:bg-orange-800 text-white w-full py-3 text-base">ยืนยันรับทราบ ซ่อมไม่ได้ (ใส่ PIN)</button>`
             : canCancel(r) && !hasCancelRequest(r)
-            ? `<button onclick="closeDetailModal();requestCancelJob('${r.jobID}')" class="btn bg-white text-red-700 hover:bg-red-50 border border-red-300 w-full py-2 text-sm">ขอยกเลิกใบแจ้งซ่อมนี้</button>`
+            ? `<button onclick="closeDetailModal();requestCancelJob(${inlineArg(r.jobID)})" class="btn bg-white text-red-700 hover:bg-red-50 border border-red-300 w-full py-2 text-sm">ขอยกเลิกใบแจ้งซ่อมนี้</button>`
             : '';
 
         $('detailModal').style.display = 'flex';
@@ -2258,47 +2264,36 @@
     // 12. AUTH & MODAL HELPERS (ดึงรหัสผ่านจาก Firebase)
     // ----------------------------------------------------------------
     async function showLoginModal() {
-        const { value: enteredPass } = await Swal.fire({ 
-            title: 'Admin Login', 
-            input: 'password', 
-             
-        });
-        if (!enteredPass) return;
-
-        Swal.fire({ title: 'ตรวจสอบรหัสผ่าน...', didOpen: () => Swal.showLoading() });
-        
+        const {value:password}=await Swal.fire({title:'Admin Login',input:'password',inputAttributes:{autocomplete:'current-password'},showCancelButton:true,cancelButtonText:'ยกเลิก'});
+        if(!password)return;
+        Swal.fire({title:'ตรวจสอบรหัสผ่าน...',didOpen:()=>Swal.showLoading()});
         try {
-            const doc = await db.collection('system').doc('config').get();
-            let correctPass = '888';
-            
-            if (doc.exists && doc.data().adminPass) {
-                correctPass = doc.data().adminPass;
-            }
-            
-            if (enteredPass === correctPass) {
-                appData.isAdmin = true;
-                document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
-                $('btnLogin').classList.add('hidden');
-                $('btnLogout').classList.remove('hidden');
-                Swal.close();
-                switchTab('settings');
-            } else {
-                Swal.fire('Error', 'รหัสผ่านไม่ถูกต้อง', 'error');
-            }
-        } catch (e) {
-            Swal.fire('Error', 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้', 'error');
-        }
+            const result=await callBackend('adminLogin',{password});
+            await auth.signInWithCustomToken(result.token);
+            const session=await callBackend('adminSession',{});
+            setAdminSession(session.actor); await loadSystemConfig(); await refreshData(true);
+            Swal.close(); switchTab('dashboard');
+        } catch(e) {setAdminSession(null); await auth.signOut(); await auth.signInAnonymously(); Swal.fire('เข้าสู่ระบบไม่สำเร็จ',e.message,'error');}
     }
 
-    function logout() { location.reload(); }
+    async function logout() { await auth.signOut(); location.reload(); }
 
     function switchTab(id) {
+        if (['dashboard', 'account'].includes(id) && !requireAdmin()) return;
+        if (id !== 'account') ['account-current-password','account-new-password','account-confirm-password'].forEach(field => $(field).value = '');
+        if (['settings', 'statistics', 'adminlogs', 'requesterpins'].includes(id) && !requireSuperAdmin()) return;
+        if (!$('view-' + id) || !$('tab-' + id)) return;
+        // Clear revealed PINs whenever the PIN page is left.
+        if (id !== 'requesterpins') $('requesterPinRows').replaceChildren();
         document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
         document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
         $('view-' + id).classList.remove('hidden');
         $('tab-' + id).classList.add('active');
         if (id === 'dashboard')  { refreshData(true); }
         if (id === 'statistics') { renderStatistics(); }
+        if (id === 'settings') { refreshAdminAccountStatus(); }
+        if (id === 'adminlogs') { loadAdminLogs(true); }
+        if (id === 'requesterpins') { renderRequesterPins(); }
     }
 
     function closeModal() { $('adminModal').classList.add('hidden'); }
@@ -2306,8 +2301,8 @@
     function toggleAdminFields() {
         const st = $('modalStatus').value;
         const isDone = st === 'Done' || st === 'Closed' || st === 'Unrepairable' || st === 'Cancelled';
-        $('costSection').style.display        = (isDone || st === 'Processing') ? 'block' : 'none';
-        $('adminImageSection').style.display  = (isDone || st === 'Processing') ? 'block' : 'none';
+        $('costSection').style.display        = (isDone || ['Processing', 'WaitingParts', 'PendingApproval'].includes(st)) ? 'block' : 'none';
+        $('adminImageSection').style.display  = (isDone || ['Processing', 'WaitingParts', 'PendingApproval'].includes(st)) ? 'block' : 'none';
         $('unrepairSection').classList.toggle('hidden', st !== 'Unrepairable');
         $('cancelInfoSection').classList.toggle('hidden', st !== 'Cancelled');
         renderSparePanel();
@@ -2415,5 +2410,7 @@
         });
     }
     </script>
+    <script src="data-store.js"></script>
+    <script src="admin-controls.js"></script>
 </body>
 </html>
