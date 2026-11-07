@@ -1698,7 +1698,7 @@
     // 9. ADMIN FUNCTIONS (Firebase)
     // ----------------------------------------------------------------
     function openModal(id) {
-        if (!requireSuperAdmin()) return;
+        if (!requireAdmin()) return;
         const r = appData.reqs.find(x => x.jobID === id);
         if (!r) return Swal.fire('Error', 'ไม่พบข้อมูลงาน', 'error');
 
@@ -1743,7 +1743,7 @@
     }
 
     async function saveJob() {
-        if (!requireSuperAdmin()) return;
+        if (!requireAdmin()) return;
         const jobId = $('modalJobId').value;
         const st = $('modalStatus').value;
         let items = [], cost = 0;
@@ -2075,8 +2075,8 @@
                 <td class="p-3 text-sm text-slate-700 max-w-[220px] truncate" title="${escHtml(r.equipmentLocation)}">${escHtml(r.equipmentLocation)}</td>
                 <td class="p-3 text-right whitespace-nowrap">
                     ${cancelBtn}
-                    ${isSuperAdmin() ? `<button onclick="openModal(${inlineArg(r.jobID)})" class="btn-soft px-2.5 py-1 text-xs">แก้ไข</button>
-                    <button onclick="deleteJobPrompt(${inlineArg(r.jobID)})" class="btn-danger px-2.5 py-1 text-xs">ลบ</button>` : ''}
+                    <button onclick="openModal(${inlineArg(r.jobID)})" class="btn-soft px-2.5 py-1 text-xs">แก้ไข</button>
+                    ${isSuperAdmin() ? `<button onclick="deleteJobPrompt(${inlineArg(r.jobID)})" class="btn-danger px-2.5 py-1 text-xs">ลบ</button>` : ''}
                     ${canCompleteJob(r) ? `<button onclick="completeJob(${inlineArg(r.jobID)})" class="btn-success px-2.5 py-1 text-xs">ซ่อมเสร็จ</button>` : ''}
                 </td>
             </tr>`;

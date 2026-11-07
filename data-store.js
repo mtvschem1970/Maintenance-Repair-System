@@ -26,7 +26,7 @@ globalThis.maintenanceData = (() => {
     return {kind:'job',actor:who,action,target,before,after,timestamp:F.serverTimestamp(),...extra};
   }
   async function jobWrite({jobId,patch={},mode='update',action}) {
-    const who=await actor(mode!=='complete');
+    const who=await actor(mode==='set'||mode==='delete');
     if(!['update','set','delete','complete'].includes(mode)) fail('การทำรายการไม่ถูกต้อง');
     const ref=requests().doc(jobId), log=auditRef();
     const input={...patch}; const pin=input.userPin; delete input.userPin;
