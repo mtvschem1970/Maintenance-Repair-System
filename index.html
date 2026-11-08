@@ -53,6 +53,16 @@
             .tab-btn         { @apply px-4 py-2.5 text-sm font-medium border-b-2 border-transparent text-slate-300 hover:text-white transition whitespace-nowrap; }
             .tab-btn.active  { @apply text-white border-amber-400; }
         }
+        .management-section { scroll-margin-top: 20px; }
+        .management-heading { display: flex; align-items: center; gap: 10px; font-size: 1.2rem; font-weight: 700; color: #1c2b3d; }
+        .management-number { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 34px; height: 34px; border: 1px solid #c4cdd8; border-radius: 6px; background: #e3e8ee; font-size: .8rem; color: #526377; }
+        .management-links { display: flex; flex-wrap: wrap; gap: 8px; }
+        .management-links a { padding: 8px 12px; border: 1px solid #c4cdd8; border-radius: 5px; background: #f6f7f9; font-size: .85rem; }
+        .management-links a:hover { background: #e3e8ee; }
+        .management-password-form { max-width: 36rem; }
+        .management-log-list { max-height: 36rem; overflow-y: auto; }
+        .management-pin-table { max-height: 26rem; overflow-y: auto; }
+        .management-pin-table thead { position: sticky; top: 0; background: #edf0f4; z-index: 1; }
     </style>
     <style>
         html, body { height: 100vh; height: 100dvh; }
@@ -154,10 +164,7 @@
                 <button onclick="switchTab('status')"     id="tab-status"     class="tab-btn">ติดตามงาน</button>
                 <button onclick="switchTab('statistics')" id="tab-statistics" class="tab-btn hidden super-admin-only">สถิติ</button>
                 <button onclick="switchTab('dashboard')"  id="tab-dashboard"  class="tab-btn hidden admin-only">Admin</button>
-                <button onclick="switchTab('account')" id="tab-account" class="tab-btn hidden admin-only">บัญชีของฉัน</button>
-                <button onclick="switchTab('settings')"   id="tab-settings"   class="tab-btn hidden super-admin-only">ตั้งค่า</button>
-                <button onclick="switchTab('adminlogs')" id="tab-adminlogs" class="tab-btn hidden super-admin-only">Log แอดมิน</button>
-                <button onclick="switchTab('requesterpins')" id="tab-requesterpins" class="tab-btn hidden super-admin-only">PIN ผู้แจ้ง</button>
+                <button onclick="switchTab('management')" id="tab-management" class="tab-btn hidden admin-only">จัดการระบบ</button>
             </div>
         </nav>
     </header>
@@ -217,28 +224,7 @@
         </div>
 
         <!-- Settings: super admin only -->
-        <section id="view-settings" class="view-section hidden max-w-5xl mx-auto space-y-5">
-            <h2 class="text-2xl font-bold">ตั้งค่าระบบ</h2>
-            <div class="card p-5 space-y-4">
-                <h3 class="card-title">เลขใบแจ้งซ่อม</h3>
-                <div class="grid grid-cols-2 gap-4"><div><label class="lbl" for="setting-id-prefix">คำนำหน้า</label><input id="setting-id-prefix" class="field" maxlength="30"></div><div><label class="lbl" for="setting-id-start">เลขเริ่มต้น</label><input id="setting-id-start" type="number" min="1" class="field"></div></div>
-                <p class="text-sm text-slate-500">ตัวอย่าง: <span id="id-preview"></span></p>
-                <button onclick="saveSystemSettings()" class="btn-primary px-4 py-2">บันทึกการตั้งค่า</button>
-            </div>
-            <div class="card p-5 space-y-4">
-                <h3 class="card-title">บัญชี Admin รอง</h3>
-                <p class="text-sm text-slate-500">เปลี่ยนรหัสของคุณเองได้ที่หน้า “บัญชีของฉัน” ส่วนนี้ใช้รีเซ็ตรหัสหรือเปิด–ปิดบัญชี Admin รอง</p>
-                <p id="limited-account-status" class="text-sm text-slate-500">กำลังตรวจสถานะบัญชี...</p>
-                <label class="flex items-center gap-2"><input id="setting-limited-enabled" type="checkbox"> เปิดใช้ Admin รอง</label>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="lbl" for="setting-limited-pass">รหัสใหม่ของ Admin รอง</label><input id="setting-limited-pass" type="password" autocomplete="new-password" maxlength="128" class="field" placeholder="เว้นว่างเพื่อคงรหัสเดิม"></div><div><label class="lbl" for="setting-limited-confirm">ยืนยันรหัสใหม่</label><input id="setting-limited-confirm" type="password" autocomplete="new-password" maxlength="128" class="field"></div></div>
-                <button id="limited-account-save" onclick="saveLimitedAdminAccount()" disabled class="btn-primary px-4 py-2">บันทึกบัญชี Admin รอง</button>
-                <button onclick="refreshAdminAccountStatus()" class="btn-soft px-4 py-2">ตรวจสถานะอีกครั้ง</button>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div class="card p-5"><h3 class="card-title mb-3">แผนก</h3><div class="flex gap-2 mb-3"><input id="new-dept" class="field-sm flex-1" placeholder="เพิ่มแผนก"><button onclick="modifyList('depts','add','new-dept')" class="btn-success px-3">เพิ่ม</button></div><ul id="list-depts" class="max-h-52 overflow-y-auto"></ul></div>
-                <div class="card p-5"><h3 class="card-title mb-3">ช่าง</h3><div class="flex gap-2 mb-3"><input id="new-tech" class="field-sm flex-1" placeholder="เพิ่มช่าง"><button onclick="modifyList('techs','add','new-tech')" class="btn-success px-3">เพิ่ม</button></div><ul id="list-techs" class="max-h-52 overflow-y-auto"></ul></div>
-            </div>
-        </section>
+        
 
         <!-- Status -->
         <div id="view-status" class="view-section hidden max-w-4xl mx-auto fade-in">
@@ -335,24 +321,25 @@
             </div>
         </div>
 
-        <section id="view-adminlogs" class="view-section hidden max-w-6xl mx-auto space-y-4">
-            <div class="flex flex-wrap justify-between gap-3"><h2 class="text-2xl font-bold">Log แอดมิน</h2><button onclick="loadAdminLogs(true)" class="btn-soft px-4 py-2">รีเฟรช</button></div>
-            <p class="text-sm text-slate-500">แสดงผู้ทำรายการ เวลาไทย และข้อมูลก่อน–หลังแก้ไข โดยไม่แสดงรหัสผ่านหรือ PIN ใน Log</p>
-            <input id="adminLogSearch" oninput="renderAdminLogs()" class="field" placeholder="ค้นหา Log ที่โหลดแล้ว: ชื่อแอดมิน / เลขใบงาน / การทำรายการ" aria-label="ค้นหา Log แอดมิน">
-            <div id="adminLogList" class="space-y-3"></div>
-            <button id="adminLogMore" onclick="loadAdminLogs(false)" class="hidden btn-soft px-4 py-2">โหลด Log เพิ่มเติม</button>
-        </section>
-        <section id="view-requesterpins" class="view-section hidden max-w-5xl mx-auto space-y-4">
-            <h2 class="text-2xl font-bold">PIN ผู้แจ้ง · เฉพาะ Admin ใหญ่</h2>
-            <p class="text-sm text-slate-500">ค้นหาใบงานแล้วกดดู PIN เมื่อผู้แจ้งลืมรหัส ทุกครั้งที่เปิดดูจะบันทึกใน Log แอดมิน</p>
-            <input id="requesterPinSearch" oninput="renderRequesterPins()" class="field" placeholder="ค้นหาเลขใบงาน / ชื่อผู้แจ้ง / อุปกรณ์" aria-label="ค้นหา PIN ผู้แจ้ง">
-            <div class="card overflow-x-auto"><table class="w-full text-left text-sm"><thead><tr><th class="p-3">ใบงาน</th><th class="p-3">ผู้แจ้ง</th><th class="p-3">อุปกรณ์</th><th class="p-3">PIN</th></tr></thead><tbody id="requesterPinRows"></tbody></table></div>
-        </section>
-        <section id="view-account" class="view-section hidden max-w-xl mx-auto">
-            <div class="card p-5 space-y-4">
-                <h2 class="text-xl font-bold">เปลี่ยนรหัสของฉัน</h2>
+        
+        
+        
+
+        <section id="view-management" class="view-section hidden max-w-6xl mx-auto space-y-6 pb-6">
+            <div class="card p-5 md:p-6 space-y-4">
+                <div><h1 class="text-2xl font-bold text-slate-900">จัดการระบบ</h1><p class="text-sm text-slate-500 mt-1">บัญชี การตั้งค่า และประวัติการทำรายการ รวมไว้ในหน้าเดียว</p></div>
+                <nav aria-label="หัวข้อการจัดการระบบ" class="management-links">
+                    <a href="#view-account">01 บัญชีของฉัน</a>
+                    <a href="#view-settings" class="hidden super-admin-only">02 ตั้งค่าระบบ</a>
+                    <a href="#view-adminlogs" class="hidden super-admin-only">03 Log แอดมิน</a>
+                    <a href="#view-requesterpins" class="hidden super-admin-only">04 PIN ผู้แจ้ง</a>
+                </nav>
+            </div>
+            <section id="view-account" class="management-section space-y-4" aria-labelledby="heading-account">
+            <div class="card p-5 md:p-6 space-y-4">
+                <h2 id="heading-account" class="management-heading"><span class="management-number">01</span>บัญชีของฉัน</h2>
                 <p id="account-role" class="text-sm text-slate-500"></p>
-                <form onsubmit="changeOwnAdminPassword(event)" class="space-y-4">
+                <form onsubmit="changeOwnAdminPassword(event)" class="space-y-4 management-password-form">
                     <div><label class="lbl" for="account-current-password">รหัสเดิม</label><input id="account-current-password" type="password" autocomplete="current-password" maxlength="128" required class="field"></div>
                     <div><label class="lbl" for="account-new-password">รหัสใหม่</label><input id="account-new-password" type="password" autocomplete="new-password" minlength="8" maxlength="128" required class="field"><p class="text-xs text-slate-500 mt-1">อย่างน้อย 8 ตัว และต้องต่างจากรหัสของแอดมินอีกบัญชี</p></div>
                     <div><label class="lbl" for="account-confirm-password">ยืนยันรหัสใหม่</label><input id="account-confirm-password" type="password" autocomplete="new-password" minlength="8" maxlength="128" required class="field"></div>
@@ -360,6 +347,42 @@
                     <p class="text-xs text-slate-500">เมื่อบันทึกสำเร็จ กรุณาเข้าสู่ระบบอีกครั้งด้วยรหัสใหม่</p>
                 </form>
             </div>
+        </section>
+            <section id="view-settings" class="management-section space-y-4 hidden super-admin-only" aria-labelledby="heading-settings">
+            <h2 id="heading-settings" class="management-heading"><span class="management-number">02</span>ตั้งค่าระบบ</h2>
+            <div class="card p-5 space-y-4">
+                <h3 class="card-title">เลขใบแจ้งซ่อม</h3>
+                <div class="grid grid-cols-2 gap-4"><div><label class="lbl" for="setting-id-prefix">คำนำหน้า</label><input id="setting-id-prefix" class="field" maxlength="30"></div><div><label class="lbl" for="setting-id-start">เลขเริ่มต้น</label><input id="setting-id-start" type="number" min="1" class="field"></div></div>
+                <p class="text-sm text-slate-500">ตัวอย่าง: <span id="id-preview"></span></p>
+                <button onclick="saveSystemSettings()" class="btn-primary px-4 py-2">บันทึกการตั้งค่า</button>
+            </div>
+            <div class="card p-5 space-y-4">
+                <h3 class="card-title">บัญชี Admin รอง</h3>
+                <p class="text-sm text-slate-500">เปลี่ยนรหัสของคุณเองได้ที่ส่วน “บัญชีของฉัน” ด้านบน ส่วนนี้ใช้รีเซ็ตรหัสหรือเปิด–ปิดบัญชี Admin รอง</p>
+                <p id="limited-account-status" class="text-sm text-slate-500">กำลังตรวจสถานะบัญชี...</p>
+                <label class="flex items-center gap-2"><input id="setting-limited-enabled" type="checkbox"> เปิดใช้ Admin รอง</label>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label class="lbl" for="setting-limited-pass">รหัสใหม่ของ Admin รอง</label><input id="setting-limited-pass" type="password" autocomplete="new-password" maxlength="128" class="field" placeholder="เว้นว่างเพื่อคงรหัสเดิม"></div><div><label class="lbl" for="setting-limited-confirm">ยืนยันรหัสใหม่</label><input id="setting-limited-confirm" type="password" autocomplete="new-password" maxlength="128" class="field"></div></div>
+                <button id="limited-account-save" onclick="saveLimitedAdminAccount()" disabled class="btn-primary px-4 py-2">บันทึกบัญชี Admin รอง</button>
+                <button onclick="refreshAdminAccountStatus()" class="btn-soft px-4 py-2">ตรวจสถานะอีกครั้ง</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div class="card p-5"><h3 class="card-title mb-3">แผนก</h3><div class="flex gap-2 mb-3"><input id="new-dept" class="field-sm flex-1" placeholder="เพิ่มแผนก"><button onclick="modifyList('depts','add','new-dept')" class="btn-success px-3">เพิ่ม</button></div><ul id="list-depts" class="max-h-52 overflow-y-auto"></ul></div>
+                <div class="card p-5"><h3 class="card-title mb-3">ช่าง</h3><div class="flex gap-2 mb-3"><input id="new-tech" class="field-sm flex-1" placeholder="เพิ่มช่าง"><button onclick="modifyList('techs','add','new-tech')" class="btn-success px-3">เพิ่ม</button></div><ul id="list-techs" class="max-h-52 overflow-y-auto"></ul></div>
+            </div>
+        </section>
+            <section id="view-adminlogs" class="management-section card p-5 md:p-6 space-y-4 hidden super-admin-only" aria-labelledby="heading-adminlogs">
+            <div class="flex flex-wrap justify-between gap-3"><h2 id="heading-adminlogs" class="management-heading"><span class="management-number">03</span>Log แอดมิน</h2><button onclick="loadAdminLogs(true)" class="btn-soft px-4 py-2">รีเฟรช</button></div>
+            <p class="text-sm text-slate-500">แสดงผู้ทำรายการ เวลาไทย และข้อมูลก่อน–หลังแก้ไข โดยไม่แสดงรหัสผ่านหรือ PIN ใน Log</p>
+            <input id="adminLogSearch" oninput="renderAdminLogs()" class="field" placeholder="ค้นหา Log ที่โหลดแล้ว: ชื่อแอดมิน / เลขใบงาน / การทำรายการ" aria-label="ค้นหา Log แอดมิน">
+            <div id="adminLogList" class="space-y-3 management-log-list"></div>
+            <button id="adminLogMore" onclick="loadAdminLogs(false)" class="hidden btn-soft px-4 py-2">โหลด Log เพิ่มเติม</button>
+        </section>
+            <section id="view-requesterpins" class="management-section card p-5 md:p-6 space-y-4 hidden super-admin-only" aria-labelledby="heading-requesterpins">
+            <h2 id="heading-requesterpins" class="management-heading"><span class="management-number">04</span>PIN ผู้แจ้ง</h2>
+            <p class="text-sm text-slate-500">ค้นหาใบงานแล้วกดดู PIN เมื่อผู้แจ้งลืมรหัส ทุกครั้งที่เปิดดูจะบันทึกใน Log แอดมิน</p>
+            <input id="requesterPinSearch" oninput="renderRequesterPins()" class="field" placeholder="ค้นหาเลขใบงาน / ชื่อผู้แจ้ง / อุปกรณ์" aria-label="ค้นหา PIN ผู้แจ้ง">
+            <div class="card overflow-x-auto management-pin-table"><table class="w-full text-left text-sm"><thead><tr><th class="p-3">ใบงาน</th><th class="p-3">ผู้แจ้ง</th><th class="p-3">อุปกรณ์</th><th class="p-3">PIN</th></tr></thead><tbody id="requesterPinRows"></tbody></table></div>
+        </section>
         </section>
     </main>
     <!-- Footer -->
@@ -2280,21 +2303,29 @@
     async function logout() { await auth.signOut(); location.reload(); }
 
     function switchTab(id) {
-        if (['dashboard', 'account'].includes(id) && !requireAdmin()) return;
-        if (id !== 'account') ['account-current-password','account-new-password','account-confirm-password'].forEach(field => $(field).value = '');
+        const managementSections = ['account', 'settings', 'adminlogs', 'requesterpins'];
+        if (['dashboard', 'management', 'account'].includes(id) && !requireAdmin()) return;
         if (['settings', 'statistics', 'adminlogs', 'requesterpins'].includes(id) && !requireSuperAdmin()) return;
+        const sectionId = managementSections.includes(id) ? id : null;
+        if (sectionId) id = 'management';
         if (!$('view-' + id) || !$('tab-' + id)) return;
-        // Clear revealed PINs whenever the PIN page is left.
-        if (id !== 'requesterpins') $('requesterPinRows').replaceChildren();
+        if (id !== 'management') {
+            ['account-current-password','account-new-password','account-confirm-password'].forEach(field => $(field).value = '');
+            $('requesterPinRows').replaceChildren();
+        }
         document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
         document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
         $('view-' + id).classList.remove('hidden');
         $('tab-' + id).classList.add('active');
-        if (id === 'dashboard')  { refreshData(true); }
-        if (id === 'statistics') { renderStatistics(); }
-        if (id === 'settings') { refreshAdminAccountStatus(); }
-        if (id === 'adminlogs') { loadAdminLogs(true); }
-        if (id === 'requesterpins') { renderRequesterPins(); }
+        if (id === 'dashboard') refreshData(true);
+        if (id === 'statistics') renderStatistics();
+        if (id === 'management' && isSuperAdmin()) {
+            refreshAdminAccountStatus();
+            loadAdminLogs(true);
+            renderRequesterPins();
+        }
+        if (sectionId) $('view-' + sectionId).scrollIntoView({block:'start'});
+        else document.querySelector('main').scrollTop = 0;
     }
 
     function closeModal() { $('adminModal').classList.add('hidden'); }
