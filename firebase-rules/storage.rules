@@ -1,0 +1,34 @@
+rules_version = '2';
+// Firebase Storage Rules for Maintenance-Repair-System
+// วิธีใช้: Firebase Console > Storage > Rules > วางไฟล์นี้ทั้งไฟล์ > Publish
+// ถ้าในโปรเจกต์มี path อื่นที่ใช้อยู่ ให้คัดลอก match ของ path นั้นมาไว้ด้วย
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signed() { return request.auth != null; }
+    function isAdmin() {
+      return signed() && request.auth.token.get('adminRole', '') in ['super', 'limited']
+        && request.auth.uid == 'maintenance-' + request.auth.token.adminRole;
+    }
+    // รูปที่ย่อแล้วจากหน้าเว็บมีขนาดราว 50-300 KB จำกัดไว้ 5 MB ต่อรูป
+    function validImage() {
+      return request.resource != null && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    // รูปก่อนซ่อมจากฟอร์มแจ้งซ่อม (สูงสุด 6 รูปต่อใบ): request-uploads/<uid>/<รหัสสุ่ม>.jpg
+    match /request-uploads/{uid}/{file} {
+      allow read: if signed();
+      allow create: if signed() && request.auth.uid == uid && validImage()
+        && file.matches('[A-Za-z0-9-]+[.]jpg');
+    }
+
+    // รูปที่แอดมินอัปโหลด
+    //   ใหม่: <เลขใบงาน>_BEFORE_<รหัสสุ่ม>.jpg, <เลขใบงาน>_AFTER_<รหัสสุ่ม>.jpg
+    //   เดิม: <เลขใบงาน>_AFTER.jpg, <เลขใบงาน>_BEFORE_UPDATED.jpg
+    match /jobs/{file} {
+      allow read: if signed();
+      allow write: if isAdmin() && validImage()
+        && file.matches('[A-Za-z0-9-]+_(BEFORE|AFTER)(_[A-Za-z0-9-]+)?[.]jpg');
+    }
+  }
+}
