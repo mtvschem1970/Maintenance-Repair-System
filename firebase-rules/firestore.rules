@@ -1,0 +1,242 @@
+rules_version = '2';
+// Model: requests hold operational job fields only; PIN is in _requestPins.
+// adminLogs: immutable actor/target/before/after maps with server timestamp.
+// _adminAccess: server-written role/version/enabled; no passwords are stored here.
+// _requestProofs: private, short-lived PIN submissions used in an atomic batch.
+// _jobCounters and _jobDeletions: atomic numbering/deletion bookkeeping.
+// 2026-11-14: validJobUpdate checks only changed fields, inline, to stay under the 1000-expression limit; stockUsage is checked as a list only.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signed() { return request.auth != null; }
+    function ready() { return get(/databases/$(database)/documents/_security/state).data.ready == true; }
+    function hasAdminRole() { return signed() && request.auth.token.get('adminRole', '') in ['super','limited']; }
+    function isAdmin() {
+      return hasAdminRole()
+        && request.auth.uid == 'maintenance-' + request.auth.token.adminRole
+        && get(/databases/$(database)/documents/_adminAccess/$(request.auth.uid)).data.enabled == true
+        && get(/databases/$(database)/documents/_adminAccess/$(request.auth.uid)).data.role == request.auth.token.adminRole
+        && get(/databases/$(database)/documents/_adminAccess/$(request.auth.uid)).data.version == request.auth.token.adminVersion;
+    }
+    function isSuper() { return isAdmin() && request.auth.token.adminRole == 'super'; }
+    function actorMatches(a) { return a is map && a.keys().hasOnly(['uid','role']) && a.uid == request.auth.uid && a.role == request.auth.token.adminRole; }
+    function str(d,k,n) { return d.get(k,'') is string && d.get(k,'').size() <= n; }
+    function date(d,k) { return d.get(k,null) == null || (str(d,k,40) && d[k].matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$')); }
+    function url(d,k) { return d.get(k,'') == '' || (str(d,k,4096) && d[k].matches('^https://.*')); }
+    // stockUsage rows are written only by signed-in admins; a deep per-row check costs ~60 expressions per row and hits Firestore's 1000-expression limit.
+    // beforePhotos: list of URLs, afterPhotos: list of {url,pairWith}; at most 6 each. Rows are not deep-checked (expression limit).
+    function photos(d,k) { return d.get(k,[]) is list && d.get(k,[]).size()<=6; }
+    function validStock(rows) { return rows is list && rows.size()<=50; }
+    function validCancel(c) {
+      return c == null || (c is map && c.keys().hasOnly(['requestedDate','reason','refJobId'])
+        && date(c,'requestedDate') && str(c,'reason',2000) && str(c,'refJobId',160));
+    }
+    function validJob(d,id) {
+      return d.keys().hasAll(['jobID','requestDate','requesterName','positionDept','equipmentLocation','problemDetails','status','urgency','cost','itemsData'])
+        && d.keys().hasOnly(['jobID','requestDate','requesterName','positionDept','phoneNumber','equipId','equipmentLocation','problemDetails','urgency','status','imageBefore','imageAfter','beforePhotos','afterPhotos','technician','adminRemarks','additionalNotes','cost','itemsData','stockUsage','acceptedDate','completedDate','techDoneDate','ownerClosedDate','unrepairableReason','unrepairableDetail','unrepairableDate','unrepairableConfirmedDate','cancelRequest','statusBeforeCancel','cancelReason','cancelRefJobId','cancelRequestedDate','cancelledDate','requesterUid','counterId','sequence','lastAdminLogId','lastModifiedBy','lastModifiedAt','lastRequesterProofId'])
+        && d.jobID == id && str(d,'jobID',160) && date(d,'requestDate')
+        && str(d,'requesterName',200) && str(d,'positionDept',200) && str(d,'phoneNumber',200)
+        && str(d,'equipmentLocation',200) && str(d,'equipId',160) && str(d,'problemDetails',5000)
+        && d.status in ['Waiting','Processing','WaitingParts','PendingApproval','Done','Closed','Unrepairable','Cancelled']
+        && d.urgency in ['Low','Medium','High'] && d.cost is number && d.cost>=0 && d.cost<=10000000000
+        && str(d,'itemsData',100000) && validStock(d.get('stockUsage',[]))
+        && url(d,'imageBefore') && url(d,'imageAfter') && photos(d,'beforePhotos') && photos(d,'afterPhotos') && str(d,'technician',200)
+        && str(d,'adminRemarks',5000) && str(d,'additionalNotes',5000)
+        && date(d,'acceptedDate') && date(d,'completedDate') && date(d,'techDoneDate') && date(d,'ownerClosedDate')
+        && str(d,'unrepairableReason',2000) && str(d,'unrepairableDetail',5000)
+        && date(d,'unrepairableDate') && date(d,'unrepairableConfirmedDate') && validCancel(d.get('cancelRequest',null))
+        && str(d,'statusBeforeCancel',40) && str(d,'cancelReason',2000) && str(d,'cancelRefJobId',160)
+        && date(d,'cancelRequestedDate') && date(d,'cancelledDate') && str(d,'requesterUid',160)
+        && str(d,'counterId',160) && str(d,'lastAdminLogId',160) && str(d,'lastRequesterProofId',160)
+        && date(d,'lastModifiedAt');
+    }
+    // Firestore stops a rule after 1000 evaluated expressions, so each field is checked inline and only when this write changes it.
+    function validJobUpdate(d,id) {
+      let changed=d.diff(resource.data).affectedKeys();
+      return changed.hasOnly(['jobID','requestDate','requesterName','positionDept','phoneNumber','equipId','equipmentLocation','problemDetails','urgency','status','imageBefore','imageAfter','beforePhotos','afterPhotos','technician','adminRemarks','additionalNotes','cost','itemsData','stockUsage','acceptedDate','completedDate','techDoneDate','ownerClosedDate','unrepairableReason','unrepairableDetail','unrepairableDate','unrepairableConfirmedDate','cancelRequest','statusBeforeCancel','cancelReason','cancelRefJobId','cancelRequestedDate','cancelledDate','requesterUid','counterId','sequence','lastAdminLogId','lastModifiedBy','lastModifiedAt','lastRequesterProofId'])
+        && d.jobID==id && !changed.hasAny(['requesterUid','counterId','sequence'])
+        && (!('status' in changed) || d.status in ['Waiting','Processing','WaitingParts','PendingApproval','Done','Closed','Unrepairable','Cancelled'])
+        && (!('urgency' in changed) || d.urgency in ['Low','Medium','High'])
+        && (!('cost' in changed) || (d.cost is number && d.cost>=0 && d.cost<=10000000000))
+        && (!('requesterName' in changed) || (d.requesterName is string && d.requesterName.size()<=200))
+        && (!('positionDept' in changed) || (d.positionDept is string && d.positionDept.size()<=200))
+        && (!('phoneNumber' in changed) || (d.phoneNumber is string && d.phoneNumber.size()<=200))
+        && (!('equipmentLocation' in changed) || (d.equipmentLocation is string && d.equipmentLocation.size()<=200))
+        && (!('equipId' in changed) || (d.equipId is string && d.equipId.size()<=160))
+        && (!('problemDetails' in changed) || (d.problemDetails is string && d.problemDetails.size()<=5000))
+        && (!('technician' in changed) || (d.technician is string && d.technician.size()<=200))
+        && (!('adminRemarks' in changed) || (d.adminRemarks is string && d.adminRemarks.size()<=5000))
+        && (!('additionalNotes' in changed) || (d.additionalNotes is string && d.additionalNotes.size()<=5000))
+        && (!('unrepairableReason' in changed) || (d.unrepairableReason is string && d.unrepairableReason.size()<=2000))
+        && (!('unrepairableDetail' in changed) || (d.unrepairableDetail is string && d.unrepairableDetail.size()<=5000))
+        && (!('cancelReason' in changed) || (d.cancelReason is string && d.cancelReason.size()<=2000))
+        && (!('cancelRefJobId' in changed) || (d.cancelRefJobId is string && d.cancelRefJobId.size()<=160))
+        && (!('statusBeforeCancel' in changed) || (d.statusBeforeCancel is string && d.statusBeforeCancel.size()<=40))
+        && (!('itemsData' in changed) || (d.itemsData is string && d.itemsData.size()<=100000))
+        && (!('lastAdminLogId' in changed) || (d.lastAdminLogId is string && d.lastAdminLogId.size()<=160))
+        && (!('lastRequesterProofId' in changed) || (d.lastRequesterProofId is string && d.lastRequesterProofId.size()<=160))
+        && (!('requestDate' in changed) || d.requestDate==null || (d.requestDate is string && d.requestDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$')))
+        && (!('acceptedDate' in changed) || d.acceptedDate==null || (d.acceptedDate is string && d.acceptedDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$')))
+        && (!('completedDate' in changed) || d.completedDate==null || (d.completedDate is string && d.completedDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$')))
+        && (!('techDoneDate' in changed) || d.techDoneDate==null || (d.techDoneDate is string && d.techDoneDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$')))
+        && (!('ownerClosedDate' in changed) || d.ownerClosedDate==null || (d.ownerClosedDate is string && d.ownerClosedDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$')))
+        && (!('unrepairableDate' in changed) || d.unrepairableDate==null || (d.unrepairableDate is string && d.unrepairableDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$')))
+        && (!('unrepairableConfirmedDate' in changed) || d.unrepairableConfirmedDate==null || (d.unrepairableConfirmedDate is string && d.unrepairableConfirmedDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$')))
+        && (!('cancelRequestedDate' in changed) || d.cancelRequestedDate==null || (d.cancelRequestedDate is string && d.cancelRequestedDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$')))
+        && (!('cancelledDate' in changed) || d.cancelledDate==null || (d.cancelledDate is string && d.cancelledDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$')))
+        && (!('lastModifiedAt' in changed) || d.lastModifiedAt==null || (d.lastModifiedAt is string && d.lastModifiedAt.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}T.*Z$')))
+        && (!('stockUsage' in changed) || validStock(d.stockUsage))
+        && (!('imageBefore' in changed) || url(d,'imageBefore'))
+        && (!('imageAfter' in changed) || url(d,'imageAfter'))
+        && (!('beforePhotos' in changed) || (d.beforePhotos is list && d.beforePhotos.size()<=6))
+        && (!('afterPhotos' in changed) || (d.afterPhotos is list && d.afterPhotos.size()<=6))
+        && (!('cancelRequest' in changed) || validCancel(d.cancelRequest));
+    }
+    function active(d) { return d.status in ['Waiting','Processing','WaitingParts','PendingApproval'] && d.get('cancelRequest',null)==null; }
+    function validCompletion() {
+      return active(resource.data) && request.resource.data.status=='Done'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','completedDate','techDoneDate','acceptedDate','lastModifiedBy','lastModifiedAt','lastAdminLogId'])
+        && request.resource.data.get('completedDate',null)!=null && request.resource.data.get('techDoneDate',null)!=null
+        && (resource.data.get('acceptedDate',null)==null || request.resource.data.acceptedDate==resource.data.acceptedDate);
+    }
+    function jobAudit(id,op,before,after,logId) {
+      let log=getAfter(/databases/$(database)/documents/adminLogs/$(logId)).data;
+      return !exists(/databases/$(database)/documents/adminLogs/$(logId))
+        && log.kind=='job' && log.operation==op && log.target==id && actorMatches(log.actor)
+        && log.timestamp==request.time && log.before==before && log.after==after;
+    }
+    function validProof(p,proofId) {
+      let before=get(/databases/$(database)/documents/repairJobs/$(p.jobId)).data;
+      let after=getAfter(/databases/$(database)/documents/repairJobs/$(p.jobId)).data;
+      let changes=after.diff(before).affectedKeys();
+      let extras=isSuper()?['lastAdminLogId','lastModifiedBy','lastModifiedAt']:[];
+      return signed() && (!hasAdminRole() || isSuper())
+        && p.keys().hasOnly(['jobId','pin','action','uid','createdAt']) && str(p,'jobId',160) && str(p,'pin',128)
+        && p.uid==request.auth.uid && p.createdAt==request.time
+        && p.pin==get(/databases/$(database)/documents/_requestPins/$(p.jobId)).data.pin
+        && after.lastRequesterProofId==proofId
+        && ((p.action=='verify' && before.status=='Done' && after.status=='Closed'
+          && changes.hasOnly(['status','completedDate','ownerClosedDate','lastRequesterProofId'].concat(extras))
+          && after.get('ownerClosedDate',null)!=null)
+        || (p.action=='unrepairable' && before.status=='Unrepairable' && before.get('unrepairableConfirmedDate',null)==null
+          && after.get('unrepairableConfirmedDate',null)!=null
+          && changes.hasOnly(['unrepairableConfirmedDate','lastRequesterProofId'].concat(extras)))
+        || (p.action=='cancel' && active(before) && validCancel(after.cancelRequest) && after.cancelRequest!=null
+          && after.cancelRequest.reason.size()>0
+          && (after.cancelRequest.refJobId=='' || (after.cancelRequest.refJobId!=p.jobId
+            && exists(/databases/$(database)/documents/repairJobs/$(after.cancelRequest.refJobId))
+            && get(/databases/$(database)/documents/repairJobs/$(after.cancelRequest.refJobId)).data.status!='Cancelled'))
+          && changes.hasOnly(['cancelRequest','lastRequesterProofId'].concat(extras))));
+    }
+    function requesterUpdate(id) {
+      let proofId=request.resource.data.lastRequesterProofId;
+      let p=getAfter(/databases/$(database)/documents/_requestProofs/$(proofId)).data;
+      return !exists(/databases/$(database)/documents/_requestProofs/$(proofId)) && p.jobId==id && validProof(p,proofId);
+    }
+    function validPublicCreate(id) {
+      let d=request.resource.data;
+      let count=getAfter(/databases/$(database)/documents/_jobCounters/$(d.counterId)).data;
+      let pin=getAfter(/databases/$(database)/documents/_requestPins/$(id)).data;
+      return signed() && (!hasAdminRole() || isSuper()) && d.requesterUid==request.auth.uid
+        && d.status=='Waiting' && d.cost==0 && d.itemsData=='[]' && d.technician=='' && d.adminRemarks==''
+        && d.get('imageAfter','')=='' && d.get('afterPhotos',[]).size()==0
+        && count.jobId==id && count.last==d.sequence && count.uid==request.auth.uid && count.updatedAt==request.time
+        && pin.requesterUid==request.auth.uid && pin.pin.matches('^[0-9]{4,6}$');
+    }
+    match /repairJobs/{id} {
+      allow read: if signed() && ready();
+      allow create: if ready() && validJob(request.resource.data,id)
+        && ((isSuper() && jobAudit(id,'create',{},request.resource.data,request.resource.data.lastAdminLogId)) || validPublicCreate(id));
+      allow update: if ready() && validJobUpdate(request.resource.data,id)
+        && (((isAdmin())
+          && actorMatches(request.resource.data.lastModifiedBy)
+          && jobAudit(id,'update',resource.data,request.resource.data,request.resource.data.lastAdminLogId))
+        || requesterUpdate(id));
+      allow delete: if isSuper() && getAfter(/databases/$(database)/documents/_jobDeletions/$(id)).data.timestamp==request.time
+        && jobAudit(id,'delete',resource.data,{},getAfter(/databases/$(database)/documents/_jobDeletions/$(id)).data.logId);
+    }
+    function validAudit(d,id) {
+      return isAdmin() && d.keys().hasOnly(['kind','actor','action','target','before','after','timestamp','operation','pinChanged'])
+        && actorMatches(d.actor) && str(d,'action',120) && str(d,'target',20000) && d.timestamp==request.time
+        && ((d.kind=='job' && d.before is map && d.after is map && d.pinChanged is bool
+          && ((d.operation=='create' && isSuper() && !exists(/databases/$(database)/documents/repairJobs/$(d.target)) && d.before=={}
+            && getAfter(/databases/$(database)/documents/repairJobs/$(d.target)).data==d.after && d.after.lastAdminLogId==id)
+          || (d.operation=='update' && get(/databases/$(database)/documents/repairJobs/$(d.target)).data==d.before
+            && getAfter(/databases/$(database)/documents/repairJobs/$(d.target)).data==d.after && d.after.lastAdminLogId==id)
+          || (d.operation=='delete' && isSuper() && get(/databases/$(database)/documents/repairJobs/$(d.target)).data==d.before
+            && !existsAfter(/databases/$(database)/documents/repairJobs/$(d.target)) && d.after=={}
+            && getAfter(/databases/$(database)/documents/_jobDeletions/$(d.target)).data.logId==id)))
+        || (d.kind=='config' && isSuper() && d.target=='system/publicConfig'
+          && d.before==get(/databases/$(database)/documents/system/publicConfig).data
+          && d.after==getAfter(/databases/$(database)/documents/system/publicConfig).data && d.after.lastAdminLogId==id)
+        || (d.kind=='event' && d.action in ['สร้างไฟล์ใบแจ้งซ่อม','สร้างไฟล์รายงานรวม','เปิดดู PIN ผู้แจ้ง']
+          && (d.action=='สร้างไฟล์ใบแจ้งซ่อม' || isSuper())));
+    }
+    match /adminLogs/{id} { allow read: if isSuper(); allow create: if validAudit(request.resource.data,id); allow update,delete: if false; }
+    function validPin(d,id) {
+      return d.keys().hasOnly(['pin','requesterUid']) && str(d,'pin',128) && str(d,'requesterUid',160)
+        && existsAfter(/databases/$(database)/documents/repairJobs/$(id));
+    }
+    match /_requestPins/{id} {
+      allow read: if isSuper();
+      allow create,update: if validPin(request.resource.data,id)
+        && ((isSuper() && getAfter(/databases/$(database)/documents/adminLogs/$(getAfter(/databases/$(database)/documents/repairJobs/$(id)).data.lastAdminLogId)).data.pinChanged==true)
+          || (!exists(/databases/$(database)/documents/repairJobs/$(id)) && request.resource.data.requesterUid==request.auth.uid
+            && getAfter(/databases/$(database)/documents/repairJobs/$(id)).data.requesterUid==request.auth.uid
+            && request.resource.data.pin.matches('^[0-9]{4,6}$')));
+      allow delete: if isSuper() && !existsAfter(/databases/$(database)/documents/repairJobs/$(id));
+    }
+    match /_requestProofs/{id} {
+      allow create: if validProof(request.resource.data,id);
+      allow read,update: if false;
+      allow delete: if signed() && resource.data.uid==request.auth.uid;
+    }
+    match /_jobDeletions/{id} {
+      allow read: if isSuper();
+      allow create,update: if isSuper() && request.resource.data.keys().hasOnly(['uid','logId','timestamp'])
+        && request.resource.data.uid==request.auth.uid && str(request.resource.data,'logId',160)
+        && request.resource.data.timestamp==request.time && !existsAfter(/databases/$(database)/documents/repairJobs/$(id));
+      allow delete: if false;
+    }
+    function validConfig(d) {
+      return d.keys().hasOnly(['lists','jobIdConfig','superAdminName','limitedAdminName','lastAdminLogId','lastListChange'])
+        && d.lists is map && d.lists.keys().hasOnly(['depts','techs'])
+        && d.lists.depts is list && d.lists.depts.size()<=100 && d.lists.techs is list && d.lists.techs.size()<=100
+        && d.jobIdConfig.keys().hasOnly(['prefix','startNum']) && str(d.jobIdConfig,'prefix',30)
+        && d.jobIdConfig.prefix.matches('^[A-Za-z0-9_-]+$') && d.jobIdConfig.startNum is int && d.jobIdConfig.startNum>=1
+        && str(d,'superAdminName',80) && str(d,'limitedAdminName',80) && str(d,'lastAdminLogId',160);
+    }
+    function validListChange() {
+      let change=request.resource.data.get('lastListChange',{});
+      let before=resource.data.lists;
+      let after=request.resource.data.lists;
+      return before==after || (change.keys().hasOnly(['type','act','value']) && change.type in ['depts','techs']
+        && str(change,'value',120) && change.value.size()>0
+        && after[change.type=='depts'?'techs':'depts']==before[change.type=='depts'?'techs':'depts']
+        && ((change.act=='add' && !before[change.type].hasAny([change.value]) && after[change.type]==before[change.type].concat([change.value]))
+          || (change.act=='del' && after[change.type]==before[change.type].removeAll([change.value]))));
+    }
+    match /system/publicConfig {
+      allow read: if signed() && ready();
+      allow update: if isSuper() && validConfig(request.resource.data) && validListChange()
+        && getAfter(/databases/$(database)/documents/adminLogs/$(request.resource.data.lastAdminLogId)).data.kind=='config'
+        && getAfter(/databases/$(database)/documents/adminLogs/$(request.resource.data.lastAdminLogId)).data.timestamp==request.time;
+      allow create,delete: if false;
+    }
+    function validCounter(d,id,last) {
+      let config=get(/databases/$(database)/documents/system/publicConfig).data.jobIdConfig;
+      let job=getAfter(/databases/$(database)/documents/repairJobs/$(d.jobId)).data;
+      let next=last+1>config.startNum?last+1:config.startNum;
+      return signed() && (!hasAdminRole()||isSuper()) && d.keys().hasOnly(['last','jobId','uid','updatedAt'])
+        && d.last is int && d.last==next && str(d,'jobId',160) && d.uid==request.auth.uid && d.updatedAt==request.time
+        && !exists(/databases/$(database)/documents/repairJobs/$(d.jobId)) && job.requesterUid==request.auth.uid
+        && job.sequence==d.last && job.counterId==id;
+    }
+    match /_jobCounters/{id} {
+      allow read: if signed() && ready();
+      allow create: if validCounter(request.resource.data,id,0);
+      allow update: if validCounter(request.resource.data,id,resource.data.last);
+      allow delete: if false;
+    }
+    match /{document=**} { allow read,write: if false; }
+  }
+}
