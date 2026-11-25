@@ -99,6 +99,32 @@
 
         .img-preview { max-height: 150px; border-radius: 10px; margin-top: 10px; display: none; border: 1px solid #e2e8f0; }
 
+        /* Multi-photo picker / gallery */
+        .ph-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+        @media (min-width: 640px) { .ph-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); } .ph-grid.ph-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+        .ph-tile { position: relative; aspect-ratio: 1 / 1; border-radius: 10px; overflow: hidden; border: 1px solid #cbd5e1; background: #eef2f6; }
+        .ph-tile img { width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; display: block; }
+        .ph-no { position: absolute; left: 4px; top: 4px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 6px; font-size: 11px; font-weight: 700; line-height: 20px; text-align: center; color: #fff; background: rgba(15,23,42,.72); }
+        .ph-no.before { background: #b45309; } .ph-no.after { background: #047857; }
+        .ph-del { position: absolute; right: 4px; top: 4px; width: 24px; height: 24px; border-radius: 999px; border: 0; background: rgba(15,23,42,.72); color: #fff; font-size: 15px; line-height: 24px; cursor: pointer; }
+        .ph-del:hover { background: #b91c1c; }
+        .ph-add { aspect-ratio: 1 / 1; border-radius: 10px; border: 2px dashed #94a3b8; background: #f1f4f8; color: #1d4ed8; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 12px; font-weight: 600; cursor: pointer; text-align: center; padding: 4px; }
+        .ph-add:hover { border-color: #2563eb; background: #e8effa; }
+        .ph-add small { color: #64748b; font-weight: 500; font-size: 11px; }
+        .ph-after-row { display: flex; gap: 10px; align-items: flex-start; padding: 8px; border: 1px solid #d5dde7; border-radius: 12px; background: #f6f8fb; }
+        .ph-after-row .ph-tile { width: 84px; flex: none; }
+        .ph-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+        .ph-chip { position: relative; width: 44px; height: 44px; border-radius: 8px; overflow: hidden; border: 2px solid #cbd5e1; background: #eef2f6; cursor: pointer; padding: 0; }
+        .ph-chip img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .ph-chip span { position: absolute; left: 0; bottom: 0; font-size: 10px; font-weight: 700; color: #fff; background: rgba(180,83,9,.9); padding: 0 4px; border-top-right-radius: 6px; }
+        .ph-chip.none { width: auto; padding: 0 10px; font-size: 12px; color: #475569; font-weight: 600; }
+        .ph-chip.on { border-color: #047857; box-shadow: 0 0 0 2px rgba(4,120,87,.25); }
+        .ph-chip.none.on { background: #e2e8f0; border-color: #475569; box-shadow: none; color: #0f172a; }
+        .ph-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 8px; border: 1px solid #d5dde7; border-radius: 12px; background: #f6f8fb; }
+        .ph-pair .ph-tile { aspect-ratio: 4 / 3; }
+        .ph-cap { font-size: 11px; color: #64748b; margin-bottom: 4px; font-weight: 600; }
+        .ph-cap.before { color: #b45309; } .ph-cap.after { color: #047857; }
+
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.45); z-index: 60; display: none; justify-content: center; align-items: center; backdrop-filter: blur(3px); }
         .animate-zoomIn { animation: zoomIn 0.2s ease-out; }
         @keyframes zoomIn { from { transform: scale(0.96); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -205,12 +231,14 @@
                                 <div class="md:col-span-2"><label class="lbl">รายละเอียดปัญหา</label><textarea id="reqDetail" rows="4" required class="field"></textarea></div>
                             </div>
                         </div>
-                        <div class="border-2 border-dashed border-slate-300 rounded-xl p-5 text-center hover:border-blue-400 hover:bg-blue-50/50 transition cursor-pointer relative" onclick="document.getElementById('reqImg').click()">
-                            <input type="file" id="reqImg" accept="image/*" class="hidden" onchange="previewImage(this,'reqPreview')">
-                            <div class="mb-1 flex justify-center text-slate-400"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
-                            <span class="text-blue-700 font-bold">แตะเพื่อแนบรูปภาพ (ก่อนซ่อม)</span>
-                            <p class="text-xs text-slate-500 mt-1">อัปโหลดไปยัง Firebase Storage ทันที</p>
-                            <img id="reqPreview" class="img-preview mx-auto">
+                        <div>
+                            <div class="flex items-baseline justify-between gap-2 mb-2">
+                                <label class="lbl mb-0">รูปภาพก่อนซ่อม</label>
+                                <span id="reqPhotoCount" class="text-xs text-slate-500">0/6 รูป</span>
+                            </div>
+                            <p class="text-xs text-slate-500 mb-2">แนบได้สูงสุด 6 รูป เช่น ถ่ายแยกทีละจุดที่เสียหาย (อย่างน้อย 1 รูป)</p>
+                            <input type="file" id="reqImg" accept="image/*" multiple class="hidden" onchange="addPickerFiles('req', this)">
+                            <div id="reqPhotoGrid" class="ph-grid"></div>
                         </div>
                         <div>
                             <label class="lbl mb-2">ระดับความเร่งด่วน</label>
@@ -421,8 +449,9 @@
                         <div><label class="lbl-sm">ชื่ออุปกรณ์</label><textarea id="edit-equip"   class="field-sm"></textarea></div>
                         <div><label class="lbl-sm">อาการเสีย</label><textarea  id="edit-problem" rows="2" class="field-sm"></textarea></div>
                         <div class="border border-dashed border-slate-300 rounded-lg p-2 bg-white">
-                            <label class="text-xs text-amber-700 font-bold mb-1 block">รูปก่อนซ่อม (Before Image)</label>
-                            <input type="file" id="edit-img-before" accept="image/*" class="text-xs text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300">
+                            <div class="flex items-baseline justify-between mb-2"><label class="text-xs text-amber-700 font-bold block">รูปก่อนซ่อม (สูงสุด 6 รูป)</label><span id="beforePhotoCount" class="text-[11px] text-slate-500"></span></div>
+                            <input type="file" id="edit-img-before" accept="image/*" multiple class="hidden" onchange="addPickerFiles('before', this)">
+                            <div id="beforePhotoGrid" class="ph-grid"></div>
                         </div>
                     </div>
                 </div>
@@ -451,13 +480,13 @@
                 </div>
                 <div><label class="lbl-sm">Admin Remarks (บันทึกช่าง)</label><textarea id="modalRemark" class="field" rows="2"></textarea></div>
                 <div id="adminImageSection" class="hidden border border-slate-200 rounded-xl p-3 bg-slate-50">
-                    <label class="text-xs text-emerald-700 font-bold mb-2 block">Evidence (After Repair)</label>
-                    <div class="flex items-center gap-3">
-                        <button onclick="document.getElementById('adminImg').click()" class="btn-soft text-xs px-3 py-2 bg-white">Choose Image</button>
-                        <input type="file" id="adminImg" accept="image/*" class="hidden" onchange="previewImage(this,'adminPreview')">
-                        <div class="text-xs text-slate-500">Upload to Storage (After)</div>
+                    <div class="flex items-baseline justify-between gap-2 mb-1">
+                        <label class="text-xs text-emerald-700 font-bold block">รูปหลังซ่อม / ปิดงาน (สูงสุด 6 รูป)</label>
+                        <span id="afterPhotoCount" class="text-[11px] text-slate-500"></span>
                     </div>
-                    <img id="adminPreview" class="img-preview mt-2 max-h-24">
+                    <p class="text-[11px] text-slate-500 mb-2">จับคู่กับรูปก่อนซ่อมของจุดเดียวกันได้ (ไม่บังคับ) รูปที่จับคู่จะแสดงเทียบกันในใบรายงาน</p>
+                    <input type="file" id="adminImg" accept="image/*" multiple class="hidden" onchange="addPickerFiles('after', this)">
+                    <div id="afterPhotoList" class="space-y-2"></div>
                 </div>
                 <div id="costSection" class="hidden border border-slate-200 bg-slate-50 p-4 rounded-xl">
                     <h4 class="text-emerald-700 font-bold mb-2 flex justify-between"><span>Cost</span><span id="grandTotal">0.00 ฿</span></h4>
@@ -530,10 +559,7 @@
                 </div>
                 <div>
                     <h4 class="sec-title border-b border-slate-100 pb-1">รูปภาพ</h4>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="text-center"><span class="text-[11px] text-slate-500 block mb-1">ก่อนซ่อม</span><div id="d-img-before" class="h-28 bg-slate-50 rounded-xl flex items-center justify-center border border-slate-200 text-slate-400 text-xs overflow-hidden">ไม่มีรูป</div></div>
-                        <div class="text-center"><span class="text-[11px] text-slate-500 block mb-1">หลังซ่อม</span><div id="d-img-after"  class="h-28 bg-slate-50 rounded-xl flex items-center justify-center border border-slate-200 text-slate-400 text-xs overflow-hidden">ยังไม่ดำเนินการ</div></div>
-                    </div>
+                    <div id="d-photos" class="space-y-3"></div>
                 </div>
                 <div id="d-verify-area"></div>
                 <p class="text-right text-[10px] text-slate-400 font-mono">F-MTN-01-04 Rev.04 Effective date: 06/04/2569</p>
@@ -881,6 +907,20 @@
         }
     }
 
+    // ดึงรูปสำหรับ Excel พร้อมขนาดจริง (ใช้คำนวณให้รูปไม่ยืด/บีบ)
+    async function getExcelImage(url) {
+        const base64 = await getBase64Image(url);
+        if (!base64) return null;
+        const extension = base64.startsWith('iVBOR') ? 'png' : base64.startsWith('R0lGOD') ? 'gif' : 'jpeg';
+        const size = await new Promise(resolve => {
+            const im = new Image();
+            im.onload = () => resolve({ width: im.naturalWidth || 4, height: im.naturalHeight || 3 });
+            im.onerror = () => resolve({ width: 4, height: 3 });
+            im.src = `data:image/${extension};base64,${base64}`;
+        });
+        return { base64, extension, ...size };
+    }
+
     // ฟังก์ชันสร้าง Sheet รายบุคคล (แบบฟอร์ม 100% ตรงกลาง A4)
     async function buildJobSheet(workbook, jobId) {
         if (!requireAdmin()) return;
@@ -912,6 +952,20 @@
             cell.border = { top: {style:'thin'}, left: {style:'thin'}, bottom: {style:'thin'}, right: {style:'thin'} };
         };
 
+        // หน้า 3 เป็นต้นไป = รูปภาพ (หน้าละ 3 แถวรูป: คู่ก่อน/หลัง หรือรูปเดี่ยวแถวละ 2 รูป)
+        const layout = photoLayout(r);
+        const photoBlocks = [
+            ...layout.pairs.map((p, i) => ({ left: { url: p.before, cap: `จุดที่ ${i + 1} · ก่อนซ่อม (รูป ${p.beforeNo})`, tone: 'before' }, right: { url: p.after, cap: `จุดที่ ${i + 1} · หลังซ่อม (รูป ${p.afterNo})`, tone: 'after' } })),
+        ];
+        const twoUp = (list, prefix, tone) => { for (let i = 0; i < list.length; i += 2) photoBlocks.push({
+            left: { url: list[i].url, cap: `${prefix} ${list[i].no}`, tone },
+            right: list[i + 1] ? { url: list[i + 1].url, cap: `${prefix} ${list[i + 1].no}`, tone } : null }); };
+        twoUp(layout.loneBefore, 'รูปก่อนซ่อม', 'before');
+        twoUp(layout.loneAfter, 'รูปหลังซ่อม', 'after');
+        const BLOCKS_PER_PAGE = 3;
+        const photoPages = Math.max(1, Math.ceil(photoBlocks.length / BLOCKS_PER_PAGE));
+        const totalPages = 2 + photoPages;
+
         const drawTitle = (rowStart, pageNum) => {
             // หัวข้อตรงกลาง B ถึง F (รวม 3 บรรทัด)
             sheet.mergeCells(`B${rowStart}:F${rowStart+2}`);
@@ -919,7 +973,7 @@
             title.value = {
                 richText: [
                     { font: { name: 'Sarabun', size: 16, bold: true }, text: 'ใบรายงานสรุปงานซ่อมบำรุง\nMAINTENANCE REPAIR JOB REPORT\n' },
-                    { font: { name: 'Sarabun', size: 12, bold: true, color: { argb: 'FF475569' } }, text: `Page ${pageNum}/3   |   Job ID: ${jobId}` }
+                    { font: { name: 'Sarabun', size: 12, bold: true, color: { argb: 'FF475569' } }, text: `Page ${pageNum}/${totalPages}   |   Job ID: ${jobId}` }
                 ]
             };
             title.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
@@ -1108,56 +1162,82 @@
         const tVal = sheet.getCell(`F${currentRow}`);
         tVal.value = r.cost || 0; tVal.font = boldFont; tVal.alignment = {horizontal:'center'}; setBorder(tVal);
 
-        // ================= PAGE 3 (รูปภาพ ใหญ่และอยู่บน-ล่าง) =================
-        const rPage3 = 80;
-        sheet.getRow(rPage3).addPageBreak(); // ตัดขึ้นหน้าใหม่ให้แผ่น 3
-        drawTitle(rPage3 + 1, 3);
+        // ================= PAGE 3+ (รูปภาพ: คู่ก่อน/หลังวางข้างกัน, รูปที่ไม่ได้จับคู่วางแถวละ 2 รูป) =================
+        // ความกว้างพื้นที่ซ้าย (B:C) และขวา (D:F) เป็นพิกเซล โดยประมาณ (ExcelJS: 1 หน่วยคอลัมน์ ≈ 7px)
+        const colPx = c => Math.round(sheet.getColumn(c).width * 7 + 5);
+        const halves = [
+            { cols: ['B', 'C'], first: 2, width: colPx(2) + colPx(3) },
+            { cols: ['D', 'F'], first: 4, width: colPx(4) + colPx(5) + colPx(6) }
+        ];
+        const IMG_ROWS = 9, ROW_PT = 15, ROW_PX = 20;   // รูปสูง 9 แถว = 180px
+        const BLOCK_ROWS = IMG_ROWS + 2;                 // แถวคำบรรยาย + รูป + เว้นบรรทัด
+        const toneColor = { before: 'FFB45309', after: 'FF047857' };
 
-        sheet.mergeCells(`B${rPage3+4}:F${rPage3+4}`);
-        const h5 = sheet.getCell(`B${rPage3+4}`);
-        h5.value = ' หลักฐานรูปภาพ (Photographic Evidence)';
-        h5.font = boldFont;
-        h5.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
-        setBorder(h5);
+        const toneFill = { before: 'FFFDF3E7', after: 'FFE9F6F0' };
+        // วางรูปในแถว top..top+IMG_ROWS-1 แล้วใส่คำบรรยายใต้รูป
+        const placePhoto = async (photo, half, top) => {
+            const [c1, c2] = half.cols;
+            const capRow = top + IMG_ROWS;
+            sheet.mergeCells(`${c1}${capRow}:${c2}${capRow}`);
+            const cap = sheet.getCell(`${c1}${capRow}`);
+            cap.value = photo.cap;
+            cap.font = { name: 'Sarabun', size: 12, bold: true, color: { argb: toneColor[photo.tone] } };
+            cap.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: toneFill[photo.tone] } };
+            cap.alignment = { horizontal: 'center', vertical: 'middle' };
+            const img = await getExcelImage(photo.url);
+            if (img) {
+                const boxW = half.width - 10, boxH = IMG_ROWS * ROW_PX - 6;
+                const scale = Math.min(boxW / img.width, boxH / img.height);
+                const w = Math.round(img.width * scale), h = Math.round(img.height * scale);
+                const offX = (half.width - w) / 2, offY = (IMG_ROWS * ROW_PX - h) / 2;
+                // ยึดมุมบนซ้ายและล่างขวากับเซลล์ (twoCellAnchor) ให้ตำแหน่งตรงกันในทุกโปรแกรม; offset เป็น EMU (1px = 9525)
+                const EMU = 9525;
+                const colAt = px => { let c = half.first; while (px >= colPx(c) && c < 6) { px -= colPx(c); c++; } return { nativeCol: c - 1, nativeColOff: Math.round(px * EMU) }; };
+                const rowAt = px => ({ nativeRow: top - 1 + Math.floor(px / ROW_PX), nativeRowOff: Math.round((px % ROW_PX) * EMU) });
+                const id = workbook.addImage({ base64: img.base64, extension: img.extension });
+                sheet.addImage(id, {
+                    tl: { ...colAt(offX), ...rowAt(offY) },
+                    br: { ...colAt(offX + w), ...rowAt(offY + h) },
+                    editAs: 'oneCell'
+                });
+            } else {
+                sheet.mergeCells(`${c1}${top}:${c2}${top + 1}`);
+                const link = sheet.getCell(`${c1}${top}`);
+                link.value = { text: '>> คลิกลิงก์เพื่อเปิดดูรูปภาพ <<', hyperlink: photo.url };
+                link.font = { ...thFont, color: { argb: 'FF0563C1' }, underline: true };
+                link.alignment = { horizontal: 'center', vertical: 'middle' };
+            }
+        };
 
-        // ---- รูปภาพ ก่อนซ่อม ----
-        sheet.mergeCells(`B${rPage3+6}:F${rPage3+6}`);
-        const lblBefore = sheet.getCell(`B${rPage3+6}`);
-        lblBefore.value = '📷 รูปก่อนซ่อม (Before Repair):';
-        lblBefore.font = boldFont;
+        for (let pg = 0; pg < photoPages; pg++) {
+            const rPage = 80 + pg * 40;
+            sheet.getRow(rPage).addPageBreak();   // ตัดขึ้นหน้าใหม่
+            drawTitle(rPage + 1, 3 + pg);
 
-        const b64Before = await getBase64Image(r.imageBefore);
-        if (b64Before) {
-            const imgId = workbook.addImage({ base64: b64Before, extension: 'jpeg' });
-            // แปะรูปขนาดใหญ่ ขยายจาก B ถึง F และสูง 15 บรรทัด
-            sheet.addImage(imgId, `B${rPage3+7}:F${rPage3+22}`);
-        } else if (r.imageBefore) {
-            sheet.mergeCells(`B${rPage3+7}:F${rPage3+8}`);
-            sheet.getCell(`B${rPage3+7}`).value = { text: '>> คลิกลิงก์เพื่อเปิดดูรูปภาพ (ไฟล์เก่า) <<', hyperlink: r.imageBefore };
-            sheet.getCell(`B${rPage3+7}`).font = { ...thFont, color: { argb: 'FF0563C1' }, underline: true };
-        } else {
-            sheet.getCell(`B${rPage3+7}`).value = '- ไม่มีรูปภาพ -';
+            sheet.mergeCells(`B${rPage+4}:F${rPage+4}`);
+            const h5 = sheet.getCell(`B${rPage+4}`);
+            h5.value = pg === 0
+                ? ` หลักฐานรูปภาพ (Photographic Evidence)  —  ก่อนซ่อม ${layout.before.length} รูป / หลังซ่อม ${layout.after.length} รูป${layout.pairs.length ? ` / จับคู่ ${layout.pairs.length} จุด` : ''}`
+                : ' หลักฐานรูปภาพ (ต่อ)';
+            h5.font = boldFont;
+            h5.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
+            setBorder(h5);
+
+            const blocks = photoBlocks.slice(pg * BLOCKS_PER_PAGE, (pg + 1) * BLOCKS_PER_PAGE);
+            if (!blocks.length) { sheet.getCell(`B${rPage+6}`).value = '- ไม่มีรูปภาพ -'; continue; }
+            for (let bi = 0; bi < blocks.length; bi++) {
+                const top = rPage + 6 + bi * BLOCK_ROWS;
+                // กำหนดความสูงทุกแถวของบล็อก ให้ตำแหน่งรูปคงที่
+                for (let k = top; k <= top + BLOCK_ROWS - 1; k++) sheet.getRow(k).height = ROW_PT;
+                sheet.getRow(top + IMG_ROWS).height = 18;   // แถวคำบรรยาย
+                const b = blocks[bi];
+                await placePhoto(b.left, halves[0], top);
+                if (b.right) await placePhoto(b.right, halves[1], top);
+            }
         }
 
-        // ---- รูปภาพ หลังซ่อม ----
-        const rAfter = rPage3 + 24;
-        sheet.mergeCells(`B${rAfter}:F${rAfter}`);
-        const lblAfter = sheet.getCell(`B${rAfter}`);
-        lblAfter.value = '📷 รูปหลังซ่อม (After Repair):';
-        lblAfter.font = boldFont;
-        
-        const b64After = await getBase64Image(r.imageAfter);
-        if (b64After) {
-            const imgId2 = workbook.addImage({ base64: b64After, extension: 'jpeg' });
-            // แปะรูปขนาดใหญ่ ขยายจาก B ถึง F และสูง 15 บรรทัด
-            sheet.addImage(imgId2, `B${rAfter+1}:F${rAfter+16}`);
-        } else if (r.imageAfter) {
-            sheet.mergeCells(`B${rAfter+1}:F${rAfter+2}`);
-            sheet.getCell(`B${rAfter+1}`).value = { text: '>> คลิกลิงก์เพื่อเปิดดูรูปภาพ (ไฟล์เก่า) <<', hyperlink: r.imageAfter };
-            sheet.getCell(`B${rAfter+1}`).font = { ...thFont, color: { argb: 'FF0563C1' }, underline: true };
-        } else {
-            sheet.getCell(`B${rAfter+1}`).value = '- ไม่มีรูปภาพ -';
-        }
+        // กำหนดความสูงทุกแถวที่ยังไม่ได้ตั้ง (ฟอนต์ Sarabun 12) เพื่อให้รูปอยู่ตรงตำแหน่งทั้งใน Excel, LibreOffice และ Google Sheets
+        for (let k = 1; k <= sheet.rowCount; k++) if (!sheet.getRow(k).height) sheet.getRow(k).height = 18;
 
         // เซ็ตฟอนต์ทั้งหน้าให้ชัวร์
         sheet.eachRow((row) => {
@@ -1378,15 +1458,6 @@
         });
     }
 
-    function previewImage(input, previewId) {
-        const file = input.files[0];
-        const el   = $(previewId);
-        if (!file) { el.src = ''; el.style.display = 'none'; return; }
-        const reader = new FileReader();
-        reader.onload = e => { el.src = e.target.result; el.style.display = 'block'; };
-        reader.readAsDataURL(file);
-    }
-
     function openImageViewer(url) {
         if (!url) return;
         $('imageViewerSrc').src = url;
@@ -1398,11 +1469,170 @@
     }
 
     // ----------------------------------------------------------------
+    // 3.1 MULTI-PHOTO (สูงสุด 6 รูปก่อนซ่อม + 6 รูปหลังซ่อม, จับคู่ก่อน/หลังได้)
+    // beforePhotos: [url, ...]   afterPhotos: [{ url, pairWith: <url รูปก่อนซ่อม> | '' }, ...]
+    // imageBefore / imageAfter ยังเก็บรูปแรกไว้ เพื่อให้ใบงานเก่าและระบบที่อ่านฟิลด์เดิมใช้ได้ต่อ
+    // ----------------------------------------------------------------
+    const MAX_PHOTOS = 6;
+    // ชื่อไฟล์รูปแบบสุ่ม (crypto.randomUUID ไม่มีในเบราว์เซอร์มือถือรุ่นเก่า)
+    const photoId = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 12));
+    const isPhotoUrl = u => typeof u === 'string' && /^https?:\/\//i.test(u);
+
+    function jobPhotos(r) {
+        const before = (Array.isArray(r?.beforePhotos) && r.beforePhotos.length ? r.beforePhotos : [r?.imageBefore])
+            .filter(isPhotoUrl).slice(0, MAX_PHOTOS);
+        let after;
+        if (Array.isArray(r?.afterPhotos) && r.afterPhotos.length) {
+            after = r.afterPhotos.map(p => typeof p === 'string' ? { url: p, pairWith: '' } : { url: p?.url, pairWith: p?.pairWith || '' });
+        } else {
+            // ใบงานเก่า: มีรูปก่อน 1 รูป + รูปหลัง 1 รูป -> ถือว่าเป็นคู่เดียวกัน (เหมือนที่เคยแสดงข้างกัน)
+            after = isPhotoUrl(r?.imageAfter) ? [{ url: r.imageAfter, pairWith: before.length === 1 ? before[0] : '' }] : [];
+        }
+        after = after.filter(p => isPhotoUrl(p.url)).slice(0, MAX_PHOTOS)
+            .map(p => ({ url: p.url, pairWith: before.includes(p.pairWith) ? p.pairWith : '' }));
+        return { before, after };
+    }
+
+    // จัดกลุ่มรูปสำหรับแสดงผล/รายงาน: คู่ก่อน-หลัง, รูปก่อนที่ไม่มีคู่, รูปหลังที่ไม่มีคู่
+    function photoLayout(r) {
+        const { before, after } = jobPhotos(r);
+        const pairs = [], loneAfter = [], usedBefore = new Set();
+        after.forEach((a, i) => {
+            const bi = a.pairWith ? before.indexOf(a.pairWith) : -1;
+            if (bi >= 0) { pairs.push({ before: before[bi], beforeNo: bi + 1, after: a.url, afterNo: i + 1 }); usedBefore.add(bi); }
+            else loneAfter.push({ url: a.url, no: i + 1 });
+        });
+        pairs.sort((x, y) => x.beforeNo - y.beforeNo || x.afterNo - y.afterNo);
+        const loneBefore = before.map((url, i) => ({ url, no: i + 1 })).filter(x => !usedBefore.has(x.no - 1));
+        return { before, after, pairs, loneBefore, loneAfter };
+    }
+
+    // ---- ตัวเลือกรูป (ฟอร์มแจ้งซ่อม 'req', แอดมินรูปก่อน 'before', แอดมินรูปหลัง 'after') ----
+    // item: { key, url (รูปที่อัปโหลดแล้ว) | file + src (รูปใหม่), pairWith: key ของรูปก่อนซ่อม }
+    const photoPicker = { req: [], before: [], after: [] };
+    const PICKER_INPUT = { req: 'reqImg', before: 'edit-img-before', after: 'adminImg' };
+    let pickerSeq = 0;
+    const newPickerKey = () => 'p' + (++pickerSeq);
+
+    function pickerReset(kind, items = []) {
+        photoPicker[kind].forEach(it => { if (it.file && it.src) URL.revokeObjectURL(it.src); });
+        photoPicker[kind] = items;
+        if ($(PICKER_INPUT[kind])) $(PICKER_INPUT[kind]).value = '';
+        renderPicker(kind);
+    }
+
+    function addPickerFiles(kind, input) {
+        const list = photoPicker[kind];
+        const files = [...(input.files || [])].filter(f => f.type.startsWith('image/'));
+        const room = MAX_PHOTOS - list.length;
+        files.slice(0, Math.max(room, 0)).forEach(file => list.push({ key: newPickerKey(), file, src: URL.createObjectURL(file), pairWith: '' }));
+        input.value = '';
+        if (files.length > room) Swal.fire({ icon: 'info', title: `แนบได้สูงสุด ${MAX_PHOTOS} รูป`, text: room > 0 ? `เพิ่มได้อีก ${room} รูป ระบบเลือกรูปแรก ๆ ให้แล้ว` : 'ลบรูปเดิมออกก่อนจึงจะเพิ่มรูปใหม่ได้', confirmButtonColor: '#2563eb' });
+        renderPicker(kind);
+        if (kind === 'before') renderPicker('after');
+    }
+
+    function removePickerItem(kind, key) {
+        const it = photoPicker[kind].find(x => x.key === key);
+        if (it?.file && it.src) URL.revokeObjectURL(it.src);
+        photoPicker[kind] = photoPicker[kind].filter(x => x.key !== key);
+        if (kind === 'before') photoPicker.after.forEach(a => { if (a.pairWith === key) a.pairWith = ''; });
+        renderPicker(kind);
+        if (kind === 'before') renderPicker('after');
+    }
+
+    function setPickerPair(afterKey, beforeKey) {
+        const a = photoPicker.after.find(x => x.key === afterKey);
+        if (a) a.pairWith = beforeKey;
+        renderPicker('after');
+    }
+
+    const pickerSrc = it => it.url || it.src;
+    const viewAttr = url => `onclick="openImageViewer(${inlineArg(url)})"`;
+
+    function renderPicker(kind) {
+        const list = photoPicker[kind];
+        const countEl = $({ req: 'reqPhotoCount', before: 'beforePhotoCount', after: 'afterPhotoCount' }[kind]);
+        if (countEl) countEl.textContent = `${list.length}/${MAX_PHOTOS} รูป`;
+        const input = PICKER_INPUT[kind];
+        const addTile = list.length < MAX_PHOTOS
+            ? `<button type="button" class="ph-add" onclick="document.getElementById('${input}').click()">
+                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                 <span>${list.length ? 'เพิ่มรูป' : 'แนบรูป'}</span><small>เหลือ ${MAX_PHOTOS - list.length} รูป</small></button>`
+            : '';
+        const tile = (it, i, tone) => `<div class="ph-tile"><img src="${escHtml(pickerSrc(it))}" ${viewAttr(pickerSrc(it))} alt="">
+                <span class="ph-no ${tone}">${i + 1}</span>
+                <button type="button" class="ph-del" title="ลบรูป" onclick="removePickerItem('${kind}','${it.key}')">×</button></div>`;
+
+        if (kind !== 'after') {
+            const grid = $(kind === 'req' ? 'reqPhotoGrid' : 'beforePhotoGrid');
+            if (grid) grid.innerHTML = list.map((it, i) => tile(it, i, 'before')).join('') + addTile;
+            return;
+        }
+        const befores = photoPicker.before;
+        const box = $('afterPhotoList');
+        if (!box) return;
+        const rows = list.map((it, i) => {
+            const chips = befores.length
+                ? `<button type="button" class="ph-chip none ${it.pairWith ? '' : 'on'}" onclick="setPickerPair('${it.key}','')">ไม่จับคู่</button>` +
+                  befores.map((b, bi) => `<button type="button" class="ph-chip ${it.pairWith === b.key ? 'on' : ''}" title="จับคู่กับรูปก่อนซ่อม ${bi + 1}" onclick="setPickerPair('${it.key}','${b.key}')"><img src="${escHtml(pickerSrc(b))}" alt=""><span>${bi + 1}</span></button>`).join('')
+                : '<span class="text-[11px] text-slate-400">ใบงานนี้ไม่มีรูปก่อนซ่อมให้จับคู่</span>';
+            const pairedNo = befores.findIndex(b => b.key === it.pairWith);
+            return `<div class="ph-after-row">${tile(it, i, 'after')}
+                <div class="min-w-0 flex-1"><div class="text-xs font-semibold ${pairedNo >= 0 ? 'text-emerald-700' : 'text-slate-600'}">${pairedNo >= 0 ? `คู่กับรูปก่อนซ่อม ${pairedNo + 1}` : 'จับคู่กับรูปก่อนซ่อม (ไม่บังคับ)'}</div>
+                <div class="ph-chips">${chips}</div></div></div>`;
+        }).join('');
+        box.innerHTML = rows + (addTile ? `<div style="width:120px">${addTile}</div>` : '');
+    }
+
+    // อัปโหลดรูปใหม่ในตัวเลือก แล้วคืน url ตามลำดับ (รูปเดิมใช้ url เดิม)
+    async function uploadPickerPhotos(kind, pathFor) {
+        return Promise.all(photoPicker[kind].map(async it => {
+            if (it.url) return it.url;
+            const data = await fileToBase64(it.file);
+            const ref = storage.ref(pathFor());
+            await ref.putString(data, 'data_url');
+            it.url = await ref.getDownloadURL();
+            return it.url;
+        }));
+    }
+
+    function loadPickersFromJob(r) {
+        const { before, after } = jobPhotos(r);
+        const bItems = before.map(url => ({ key: newPickerKey(), url, pairWith: '' }));
+        const keyOf = url => bItems.find(b => b.url === url)?.key || '';
+        pickerReset('before', bItems);
+        pickerReset('after', after.map(a => ({ key: newPickerKey(), url: a.url, pairWith: keyOf(a.pairWith) })));
+    }
+
+    // แกลเลอรีในหน้ารายละเอียดงาน
+    function renderDetailPhotos(r) {
+        const { before, after, pairs, loneBefore, loneAfter } = photoLayout(r);
+        const box = $('d-photos');
+        const img = (url, cap, tone) => `<div><div class="ph-cap ${tone}">${escHtml(cap)}</div><div class="ph-tile"><img src="${escHtml(url)}" ${viewAttr(url)} alt="" loading="lazy"></div></div>`;
+        const parts = [];
+        if (!before.length && !after.length) {
+            box.innerHTML = '<div class="h-24 bg-slate-50 rounded-xl flex items-center justify-center border border-slate-200 text-slate-400 text-xs">ไม่มีรูป</div>';
+            return;
+        }
+        if (pairs.length) parts.push(`<div><div class="text-xs font-bold text-slate-700 mb-2">เทียบก่อน / หลังซ่อม (${pairs.length} จุด)</div><div class="space-y-2">` +
+            pairs.map(p => `<div class="ph-pair">${img(p.before, `ก่อนซ่อม ${p.beforeNo}`, 'before')}${img(p.after, `หลังซ่อม ${p.afterNo}`, 'after')}</div>`).join('') + '</div></div>');
+        const grid = (title, list, prefix, tone) => list.length
+            ? `<div><div class="text-xs font-bold text-slate-700 mb-2">${title}</div><div class="ph-grid ph-grid-3">` +
+              list.map(x => img(x.url, `${prefix} ${x.no}`, tone)).join('') + '</div></div>' : '';
+        parts.push(grid(pairs.length ? 'รูปก่อนซ่อม (ไม่ได้จับคู่)' : 'รูปก่อนซ่อม', loneBefore, 'ก่อนซ่อม', 'before'));
+        parts.push(after.length ? grid(pairs.length ? 'รูปหลังซ่อม (ไม่ได้จับคู่)' : 'รูปหลังซ่อม', loneAfter, 'หลังซ่อม', 'after')
+            : '<div><div class="text-xs font-bold text-slate-700 mb-2">รูปหลังซ่อม</div><div class="text-xs text-slate-400">ยังไม่มีรูปหลังซ่อม</div></div>');
+        box.innerHTML = parts.join('');
+    }
+
+    // ----------------------------------------------------------------
     // 4. BOOTSTRAP
     // ----------------------------------------------------------------
     document.addEventListener('DOMContentLoaded', () => {
         $('setting-id-prefix').addEventListener('input', updateIdPreview);
         $('setting-id-start').addEventListener('input',  updateIdPreview);
+        renderPicker('req');
         
         initializeSession();
     });
@@ -1453,11 +1683,10 @@
         e.preventDefault();
         if (appData.isAdmin && !requireSuperAdmin()) return;
 
-        const fileInput = $('reqImg');
-        if (!fileInput.files.length) {
+        if (!photoPicker.req.length) {
             return Swal.fire({
                 icon: 'warning', title: 'ข้อมูลไม่ครบถ้วน',
-                text: 'กรุณาแนบรูปภาพของอุปกรณ์',
+                text: 'กรุณาแนบรูปภาพของอุปกรณ์อย่างน้อย 1 รูป',
                 confirmButtonColor: '#2563eb'
             });
         }
@@ -1483,12 +1712,8 @@
         Swal.fire({ title: 'กำลังประมวลผล...', allowOutsideClick: false, didOpen: () => Swal.showLoading(),  });
 
         try {
-            // Image Upload
-            let imgUrl = "";
-            let imgData = await fileToBase64(fileInput.files[0]);
-            const imgRef = storage.ref(`request-uploads/${auth.currentUser.uid}/${crypto.randomUUID()}.jpg`);
-            await imgRef.putString(imgData, 'data_url');
-            imgUrl = await imgRef.getDownloadURL();
+            // Image Upload (สูงสุด 6 รูป อัปโหลดพร้อมกัน)
+            const photoUrls = await uploadPickerPhotos('req', () => `request-uploads/${auth.currentUser.uid}/${photoId()}.jpg`);
 
             const payload = {
                 requestDate: new Date().toISOString(),
@@ -1500,7 +1725,8 @@
                 problemDetails: $('reqDetail').value,
                 urgency: urg, 
                 status: 'Waiting',
-                imageBefore: imgUrl,
+                imageBefore: photoUrls[0] || '',
+                beforePhotos: photoUrls,
                 userPin: userPin,
                 technician: '', adminRemarks: '', additionalNotes: '', cost: 0, itemsData: '[]'
             };
@@ -1513,7 +1739,7 @@
             catch (e) { console.warn('Asset sync failed', e); assetLink = { linked: false, error: true }; }
 
             $('requestForm').reset();
-            $('reqPreview').style.display = 'none';
+            pickerReset('req');
             if ($('reqEquipHint')) $('reqEquipHint').textContent = '';
 
             let html = `<div class="text-left mt-2">
@@ -1737,7 +1963,6 @@
         setVal('edit-reqDept',  r.positionDept);
         setVal('edit-equip',    r.equipmentLocation);
         setVal('edit-problem',  r.problemDetails);
-        $('edit-img-before').value = '';
         setVal('modalEquipId',  r.equipId);
 
         setVal('modalStatus', r.status);
@@ -1750,8 +1975,7 @@
             ? `<b>ใบนี้ถูกยกเลิก</b> เมื่อ ${escHtml(fmtDateTime(r.cancelledDate) || '-')}<br>เหตุผล: ${escHtml(r.cancelReason || '-')}${r.cancelRefJobId ? `<br>แจ้งใหม่เป็นใบ: <b class="font-mono">${escHtml(r.cancelRefJobId)}</b>` : ''}`
             : '';
 
-        $('adminImg').value = '';
-        $('adminPreview').style.display = 'none';
+        loadPickersFromJob(r);
 
         const container = $('itemsContainer');
         container.innerHTML = '';
@@ -1809,12 +2033,24 @@
                 additionalNotes: $('modalNotes').value
             };
 
-            // Before Image Update
-            if ($('edit-img-before').files.length > 0) {
-                const b64Before = await fileToBase64($('edit-img-before').files[0]);
-                const refBefore = storage.ref(`jobs/${jobId}_BEFORE_UPDATED.jpg`);
-                await refBefore.putString(b64Before, 'data_url');
-                updateData.imageBefore = await refBefore.getDownloadURL();
+            // รูปก่อน/หลังซ่อม (สูงสุดอย่างละ 6 รูป) บันทึกเฉพาะเมื่อมีการเปลี่ยนแปลง
+            const prevJob = appData.reqs.find(x => x.jobID === jobId) || {};
+            const prevPhotos = jobPhotos(prevJob);
+            const showAfter = $('adminImageSection').style.display !== 'none';
+            const beforeUrls = await uploadPickerPhotos('before', () => `jobs/${jobId}_BEFORE_${photoId()}.jpg`);
+            if (JSON.stringify(beforeUrls) !== JSON.stringify(prevPhotos.before)) {
+                updateData.beforePhotos = beforeUrls;
+                updateData.imageBefore = beforeUrls[0] || '';
+            }
+            if (showAfter) {
+                const afterUrls = await uploadPickerPhotos('after', () => `jobs/${jobId}_AFTER_${photoId()}.jpg`);
+                const keyUrl = key => photoPicker.before.find(b => b.key === key)?.url || '';
+                const afterPhotos = photoPicker.after.map((it, i) => ({ url: afterUrls[i], pairWith: keyUrl(it.pairWith) }));
+                const legacyBeforeChanged = !Array.isArray(prevJob.afterPhotos) && 'beforePhotos' in updateData;
+                if (legacyBeforeChanged || JSON.stringify(afterPhotos) !== JSON.stringify(prevPhotos.after)) {
+                    updateData.afterPhotos = afterPhotos;
+                    updateData.imageAfter = afterUrls[0] || '';
+                }
             }
 
             if (withCost) {
@@ -1832,12 +2068,6 @@
                     updateData.unrepairableConfirmedDate = null;
                 }
                 if (!prev.acceptedDate) updateData.acceptedDate = new Date().toISOString();
-                if ($('adminImg').files.length > 0) {
-                    const b64After = await fileToBase64($('adminImg').files[0]);
-                    const refAfter = storage.ref(`jobs/${jobId}_AFTER.jpg`);
-                    await refAfter.putString(b64After, 'data_url');
-                    updateData.imageAfter = await refAfter.getDownloadURL();
-                }
             } else if (st === 'Done' || st === 'Closed') {
                 const prev = appData.reqs.find(x => x.jobID === jobId) || {};
                 const wasDone = prev.status === 'Done' || prev.status === 'Closed';
@@ -1845,14 +2075,6 @@
                 if ($('modalUpdateDate')?.checked) updateData.completedDate = now;
                 // วันที่ช่างปิดงาน: บันทึกตอนเปลี่ยนเป็น Done/Closed ครั้งแรก หรือเมื่อติ๊กอัพเดทวันที่
                 if (!wasDone || $('modalUpdateDate')?.checked) updateData.techDoneDate = now;
-
-                // After Image Upload
-                if ($('adminImg').files.length > 0) {
-                    const b64After = await fileToBase64($('adminImg').files[0]);
-                    const refAfter = storage.ref(`jobs/${jobId}_AFTER.jpg`);
-                    await refAfter.putString(b64After, 'data_url');
-                    updateData.imageAfter = await refAfter.getDownloadURL();
-                }
             } else if (['Processing', 'WaitingParts', 'PendingApproval'].includes(st)) {
                 const r = appData.reqs.find(x => x.jobID === jobId);
                 if (!r.acceptedDate) updateData.acceptedDate = new Date().toISOString();
@@ -2271,19 +2493,7 @@
             } else { costBox.classList.add('hidden'); }
         } else { admSec.classList.add('hidden'); }
 
-        const setImg = (id, url, placeholder) => {
-            const div = $(id);
-            div.replaceChildren();
-            if (url && /^https?:\/\//i.test(url)) {
-                const img = document.createElement('img');
-                img.src = url; img.className = 'h-full w-full object-cover cursor-pointer hover:scale-105 transition';
-                img.addEventListener('click', () => openImageViewer(url)); div.appendChild(img);
-            } else {
-                const span = document.createElement('span'); span.className = 'text-slate-400 text-xs'; span.textContent = placeholder; div.appendChild(span);
-            }
-        };
-        setImg('d-img-before', r.imageBefore, 'ไม่มีรูป');
-        setImg('d-img-after',  r.imageAfter,  'ไม่มีรูป');
+        renderDetailPhotos(r);
 
         const vDiv = $('d-verify-area');
         // เปิดจากตารางแอดมิน: ไม่แสดงปุ่มฝั่งผู้แจ้ง (ยืนยันจบงาน/ขอยกเลิก) เพราะแอดมินมีปุ่มของตัวเองในตารางอยู่แล้ว

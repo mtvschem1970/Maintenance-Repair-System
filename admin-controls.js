@@ -108,6 +108,8 @@ const AUDIT_FIELDS = {
   stockUsage: "รายการเบิกสต๊อก",
   imageBefore: "รูปก่อนซ่อม",
   imageAfter: "รูปหลังซ่อม",
+  beforePhotos: "รูปก่อนซ่อม (ทั้งหมด)",
+  afterPhotos: "รูปหลังซ่อม / การจับคู่",
   acceptedDate: "เวลารับงาน",
   completedDate: "เวลาซ่อมเสร็จ",
   techDoneDate: "เวลาช่างจบงาน",
